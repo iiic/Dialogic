@@ -57,18 +57,6 @@
 
 		export class Dialogic extends DialogicInternal {
 
-			/**
-			 * Finds the item by its unique id.
-			 * @typedef {function(string): Location} Locater
-			 */
-
-			/** @type {Number} */
-			static #maxActions = 2;
-
-			get maxActions () {
-				return maxActions;
-			}
-
 			constructor ( /** @type {String} */ title = '', /** @type {Object} */ options = {} ) {
 				super();
 				if ( arguments.length === 0 )
@@ -81,14 +69,20 @@
 					actions: [],
 					badge: '',
 					body: '',
+					data: null,
 					dir: 'auto',
 					icon: '',
 					image: null,
 					lang: '',
+					renotify: false,
+					requireInteraction: false,
 					silent: false,
 					tag: '',
-					timestamp: Date.now()
+					timestamp: Date.now(),
+					vibrate: []
 				};
+
+				options = options === null ? defaultOptions : { ...defaultOptions, ...options };
 
 				/** @param title */
 				Object.defineProperty( this, 'title', {
@@ -98,14 +92,36 @@
 					configurable: true
 				} );
 
-				/** @param megalol */
-				Object.defineProperty( this, 'megalol', {
-					value: 'neco',
-					writable: false,
-					enumerable: true,
-					configurable: true
-				} );
+				this.onclick = null;
+				this.onclose = null;
+				this.onerror = null;
+				this.onshow = null;
 
+				if ( options !== null )
+				{
+
+					/** @type {Array} */
+					const keys = Object.keys( defaultOptions );
+
+					keys.forEach( ( /** @type {String} */ key ) => {
+						Object.defineProperty( this, key, {
+							value: options[ key ],
+							writable: false,
+							enumerable: true,
+							configurable: true
+						} );
+					} );
+				}
+
+			}
+
+			close () {
+				const event = new Event( 'close' );
+				this.dispatchEvent( event );
+				if ( this.onclose !== null )
+				{
+					this.onclose( event );
+				}
 			}
 
 			run () {
@@ -113,6 +129,15 @@
 			}
 
 		}
+
+		// Private properties
+		Object.defineProperty( Dialogic, 'maxActions', {
+			get: function () {
+				return 2;
+			},
+			set: function () { },
+			enumerable: true
+		} );
 
 		window.Dialogic = Dialogic;
 
