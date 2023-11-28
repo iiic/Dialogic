@@ -38,109 +38,11 @@
 	<script type="text/json" id="dialogic-settings">
 		{
 			"modulesImportPath": "/modules",
-			"askForPermissionsId": "get-notification-permission",
-			"texts": {
-				"defaultImageAlt": "default text for image… maybe default image",
-				"askPermissionsResultSuccess": "Now you can receive browser Notifications.",
-				"askPermissionsResultCanceled": "You canceled the possibility to display Notifications, this status is now remembered in the browser, to re-enable it, click on the small lock icon in front of the url address of this page and select allowed or ask.",
-				"permissionsResultAlreadyGranted": "You have already allowed the default browser Notification."
-			}
+			"novaPolozkaNastaveni": "je tu"
 		}
 	</script>
-	<!-- <script type="module" src="dialogic.mjs?v=0.1" crossorigin="anonymous" data-integrity="sha256-todo"></script> -->
+	<script type="module" src="dialogic.mjs?v=0.1" crossorigin="anonymous" data-integrity="sha256-todo"></script>
 	<script type="module">
-		//https://github.com/wootzapp/wootz-browser/blob/11f9323feb5ef4ab7dc420d7c3e9dbe372d868b3/js/web_notification.js#L18
-
-		const DialogicInternal = class {
-
-		}
-
-		export class Dialogic extends DialogicInternal {
-
-			constructor ( /** @type {String} */ title = '', /** @type {Object} */ options = {} ) {
-				super();
-				if ( arguments.length === 0 )
-				{
-					throw new TypeError( 'Failed to construct \'Dialogic\': 1 argument required, but only 0 present.' );
-				}
-
-				/** @type {Object} */
-				const defaultOptions = {
-					actions: [],
-					badge: '',
-					body: '',
-					data: null,
-					dir: 'auto',
-					icon: '',
-					image: null,
-					lang: '',
-					renotify: false,
-					requireInteraction: false,
-					silent: false,
-					tag: '',
-					timestamp: Date.now(),
-					vibrate: []
-				};
-
-				options = options === null ? defaultOptions : { ...defaultOptions, ...options };
-
-				/** @param title */
-				Object.defineProperty( this, 'title', {
-					value: title,
-					writable: false,
-					enumerable: true,
-					configurable: true
-				} );
-
-				this.onclick = null;
-				this.onclose = null;
-				this.onerror = null;
-				this.onshow = null;
-
-				if ( options !== null )
-				{
-
-					/** @type {Array} */
-					const keys = Object.keys( defaultOptions );
-
-					keys.forEach( ( /** @type {String} */ key ) => {
-						Object.defineProperty( this, key, {
-							value: options[ key ],
-							writable: false,
-							enumerable: true,
-							configurable: true
-						} );
-					} );
-				}
-
-			}
-
-			close () {
-				const event = new Event( 'close' );
-				this.dispatchEvent( event );
-				if ( this.onclose !== null )
-				{
-					this.onclose( event );
-				}
-			}
-
-			run () {
-				// …
-			}
-
-		}
-
-		// Private properties
-		Object.defineProperty( Dialogic, 'maxActions', {
-			get: function () {
-				return 2;
-			},
-			set: function () { },
-			enumerable: true
-		} );
-
-		window.Dialogic = Dialogic;
-
-		// const lol = new Dialogic( 'nadpis' );
-		// console.log( lol );
+		const lol = new Dialogic( 'nadpis', { type: Dialogic.CONFIRM } );
+		console.log( lol );
 	</script>
