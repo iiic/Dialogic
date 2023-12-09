@@ -7,57 +7,57 @@
 const DialogicInternal = class
 {
 
+	#settings = {
+		defaultOptions: {
+			actions: [],
+			badge: '',
+			body: '',
+			data: null,
+			dir: 'auto',
+			icon: '',
+			image: null,
+			lang: '',
+			renotify: false,
+			requireInteraction: false,
+			silent: false,
+			tag: '',
+			timestamp: Date.now(),
+			vibrate: [],
+			type: Dialogic.ALERT,
+		},
+		rootElementId: 'dialogic-canvas',
+		resultSnippetElements: {
+			dialog: 'DIALOG',
+			innerWrapper: 'DIV',
+			title: 'H3',
+			description: 'P',
+			closer: 'BUTTON'
+		},
+		modulesImportPath: 'https://iiic.dev/js/modules',
+		autoRun: true,
+	};
+
 	constructor ()
 	{
-
-		Object.defineProperty( this, '_settings', {
-			value: {
-				defaultOptions: {
-					actions: [],
-					badge: '',
-					body: '',
-					data: null,
-					dir: 'auto',
-					icon: '',
-					image: null,
-					lang: '',
-					renotify: false,
-					requireInteraction: false,
-					silent: false,
-					tag: '',
-					timestamp: Date.now(),
-					vibrate: [],
-					type: Dialogic.ALERT,
-				},
-				rootElementId: 'dialogic-canvas',
-				resultSnippetElements: {
-					dialog: 'DIALOG',
-					innerWrapper: 'DIV',
-					title: 'H3',
-					description: 'P',
-					closer: 'BUTTON'
-				},
-				modulesImportPath: 'https://iiic.dev/js/modules',
-				autoRun: true,
-			},
-			writable: true,
-			enumerable: false,
-			configurable: false
-		} );
 
 		Object.defineProperty( this, 'settings', {
 			get: function ()
 			{
-				return this._settings;
+				return this.#settings;
 			},
 			set: function ( /** @type {Object} */ newSettings )
 			{
-				this._settings = { ...this._settings, ...newSettings };
+				this.#settings = { ...this.#settings, ...newSettings };
 			},
 			enumerable: true,
 			configurable: true
 		} );
 
+	}
+
+	#privatniMetoda ()
+	{
+		console.log( 'hustý' );
 	}
 
 }
