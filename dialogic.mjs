@@ -7,6 +7,14 @@
 const DialogicInternal = class
 {
 
+	/** private (
+	 * enumerable: false,
+	 * not showing in Object.keys,
+	 * not showing in Object.getOwnPropertyDescriptors,
+	 * not showing in Object.getOwnPropertyNames
+	 * …
+	 * )
+	 */
 	#settings = {
 		defaultOptions: {
 			actions: [],
@@ -64,10 +72,6 @@ const DialogicInternal = class
 
 export class Dialogic extends DialogicInternal
 {
-
-	static ALERT = 0;
-	static CONFIRM = 1;
-
 	constructor ( /** @type {String} */ title = '', /** @type {Object} */ options = {} )
 	{
 		super();
@@ -165,7 +169,28 @@ Object.defineProperty( Dialogic, 'maxActions', {
 		return 2;
 	},
 	set: function () { },
-	enumerable: true
+	enumerable: true,
+	configurable: false
+} );
+
+Object.defineProperty( Dialogic, 'ALERT', {
+	get: function ()
+	{
+		return 0;
+	},
+	set: function () { },
+	enumerable: true,
+	configurable: false
+} );
+
+Object.defineProperty( Dialogic, 'CONFIRM', {
+	get: function ()
+	{
+		return 1;
+	},
+	set: function () { },
+	enumerable: true,
+	configurable: false
 } );
 
 window.Dialogic = Dialogic;
