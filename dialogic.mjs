@@ -1,6 +1,6 @@
-//https://github.com/wootzapp/wootz-browser/blob/11f9323feb5ef4ab7dc420d7c3e9dbe372d868b3/js/web_notification.js#L18
+// import { importWithIntegrity } from '/modules/importWithIntegrity.mjs';
 
-// @todo : vyzkoušet jak se chová settings… jestli jeto stejné jako moje object.deepAssign
+//https://github.com/wootzapp/wootz-browser/blob/11f9323feb5ef4ab7dc420d7c3e9dbe372d868b3/js/web_notification.js#L18
 
 // @todo : vyzkoušet přesunout věci z constructoru do Internal třídy
 
@@ -55,7 +55,7 @@ const DialogicInternal = class
 			},
 			set: function ( /** @type {Object} */ newSettings )
 			{
-				this.#settings = { ...this.#settings, ...newSettings };
+				this.#settings = DialogicInternal.#deepAssign( this.#settings, newSettings );
 			},
 			enumerable: true,
 			configurable: true
@@ -63,9 +63,24 @@ const DialogicInternal = class
 
 	}
 
-	#privatniMetoda ()
+	static #deepAssign ( /** @type {Array} */ ...args )
 	{
-		console.log( 'hustý' );
+		let currentLevel = {};
+		args.forEach( ( /** @type {Object} */ source ) =>
+		{
+			if ( source instanceof Array ) {
+				currentLevel = source;
+			} else if ( source !== null ) {
+				Object.entries( source ).forEach( ( [ /** @type {String} */ key, value ] ) =>
+				{
+					if ( value instanceof Object && key in currentLevel ) {
+						value = DialogicInternal.#deepAssign( currentLevel[ key ], value );
+					}
+					currentLevel = { ...currentLevel, [ key ]: value };
+				} );
+			}
+		} );
+		return currentLevel;
 	}
 
 }
