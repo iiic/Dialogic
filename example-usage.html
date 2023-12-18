@@ -3,16 +3,62 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>Notific html example</title>
+	<title>Dialogic html example</title>
 	<!-- <link rel="stylesheet" href="/notific.css" crossorigin="anonymous" integrity="sha256-DErgeoS4SQg0UMgS8E4mhJbyqNPHbyooBGsPqlRQviw="> -->
+	<style>
+		.two-examples {
+			display: grid;
+			grid-template-columns: auto auto;
+			grid-auto-rows: 49%;
+			column-gap: 0.5em;
+			align-items: start;
+		}
+
+		.two-examples section {
+			border: 1px solid gainsboro;
+		}
+
+	</style>
+	<link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/styles/default.min.css">
 </head>
 
 <body>
 
-	<!-- <h1>Notific v 0.3</h1>
-	<p>On page or native Notifications</p>
+	<h1>Dialogic v 0.1</h1>
+	<p>Dialog element javascript working like native <a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification">Notification</a></p>
 	<p>Just vanilla javascript, no <s>jQuery</s> or other libraries. Styles and examples included in repo. Same parameters as browser's default <code>Notification()</code> function</p>
-	<strong>Whats happening?</strong>
+
+	<div id="dialogic-root" hidden></div>
+	<script type="text/json" id="dialogic-settings">
+			{
+				"modulesImportPath": "/modules",
+				"novaHodnota": "je tu",
+				"resultSnippetElements": {"innerWrapper": "GGG"}
+			}
+		</script>
+	<script type="module" src="dialogic.mjs?v=0.1" crossorigin="anonymous" data-integrity="sha256-todo"></script>
+	<script type="module">
+		const lol = new Dialogic( 'nadpis', { type: Dialogic.CONFIRM } );
+		console.log( lol );
+	</script>
+
+	<main class="two-examples">
+
+		<section>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script type="module"&gt;
+	const lol = new Dialogic( 'nadpis', { type: Dialogic.CONFIRM } );
+	console.log( lol );
+&lt;/script&gt;</code></pre>
+			ukázka
+		</section>
+
+		<section>
+
+		</section>
+	</main>
+
+	<!-- <strong>Whats happening?</strong>
 	<p>This page is showing notifications periodically every 8 seconds, and automatically hide them 15 seconds from display. (so max 2 notifications at the same tame).</p>
 	<p>When tab is active notification is on page, when you switch to another tab, notifications will be shown by browser <code>Notification()</code> function.</p>
 	<p>If native notifications are not working <button id="get-notification-permission">Get permissions for <code>Nofification()</code> by clicking this button</button></p>
@@ -34,16 +80,6 @@
 		<li>Webpage about function <a href="https://iiic.dev/notific-on-page-or-native-notifications">https://iiic.dev/notific-on-page-or-native-notifications</a></li>
 	</ul> -->
 
-	<div id="dialogic-root" hidden></div>
-	<script type="text/json" id="dialogic-settings">
-		{
-			"modulesImportPath": "/modules",
-			"novaHodnota": "je tu",
-			"resultSnippetElements": {"innerWrapper": "GGG"}
-		}
-	</script>
-	<script type="module" src="dialogic.mjs?v=0.1" crossorigin="anonymous" data-integrity="sha256-todo"></script>
-	<script type="module">
-		const lol = new Dialogic( 'nadpis', { type: Dialogic.CONFIRM } );
-		console.log( lol );
-	</script>
+	<script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/highlight.min.js" defer crossorigin="anonymous" integrity="sha256-g3pvpbDHNrUrveKythkPMF2j/J7UFoHbUyFQcFe1yEY="></script>
+	<script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/languages/javascript.min.js" defer crossorigin="anonymous" integrity="sha256-j2desQDHlJi9NfQi+bXXw2pLiccp1+R3FVBhkHkr+fA="></script>
+	<script type="module">hljs.highlightAll();</script>
