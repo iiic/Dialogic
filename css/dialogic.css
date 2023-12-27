@@ -1,0 +1,94 @@
+:root {
+	--body-background: #fff;
+	--base-font-color: #000;
+	--active-color: blue;
+	--outline-color: blue;
+	--dialog-height: 200px;
+	--dialog-shift-top: calc(50% - (var(--dialog-height) / 2));
+	--dialog-z-index: 1;
+	--char-multiplication-sign: '\00D7';
+	--bg-overlay-color: rgba(17, 13, 13, 0.5);
+}
+
+/* html {
+	box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: inherit;
+}
+
+body {
+	background: var(--body-background);
+} */
+
+dialog {
+	display: block;
+	padding: 0;
+	top: var(--dialog-shift-top);
+	visibility: hidden;
+	opacity: 0;
+	transition: opacity 0.5s;
+}
+
+dialog[open] {
+	visibility: visible;
+	opacity: 1;
+}
+
+dialog>div {
+	background: inherit;
+	position: relative;
+	padding: 1rem;
+	min-height: var(--dialog-height);
+	z-index: calc(var(--dialog-z-index) + 1);
+}
+
+dialog>button {
+	position: fixed;
+	text-decoration: none;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	border: none;
+	cursor: pointer;
+	padding: 1rem;
+	background: var(--bg-overlay-color);
+	z-index: var(--dialog-z-index);
+	font-size: 0;
+	color: transparent;
+}
+
+dialog>button:focus::before {
+	outline: none;
+	box-shadow: 0 0 0.2em 0.3em var(--outline-color);
+}
+
+dialog>button::before {
+	font-family: Verdana, Geneva, sans-serif;
+	content: var(--char-multiplication-sign);
+	font-weight: bold;
+	background: var(--body-background);
+	border: 2px solid var(--bg-overlay-color);
+	position: absolute;
+	top: 1.5rem;
+	right: 1.5rem;
+	display: block;
+	color: var(--base-font-color);
+	font-size: 1.2rem;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 50%;
+	line-height: 1.6rem;
+	text-align: center;
+	transition: border-color 0.5s, color 0.5s, box-shadow 0.1s;
+}
+
+dialog>button:focus::before,
+dialog>button:hover::before {
+	border-color: var(--body-background);
+	color: var(--active-color);
+}

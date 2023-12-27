@@ -1,8 +1,6 @@
-// import { importWithIntegrity } from '/modules/importWithIntegrity.mjs';
+import { importWithIntegrity } from '/modules/importWithIntegrity.mjs';
 
 //https://github.com/wootzapp/wootz-browser/blob/11f9323feb5ef4ab7dc420d7c3e9dbe372d868b3/js/web_notification.js#L18
-
-// @todo : vyzkoušet přesunout věci z constructoru do Internal třídy
 
 const DialogicInternal = class
 {
@@ -20,9 +18,10 @@ const DialogicInternal = class
 			actions: [],
 			badge: '',
 			body: '',
+			htmlBody: '',
 			data: null,
 			dir: 'auto',
-			icon: '',
+			icon: '', // will be displayed as 96x96 px
 			image: null,
 			lang: '',
 			renotify: false,
@@ -39,8 +38,23 @@ const DialogicInternal = class
 			innerWrapper: 'DIV',
 			title: 'H3',
 			description: 'P',
-			closer: 'BUTTON'
+			closer: 'BUTTON',
 		},
+		snippetIdPrefixes: {
+			dialog: 'dialogic-',
+			title: 'dialogic-title-',
+			description: 'dialogic-description-',
+		},
+		texts: {
+			closerTextContent: 'x',
+			closerTitle: 'close this popup',
+			iconAlt: 'dialog icon',
+		},
+		typeConfirm: {
+			yes: 'yes',
+			no: 'no',
+		},
+		dataAttributes: {},
 		modulesImportPath: 'https://iiic.dev/js/modules',
 		autoRun: true,
 	};
@@ -48,6 +62,7 @@ const DialogicInternal = class
 	constructor ()
 	{
 
+		/** @param settings */
 		Object.defineProperty( this, 'settings', {
 			get: function ()
 			{
@@ -134,6 +149,7 @@ export class Dialogic extends DialogicInternal
 			} );
 		}
 
+		/** @param rootElement */
 		Object.defineProperty( this, 'rootElement', {
 			get: function ()
 			{
@@ -169,10 +185,127 @@ export class Dialogic extends DialogicInternal
 		}
 	}
 
+	/*
+			<p id="delivery-address-description">
+				… imagine some form in here :)
+				<br><br>
+				<i>
+					Lorem ipsum dolor sit amet, consectetuer adipiscing elit.<br>
+					Aliquam erat volutpat. Suspendisse sagittis ultrices augue.<br>
+					Integer malesuada. Aliquam ornare wisi eu metus. Integer pellentesque quam vel velit.<br>
+					Nunc dapibus tortor vel mi dapibus sollicitudin.
+				</i>
+			</p>
+			<button onclick="alert('yes')">yes</button> / <button onclick="alert('no')">no</button>
+		</div>
+		<button data-on="tap:my-lightbox.close" title="close dialog">x</button>
+	</dialog>
+	*/
+	async createDialogSnippet ()
+	{
+
+		/** @type {HTMLDialogElement} */
+		const dialogElement = document.createElement( this.settings.resultSnippetElements.dialog );
+
+		/** @type {HTMLElement} */
+		const innerWrapperElement = document.createElement( this.settings.resultSnippetElements.innerWrapper );
+
+		/** @type {HTMLHeadingElement} */
+		const titleElement = document.createElement( this.settings.resultSnippetElements.title );
+
+		/** @type {HTMLElement} */
+		const descriptionElement = document.createElement( this.settings.resultSnippetElements.description );
+
+		/** @type {HTMLElement} */
+		const closerElement = document.createElement( this.settings.resultSnippetElements.closer );
+
+		/** @type {String} */
+		const dialogId = this.tag ? this.tag : this.settings.snippetIdPrefixes.dialog + this.timestamp + '-' + ( this.title ).hashCode();
+
+		/** @type {String} */
+		const titleElementId = this.settings.snippetIdPrefixes.title + this.timestamp + '-' + ( this.title ).hashCode();
+
+		/** @type {String} */
+		const descriptionElementId = this.settings.snippetIdPrefixes.description + this.timestamp + '-' + ( this.title ).hashCode();
+
+		/** @type {HTMLImageElement|null} */
+		const imageElement = this.icon ? document.createElement( 'IMG' ) : null;
+
+		dialogElement.open = true; // create dialog opened by default
+		dialogElement.id = dialogId;
+		dialogElement.role = 'alertdialog';
+		dialogElement.setAttribute( 'aria-labelledby', titleElementId );
+		dialogElement.setAttribute( 'aria-describedby', descriptionElementId );
+		innerWrapperElement.role = 'document';
+		innerWrapperElement.tabIndex = 0;
+		if ( imageElement ) {
+			imageElement.src = this.icon;
+			imageElement.alt = this.settings.texts.iconAlt ? this.settings.texts.iconAlt : '';
+			imageElement.decoding = 'sync';
+			imageElement.crossOrigin = 'anonymous';
+			imageElement.fetchPriority = 'high';
+			imageElement.width = 96;
+			imageElement.height = 96;
+			imageElement.loading = 'eager';
+		}
+		titleElement.appendChild( document.createTextNode( this.title ) );
+		titleElement.id = titleElementId;
+		if ( this.body ) {
+			descriptionElement.appendChild( document.createTextNode( this.body ) );
+		} else if ( this.htmlBody ) {
+			descriptionElement.insertAdjacentHTML( 'beforeend', this.htmlBody );
+		}
+		descriptionElement.id = descriptionElementId;
+		closerElement.appendChild( document.createTextNode( this.settings.texts.closerTextContent ) );
+		if ( this.settings.texts.closerTitle ) {
+			closerElement.title = this.settings.texts.closerTitle;
+		}
+		if ( this.settings.dataAttributes.closer ) {
+			closerElement.setAttribute( this.settings.dataAttributes.closer.name, this.settings.dataAttributes.closer.value );
+		} else {
+			closerElement.addEventListener( 'click', ( /** @type {PointerEvent} */ event ) =>
+			{
+
+				/** @type {HTMLElement} */
+				let dialogElement = event.target;
+
+				while ( dialogElement.nodeName !== this.settings.resultSnippetElements.dialog.toUpperCase() ) {
+					dialogElement = dialogElement.parentElement;
+				}
+				dialogElement.close();
+			}, {
+				capture: false,
+				once: false,
+				passive: true,
+			} );
+		}
+
+		dialogElement.appendChild( innerWrapperElement );
+		if ( imageElement ) {
+			innerWrapperElement.appendChild( imageElement );
+		}
+		innerWrapperElement.appendChild( titleElement );
+		innerWrapperElement.appendChild( descriptionElement );
+		dialogElement.appendChild( closerElement );
+		this.rootElement.appendChild( dialogElement );
+	}
+
+	async loadExternalFunctions ()
+	{
+		return importWithIntegrity(
+			this.settings.modulesImportPath + '/string/hashCode.mjs',
+			'sha256-wujpULOI6urz9Qust0pbGs0BBeNwwfuxyg6lPGPioNA='
+		).then( ( /** @type {Module} */ hashCode ) =>
+		{
+			return new hashCode.append( String );
+		} );
+	}
+
 	async run ()
 	{
 		await this.checkRequirements();
-
+		await this.loadExternalFunctions();
+		await this.createDialogSnippet();
 	}
 
 }

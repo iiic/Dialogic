@@ -14,7 +14,7 @@
 			align-items: start;
 		}
 
-		.two-examples section {
+		.two-examples div {
 			border: 1px solid gainsboro;
 		}
 
@@ -32,31 +32,255 @@
 	<script type="text/json" id="dialogic-settings">
 			{
 				"modulesImportPath": "/modules",
-				"novaHodnota": "je tu",
-				"resultSnippetElements": {"innerWrapper": "GGG"}
+				"novaHodnota": "je tu"
 			}
 		</script>
 	<script type="module" src="dialogic.mjs?v=0.1" crossorigin="anonymous" data-integrity="sha256-todo"></script>
 	<script type="module">
-		const lol = new Dialogic( 'nadpis', { type: Dialogic.CONFIRM } );
-		console.log( lol );
+		// const lol = new Dialogic( 'nadpis', { type: Dialogic.CONFIRM } );
+		// console.log( lol );
 	</script>
 
-	<main class="two-examples">
+	<h2>Příklady:</h2>
 
-		<section>
+	<h3>Inicializace</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic:
+			<p>Vložit do stránky, pro funkci scriptu Dialogic je jedno kam (tedy jestli do elementu <code>head</code>, na konec <code>body</code>, či kamkoliv)</p>
+			<pre><code>&lt;script type="module" src="dialogic.mjs?v=0.1" crossorigin="anonymous" data-integrity="sha256-todo"&gt;&lt;/script&gt;</code></pre>
+		</div>
+		<div>
+			Notification:
+			<p>Pro použití příkladů s API <code>Notification</code> jsou nutné oprávnění, bez nich se notifikace <strong>nezobrazí</strong>.</p>
+			<pre><code class="language-javascript">&lt;script defer&gt;
+	const button = document.createElement( 'button' );
+	button.textContent = 'Požádat o práva k zobrazování notifikací';
+	button.addEventListener( 'click', function ( /** @type {PointerEvent}  event */ ) {
+		Notification.requestPermission();
+	} );
+	document.currentScript.insertAdjacentElement( 'afterend', button );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Požádat o práva k zobrazování notifikací';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} event */ ) {
+						Notification.requestPermission();
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
+	<h3>Základní příklad</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Dialogic( 'nadpis' );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Dialogic( 'nadpis' );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			Notification:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Notification( 'nadpis' );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Notification( 'nadpis' );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
+	<h3>S obsahem v body</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Dialogic( 'nadpis', {body: 'delší obsah který lépe popisuje o co vlastně jde'} );
+&lt;/script&gt;
+</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Dialogic( 'nadpis', { body: 'delší obsah který lépe popisuje o co vlastně jde' } );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			Notification:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Notification( 'nadpis', {body: 'delší obsah který lépe popisuje o co vlastně jde'} );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Notification( 'nadpis', { body: 'delší obsah který lépe popisuje o co vlastně jde' } );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
+	<h3>S html obsahem v body</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Dialogic( 'nadpis', {htmlBody: 'obsah &lt;strong&gt;i s tagy&lt;/strong&gt;&lt;br&gt;odřádkováním a obecně &lt;h4&gt;veškeré html&lt;/h4&gt;, nejsou žádné omezení'} );
+&lt;/script&gt;
+		</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Dialogic( 'nadpis', { htmlBody: 'obsah <strong>i s tagy</strong><br>odřádkováním a obecně <h4>veškeré html</h4>, nejsou žádné omezení' } );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			Notification:
+			<pre><code class="language-javascript">// nemá odpovídající příklad, Notification neumí HTML v body ani title :(</code></pre>
+		</div>
+	</section>
+
+	<br>
+	<h3>S obrázkem, nadpisem a body (obrázky se omezí v obou případech na 96x96px)</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Dialogic( 'nadpis', {
+		body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text…',
+		icon: 'img/crow.png'
+	} );
+&lt;/script&gt;
+	</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Dialogic( 'nadpis', {
+							body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text, aby to bylo dlouhé a bylo z toho patrné, jakým způsobem je obtékaný obrázek.',
+							icon: 'img/crow.png'
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			Notification:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Notification( 'nadpis', {
+		body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text…',
+		icon: 'img/crow.png'
+	} );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Notification( 'nadpis', {
+							body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text, aby to bylo dlouhé a bylo z toho patrné, jakým způsobem je obtékaný obrázek.',
+							icon: 'img/crow.png'
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
+	<h3>Dialog s možnostmi ano / ne</h3>
+
+	<section class="two-examples">
+
+		<div>
 			Dialogic:
 			<pre><code class="language-javascript">&lt;script type="module"&gt;
 	const lol = new Dialogic( 'nadpis', { type: Dialogic.CONFIRM } );
 	console.log( lol );
 &lt;/script&gt;</code></pre>
 			ukázka
-		</section>
+		</div>
 
-		<section>
-
-		</section>
-	</main>
+		<div>
+			Notification:
+			/// asi nějak půjde s pomocí návazných událostí na klik na notifikaci a klik na křížek
+		</div>
+	</section>
 
 	<!-- <strong>Whats happening?</strong>
 	<p>This page is showing notifications periodically every 8 seconds, and automatically hide them 15 seconds from display. (so max 2 notifications at the same tame).</p>

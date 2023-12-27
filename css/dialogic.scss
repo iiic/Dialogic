@@ -1,0 +1,88 @@
+dialog {
+	$dialog-z-index: 2;
+	$outline-color: $brand-success;
+	$dialog-heigh: 200px;
+	$dialog-shift-top: calc(50% - #{$dialog-heigh / 2});
+	$char-multiplication-sign: '\00D7';
+	$bg-overlay-color: rgba(17, 13, 13, 0.5);
+	$brand-success: blue;
+	$body-bg: #fff;
+	$base-text-color: #fff;
+
+	display: block;
+	position: fixed;
+	padding: 0;
+	top: $dialog-shift-top;
+	visibility: hidden;
+	opacity: 0;
+	transition: opacity 0.5s;
+
+	&[open] {
+		visibility: visible;
+		opacity: 1;
+		z-index: $dialog-z-index + 1;
+	}
+
+	&>div {
+		background: inherit;
+		position: relative;
+		padding: 1rem;
+		min-height: $dialog-heigh;
+		z-index: $dialog-z-index + 2;
+	}
+
+	&>button {
+		position: fixed;
+		text-decoration: none;
+		top: 0;
+		left: 0;
+		margin: 0;
+		height: 100%;
+		width: 100%;
+		border: none;
+		cursor: pointer;
+		padding: 1rem;
+		background: $bg-overlay-color;
+		z-index: $dialog-z-index;
+		font-size: 0;
+		color: transparent;
+	}
+
+	&>button:focus::before {
+		outline: none;
+		box-shadow: 0 0 0.2em 0.3em $outline-color;
+	}
+
+	&>button::before {
+		font-family: Verdana, Geneva, sans-serif;
+		content: $char-multiplication-sign;
+		font-weight: bold;
+		background: $body-bg;
+		border: 2px solid $bg-overlay-color;
+		position: absolute;
+		top: 1.5rem;
+		right: 1.5rem;
+		display: block;
+		color: $base-text-color;
+		font-size: 1.2rem;
+		width: 2rem;
+		height: 2rem;
+		border-radius: 50%;
+		line-height: 1.6rem;
+		text-align: center;
+		transition: border-color 0.5s, color 0.5s, box-shadow 0.1s;
+	}
+
+	// &>button::before
+
+	&>button:focus::before,
+	&>button:hover::before {
+		border-color: $body-bg;
+		color: $brand-success;
+	}
+
+	//&>button:hover::before
+
+}
+
+// dialog
