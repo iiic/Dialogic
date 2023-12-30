@@ -272,6 +272,77 @@
 	</section>
 
 	<br>
+	<h3>Dvě po sobě jdoucí volání funkce… co se asi stane?</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Dialogic( 'nadpis', {
+		body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text…',
+		icon: 'img/crow.png'
+	} );
+	new Dialogic( 'jiný nadpis', {
+		body: 'a kratší text'
+	} );
+&lt;/script&gt;
+		</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Dialogic( 'nadpis', {
+							body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text, aby to bylo dlouhé a bylo z toho patrné, jakým způsobem je obtékaný obrázek. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Praesent id justo in neque elementum ultrices. Etiam bibendum elit eget erat. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. Donec ipsum massa, ullamcorper in, auctor et, scelerisque sed, est. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. In dapibus augue non sapien. Maecenas ipsum velit, consectetuer eu lobortis ut, dictum at dui. Sed elit dui, pellentesque a, faucibus vel, interdum nec, diam. Nulla turpis magna, cursus sit amet, suscipit a, interdum id, felis. Fusce consectetuer risus a nunc. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus.',
+							icon: 'img/crow.png'
+						} );
+						new Dialogic( 'jiný nadpis', {
+							body: 'a kratší text',
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			Notification:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Notification( 'nadpis', {
+		body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text…',
+		icon: 'img/crow.png'
+	} );
+	new Notification( 'jiný nadpis', {
+		body: 'a kratší text'
+	} );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Notification( 'nadpis', {
+							body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text, aby to bylo dlouhé a bylo z toho patrné, jakým způsobem je obtékaný obrázek.',
+							icon: 'img/crow.png'
+						} );
+						new Notification( 'jiný nadpis', {
+							body: 'a kratší text',
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
 	<h3>Dialog s možnostmi ano / ne</h3>
 
 	<section class="two-examples">

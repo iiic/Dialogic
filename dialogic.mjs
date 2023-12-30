@@ -47,7 +47,7 @@ const DialogicInternal = class
 		},
 		snippetAttributes: {
 			dialog: {
-				open: true, // create dialog opened by default
+				open: false, // create dialog opened by default
 				role: 'alertdialog',
 			},
 			innerWrapper: {
@@ -88,9 +88,13 @@ const DialogicInternal = class
 			{ href: 'css/dialogic.css', title: 'CSS styles for Dialogic script' /*, integrity: 'sha256-Ovtq2BR6TO/fv2khbLYu9yWRdkPjNVeVffIOEhh4LWY=' */ }
 		],
 		modulesImportPath: 'https://iiic.dev/js/modules',
-		autoRemoveDialogElementOnClose: true, /// @todo
+		autoRemoveDialogElementOnClose: true,
+		showDialogWaitingBeforeShow: 100, // in ms
 		autoRun: true,
 	};
+
+	/** @type {HTMLElement|null} */
+	#dialogElement = null;
 
 	constructor ()
 	{
@@ -107,6 +111,24 @@ const DialogicInternal = class
 			},
 			enumerable: true,
 			configurable: true
+		} );
+
+		/** @param dialogElement */
+		Object.defineProperty( this, 'dialogElement', {
+			get: function ()
+			{
+				return this.#dialogElement;
+			},
+			set: function ( /** @type {HTMLElement} */ dialogElement )
+			{
+				if ( dialogElement && 'nodeType' in dialogElement && dialogElement.nodeType === Node.ELEMENT_NODE ) {
+					this.#dialogElement = dialogElement;
+				} else {
+					throw new Error( 'Not a valid HTMLElement' );
+				}
+			},
+			configurable: false,
+			enumerable: false,
 		} );
 
 	}
@@ -202,16 +224,21 @@ export class Dialogic extends DialogicInternal
 		}
 	}
 
-	close ()
+	addEventListener (
+		/** @type {String} */ type = '',
+		/** @type {Function} */ listener = Function,
+		/** @type {Object} */ options = {},
+		/** @type {Boolean} */ useCapture = false
+	)
 	{
-		const event = new Event( 'close' );
-		this.dispatchEvent( event );
-		if ( this.onclose !== null ) {
-			this.onclose( event );
+		if ( options && Object.keys( options ).length !== 0 ) {
+			this.dialogElement.addEventListener( type, listener, options, useCapture );
+		} else {
+			this.dialogElement.addEventListener( type, listener, useCapture );
 		}
 	}
 
-	async checkRequirements ()
+	checkRequirements ()
 	{
 		if ( !this.settings ) {
 			throw new Error( 'Settings object is missing' );
@@ -328,12 +355,12 @@ export class Dialogic extends DialogicInternal
 		Object.assign( descriptionElement, { ...{ id: descriptionElementId }, ...this.settings.snippetAttributes.description } );
 		closerElement.appendChild( document.createTextNode( this.settings.texts.closerTextContent ) );
 		Object.assign( closerElement, this.settings.snippetAttributes.closer );
-		if ( this.settings.snippetAttributes.closerDataset ) {
+		if ( this.settings.snippetAttributes.closerDataset && this.settings.snippetAttributes.closerDataset.length ) {
 			for ( const [ key, value ] of Object.entries( this.settings.snippetAttributes.closerDataset ) ) {
 				closerElement.dataset[ key ] = value;
 			}
 		} else {
-			closerElement.addEventListener( 'click', ( /** @type {PointerEvent} */ event ) =>
+			closerElement.addEventListener( 'click', ( /** @type {PointerEvent} */ event ) => /// @todo: @refactor … do samostatné funkce, možná do internal sekce
 			{
 
 				/** @type {HTMLElement} */
@@ -358,6 +385,7 @@ export class Dialogic extends DialogicInternal
 		innerWrapperElement.appendChild( descriptionElement );
 		dialogElement.appendChild( closerElement );
 		this.rootElement.appendChild( dialogElement );
+		this.dialogElement = dialogElement;
 	}
 
 	async loadExternalFunctions ()
@@ -374,12 +402,70 @@ export class Dialogic extends DialogicInternal
 		} );
 	}
 
+	appendRemoveDialogElementOnCloseListener ()
+	{
+		if ( this.settings.autoRemoveDialogElementOnClose ) {
+			this.addEventListener( 'close', ( /** @type {Event} event */ ) =>
+			{
+				this.rootElement.removeChild( this.dialogElement );
+			}, {
+				capture: false,
+				once: true,
+				passive: true,
+			} );
+		}
+	}
+
+	appendShowNextDialogAfterCloseListener ()
+	{
+		this.addEventListener( 'close', ( /** @type {Event} event */ ) =>
+		{
+			this.showDialogsQueue();
+		}, {
+			capture: false,
+			once: true,
+			passive: true,
+		} );
+	}
+
+	showDialogsQueue ()
+	{
+		setTimeout( () =>
+		{
+
+			/** @type {String} */
+			const idPrefix = this.settings.snippetIdPrefixes.dialog;
+
+			/** @type {String} */
+			const safeDialogIdPrefix = idPrefix.substring( idPrefix.length - 1 ) === '-' ? idPrefix.slice( 0, -1 ) : idPrefix;
+
+			/** @type {String} */
+			const baseSelector = this.settings.resultSnippetElements.dialog + '[id|=' + safeDialogIdPrefix + ']';
+
+			/** @type {NodeList} */
+			const nodeList = this.rootElement.querySelectorAll( baseSelector + ':not([open])' );
+
+			if ( nodeList && nodeList.length && !this.rootElement.querySelector( baseSelector + '[open]' ) ) {
+				nodeList[ ( nodeList.length - 1 ) ].show();
+			}
+		}, this.settings.showDialogWaitingBeforeShow );
+	}
+
+	appendAutoCloseListener ()
+	{
+		/// @todo … Notification se po nějaké době sama zavře, zjistit co je to za dobu, jestli se někde nastavuje a nastavit to tady stejně, případně dát do globálního nastavení
+	}
+
 	async run ()
 	{
-		await this.checkRequirements();
+		this.checkRequirements();
 		await this.loadExternalFunctions();
 		await this.addCSSStyleSheets();
 		await this.createDialogSnippet();
+		this.appendRemoveDialogElementOnCloseListener();
+		this.appendAutoCloseListener();
+		this.appendShowNextDialogAfterCloseListener();
+		this.showDialogsQueue();
 	}
 
 }
