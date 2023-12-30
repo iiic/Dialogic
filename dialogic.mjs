@@ -55,7 +55,11 @@ const DialogicInternal = class
 			no: 'no',
 		},
 		dataAttributes: {},
+		CSSStyleSheets: [
+			{ href: 'css/dialogic.css', title: 'CSS styles for Dialogic script' /*, integrity: 'sha256-Ovtq2BR6TO/fv2khbLYu9yWRdkPjNVeVffIOEhh4LWY=' */ }
+		],
 		modulesImportPath: 'https://iiic.dev/js/modules',
+		autoRemoveDialogElementOnClose: true, /// @todo
 		autoRun: true,
 	};
 
@@ -185,22 +189,69 @@ export class Dialogic extends DialogicInternal
 		}
 	}
 
-	/*
-			<p id="delivery-address-description">
-				… imagine some form in here :)
-				<br><br>
-				<i>
-					Lorem ipsum dolor sit amet, consectetuer adipiscing elit.<br>
-					Aliquam erat volutpat. Suspendisse sagittis ultrices augue.<br>
-					Integer malesuada. Aliquam ornare wisi eu metus. Integer pellentesque quam vel velit.<br>
-					Nunc dapibus tortor vel mi dapibus sollicitudin.
-				</i>
-			</p>
-			<button onclick="alert('yes')">yes</button> / <button onclick="alert('no')">no</button>
-		</div>
-		<button data-on="tap:my-lightbox.close" title="close dialog">x</button>
-	</dialog>
-	*/
+	async addCSSStyleSheets ()
+	{
+
+		/** @type {Set} */
+		const existingStyleSheets = new Set();
+
+		[ ...document.styleSheets ].forEach( ( /** @type {CSSStyleSheet} */ css ) =>
+		{
+			if ( css.disabled === false ) {
+				existingStyleSheets.add( css.href );
+			}
+		} );
+
+		return Promise.all( this.settings.CSSStyleSheets.map( async ( /** @type {Object} */ assignment ) =>
+		{
+
+			/** @type {URL} */
+			let url = URL;
+
+			if ( assignment.href.startsWith( 'https://', 0 ) || assignment.href.startsWith( 'http://', 0 ) ) {
+				url = new URL( assignment.href );
+			} else {
+				url = new URL( assignment.href, window.location.protocol + '//' + window.location.host );
+			}
+			if ( !existingStyleSheets.has( url.href ) ) {
+				return fetch( url.href, {
+					method: 'HEAD',
+					credentials: 'omit',
+					cache: 'force-cache',
+					referrerPolicy: 'no-referrer',
+					redirect: 'manual',
+					mode: 'cors'
+				} ).then( function ( /** @type {Response} */ response )
+				{
+					if ( response.ok && response.status === 200 ) {
+						return url.href;
+					} else {
+						throw new Error( 'Bad path to css stylesheet' );
+					}
+				} ).then( function ( /** @type {String} */ linkHref )
+				{
+
+					/** @type {HTMLLinkElement} */
+					const link = document.createElement( 'LINK' );
+
+					link.href = linkHref;
+					link.rel = 'stylesheet';
+					link.crossOrigin = 'anonymous';
+					if ( assignment.title ) {
+						link.title = assignment.title;
+					}
+					if ( assignment.integrity ) {
+						link.integrity = assignment.integrity;
+					}
+					document.head.appendChild( link );
+				} ).catch( function ( /** @type {Error|Response} */ error )
+				{
+					return Promise.reject( error );
+				} );
+			}
+		} ) );
+	}
+
 	async createDialogSnippet ()
 	{
 
@@ -247,15 +298,19 @@ export class Dialogic extends DialogicInternal
 			imageElement.width = 96;
 			imageElement.height = 96;
 			imageElement.loading = 'eager';
+			imageElement.className = 'icon';
 		}
 		titleElement.appendChild( document.createTextNode( this.title ) );
 		titleElement.id = titleElementId;
+		titleElement.className = 'title';
 		if ( this.body ) {
 			descriptionElement.appendChild( document.createTextNode( this.body ) );
 		} else if ( this.htmlBody ) {
 			descriptionElement.insertAdjacentHTML( 'beforeend', this.htmlBody );
 		}
 		descriptionElement.id = descriptionElementId;
+		descriptionElement.className = 'description';
+		closerElement.className = 'closer';
 		closerElement.appendChild( document.createTextNode( this.settings.texts.closerTextContent ) );
 		if ( this.settings.texts.closerTitle ) {
 			closerElement.title = this.settings.texts.closerTitle;
@@ -292,6 +347,9 @@ export class Dialogic extends DialogicInternal
 
 	async loadExternalFunctions ()
 	{
+		if ( 'hashCode' in String.prototype ) {
+			return;
+		}
 		return importWithIntegrity(
 			this.settings.modulesImportPath + '/string/hashCode.mjs',
 			'sha256-wujpULOI6urz9Qust0pbGs0BBeNwwfuxyg6lPGPioNA='
@@ -305,6 +363,7 @@ export class Dialogic extends DialogicInternal
 	{
 		await this.checkRequirements();
 		await this.loadExternalFunctions();
+		await this.addCSSStyleSheets();
 		await this.createDialogSnippet();
 	}
 

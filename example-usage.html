@@ -6,6 +6,20 @@
 	<title>Dialogic html example</title>
 	<!-- <link rel="stylesheet" href="/notific.css" crossorigin="anonymous" integrity="sha256-DErgeoS4SQg0UMgS8E4mhJbyqNPHbyooBGsPqlRQviw="> -->
 	<style>
+		html {
+			box-sizing: border-box;
+		}
+
+		*,
+		*::before,
+		*::after {
+			box-sizing: inherit;
+		}
+
+		body {
+			background: var(--body-background);
+		}
+
 		.two-examples {
 			display: grid;
 			grid-template-columns: auto auto;
@@ -55,12 +69,7 @@
 			Notification:
 			<p>Pro použití příkladů s API <code>Notification</code> jsou nutné oprávnění, bez nich se notifikace <strong>nezobrazí</strong>.</p>
 			<pre><code class="language-javascript">&lt;script defer&gt;
-	const button = document.createElement( 'button' );
-	button.textContent = 'Požádat o práva k zobrazování notifikací';
-	button.addEventListener( 'click', function ( /** @type {PointerEvent}  event */ ) {
-		Notification.requestPermission();
-	} );
-	document.currentScript.insertAdjacentElement( 'afterend', button );
+	Notification.requestPermission();
 &lt;/script&gt;</code></pre>
 			<script defer>
 				( () => {
@@ -222,7 +231,7 @@
 					button.textContent = 'Spustit kód';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
 						new Dialogic( 'nadpis', {
-							body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text, aby to bylo dlouhé a bylo z toho patrné, jakým způsobem je obtékaný obrázek.',
+							body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text, aby to bylo dlouhé a bylo z toho patrné, jakým způsobem je obtékaný obrázek. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Praesent id justo in neque elementum ultrices. Etiam bibendum elit eget erat. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. Donec ipsum massa, ullamcorper in, auctor et, scelerisque sed, est. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. In dapibus augue non sapien. Maecenas ipsum velit, consectetuer eu lobortis ut, dictum at dui. Sed elit dui, pellentesque a, faucibus vel, interdum nec, diam. Nulla turpis magna, cursus sit amet, suscipit a, interdum id, felis. Fusce consectetuer risus a nunc. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus.',
 							icon: 'img/crow.png'
 						} );
 					}, {
