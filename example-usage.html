@@ -213,11 +213,11 @@
 	</section>
 
 	<br>
-	<h3>S obrázkem, nadpisem a body (obrázky se omezí v obou případech na 96x96px)</h3>
+	<h3>S obrázkem, nadpisem a body</h3>
 
 	<section class="two-examples">
 		<div>
-			Dialogic:
+			Dialogic (použije obrázek 96 x 96px … tedy přesně dvojnásobek <code>Notification</code>… lze změnit nastavením, 96x96 je default):
 			<pre><code class="language-javascript">&lt;script&gt;
 	new Dialogic( 'nadpis', {
 		body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text…',
@@ -244,7 +244,7 @@
 			</script>
 		</div>
 		<div>
-			Notification:
+			Notification (použije obrázek 48 x 48 px … tedy polovinu <code>Dialogic</code>):
 			<pre><code class="language-javascript">&lt;script&gt;
 	new Notification( 'nadpis', {
 		body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text…',

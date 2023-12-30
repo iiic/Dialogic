@@ -21,7 +21,7 @@ const DialogicInternal = class
 			htmlBody: '',
 			data: null,
 			dir: 'auto',
-			icon: '', // will be displayed as 96x96 px
+			icon: '', // will be displayed as 96x96 px by default
 			image: null,
 			lang: '',
 			renotify: false,
@@ -45,16 +45,45 @@ const DialogicInternal = class
 			title: 'dialogic-title-',
 			description: 'dialogic-description-',
 		},
+		snippetAttributes: {
+			dialog: {
+				open: true, // create dialog opened by default
+				role: 'alertdialog',
+			},
+			innerWrapper: {
+				role: 'document',
+				tabIndex: 0,
+			},
+			icon: {
+				alt: 'Dialog icon',
+				decoding: 'sync',
+				crossOrigin: 'anonymous',
+				fetchPriority: 'high',
+				width: 96, // html attribute… it means it's in px without unit
+				height: 96, // html attribute… it means it's in px without unit
+				loading: 'eager',
+				className: 'icon',
+			},
+			title: {
+				className: 'title',
+			},
+			description: {
+				className: 'description',
+			},
+			closer: {
+				className: 'closer',
+				title: 'close this popup',
+			},
+			closerDataset: { // data- preffix
+			},
+		},
 		texts: {
 			closerTextContent: 'x',
-			closerTitle: 'close this popup',
-			iconAlt: 'dialog icon',
 		},
 		typeConfirm: {
 			yes: 'yes',
 			no: 'no',
 		},
-		dataAttributes: {},
 		CSSStyleSheets: [
 			{ href: 'css/dialogic.css', title: 'CSS styles for Dialogic script' /*, integrity: 'sha256-Ovtq2BR6TO/fv2khbLYu9yWRdkPjNVeVffIOEhh4LWY=' */ }
 		],
@@ -280,43 +309,29 @@ export class Dialogic extends DialogicInternal
 		const descriptionElementId = this.settings.snippetIdPrefixes.description + this.timestamp + '-' + ( this.title ).hashCode();
 
 		/** @type {HTMLImageElement|null} */
-		const imageElement = this.icon ? document.createElement( 'IMG' ) : null;
+		const iconElement = this.icon ? document.createElement( 'IMG' ) : null;
 
-		dialogElement.open = true; // create dialog opened by default
-		dialogElement.id = dialogId;
-		dialogElement.role = 'alertdialog';
+		Object.assign( dialogElement, { ...{ id: dialogId }, ...this.settings.snippetAttributes.dialog } );
 		dialogElement.setAttribute( 'aria-labelledby', titleElementId );
 		dialogElement.setAttribute( 'aria-describedby', descriptionElementId );
-		innerWrapperElement.role = 'document';
-		innerWrapperElement.tabIndex = 0;
-		if ( imageElement ) {
-			imageElement.src = this.icon;
-			imageElement.alt = this.settings.texts.iconAlt ? this.settings.texts.iconAlt : '';
-			imageElement.decoding = 'sync';
-			imageElement.crossOrigin = 'anonymous';
-			imageElement.fetchPriority = 'high';
-			imageElement.width = 96;
-			imageElement.height = 96;
-			imageElement.loading = 'eager';
-			imageElement.className = 'icon';
+		Object.assign( innerWrapperElement, this.settings.snippetAttributes.innerWrapper );
+		if ( iconElement ) {
+			Object.assign( iconElement, { ...{ src: this.icon }, ...this.settings.snippetAttributes.icon } );
 		}
 		titleElement.appendChild( document.createTextNode( this.title ) );
-		titleElement.id = titleElementId;
-		titleElement.className = 'title';
+		Object.assign( titleElement, { ...{ id: titleElementId }, ...this.settings.snippetAttributes.title } );
 		if ( this.body ) {
 			descriptionElement.appendChild( document.createTextNode( this.body ) );
 		} else if ( this.htmlBody ) {
 			descriptionElement.insertAdjacentHTML( 'beforeend', this.htmlBody );
 		}
-		descriptionElement.id = descriptionElementId;
-		descriptionElement.className = 'description';
-		closerElement.className = 'closer';
+		Object.assign( descriptionElement, { ...{ id: descriptionElementId }, ...this.settings.snippetAttributes.description } );
 		closerElement.appendChild( document.createTextNode( this.settings.texts.closerTextContent ) );
-		if ( this.settings.texts.closerTitle ) {
-			closerElement.title = this.settings.texts.closerTitle;
-		}
-		if ( this.settings.dataAttributes.closer ) {
-			closerElement.setAttribute( this.settings.dataAttributes.closer.name, this.settings.dataAttributes.closer.value );
+		Object.assign( closerElement, this.settings.snippetAttributes.closer );
+		if ( this.settings.snippetAttributes.closerDataset ) {
+			for ( const [ key, value ] of Object.entries( this.settings.snippetAttributes.closerDataset ) ) {
+				closerElement.dataset[ key ] = value;
+			}
 		} else {
 			closerElement.addEventListener( 'click', ( /** @type {PointerEvent} */ event ) =>
 			{
@@ -336,8 +351,8 @@ export class Dialogic extends DialogicInternal
 		}
 
 		dialogElement.appendChild( innerWrapperElement );
-		if ( imageElement ) {
-			innerWrapperElement.appendChild( imageElement );
+		if ( iconElement ) {
+			innerWrapperElement.appendChild( iconElement );
 		}
 		innerWrapperElement.appendChild( titleElement );
 		innerWrapperElement.appendChild( descriptionElement );
