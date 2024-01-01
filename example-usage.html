@@ -341,6 +341,7 @@
 			</script>
 		</div>
 	</section>
+	<small>V obou případech stejné chování. Notifikace i dialogy se ukládají do fronty a zobrazí se jednou za daný časový interval (v případě <code>Dialogic</code> je to 50ms (hodnota se dá změnit globálním nastavením) v případě <code>Notification</code> nevím, odhadem tak 250ms). Pořadí je v obou případech od té nejnovější k té nejstarší. Tedy v zde uvedeném příkladu odspodu.</small>
 
 	<br>
 	<h3>Automatické skrývání oznámení… možnosti</h3>
@@ -409,32 +410,32 @@
 		<div>
 			Dialogic:
 			<pre><code class="language-javascript">&lt;script&gt;
-	let n = new Dialogic( 'nadpis', { body: 'na tento dialog jsou navázané události… alerty' } );
-	n.addEventListener( 'click', () => { alert( 'event click' ); } );
-	n.addEventListener( 'close', () => { alert( 'event close' ); } );
-	n.addEventListener( 'error', () => { alert( 'event error' ); } );
-	n.addEventListener( 'show', () => { alert( 'event show' ); } );
+	let d = new Dialogic( 'nadpis', { body: 'na tento dialog jsou navázané události… alerty' } );
+	d.addEventListener( 'click', () => { alert( 'event click' ); } );
+	d.addEventListener( 'close', () => { alert( 'event close' ); } );
+	d.addEventListener( 'error', () => { alert( 'event error' ); } );
+	d.addEventListener( 'show', () => { alert( 'event show' ); } );
 	// alternativně se dá zapsat jako (a fungovat to bude stejně):
-	// n.onclick = () => { alert( 'event click' ); };
-	// n.onclose = () => { alert( 'event close' ); };
-	// n.onerror = () => { alert( 'event error' ); };
-	// n.onshow = () => { alert( 'event show' ); };
+	// d.onclick = () => { alert( 'event click' ); };
+	// d.onclose = () => { alert( 'event close' ); };
+	// d.onerror = () => { alert( 'event error' ); };
+	// d.onshow = () => { alert( 'event show' ); };
 &lt;/script&gt;</code></pre>
 			<script defer>
 				( () => {
 					const button = document.createElement( 'button' );
 					button.textContent = 'Spustit kód';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
-						let n = new Dialogic( 'nadpis', { body: 'na tento dialog jsou navázané události… alerty' } );
-						n.addEventListener( 'click', () => { alert( 'event click' ); } );
-						n.addEventListener( 'close', () => { alert( 'event close' ); } );
-						n.addEventListener( 'error', () => { alert( 'event error' ); } );
-						n.addEventListener( 'show', () => { alert( 'event show' ); } );
+						let d = new Dialogic( 'nadpis', { body: 'na tento dialog jsou navázané události… alerty' } );
+						d.addEventListener( 'click', () => { alert( 'event click' ); } );
+						d.addEventListener( 'close', () => { alert( 'event close' ); } );
+						d.addEventListener( 'error', () => { alert( 'event error' ); } );
+						d.addEventListener( 'show', () => { alert( 'event show' ); } );
 						// alternativně se dá zapsat jako (a fungovat to bude stejně):
-						// n.onclick = () => { alert( 'event click' ); };
-						// n.onclose = () => { alert( 'event close' ); };
-						// n.onerror = () => { alert( 'event error' ); };
-						// n.onshow = () => { alert( 'event show' ); };
+						// d.onclick = () => { alert( 'event click' ); };
+						// d.onclose = () => { alert( 'event close' ); };
+						// d.onerror = () => { alert( 'event error' ); };
+						// d.onshow = () => { alert( 'event show' ); };
 					}, {
 						capture: false,
 						once: false,
@@ -446,9 +447,12 @@
 		</div>
 
 		<div>
-			Notification:
+			Notification (<strong>důležité:</strong> často dochází k nepochopení kdy se vyvolá <code>close</code> event. Protože ten se <b>ne</b>vyvolá při skrytí notifikace z notifikačního centra, ale jen po kliku na "zavřít", které ovšem mají jen notifikace s <code>requireInteraction</code> = <code>true</code>. Tedy <code>requireInteraction</code> = <code>true</code> je jediná možnost jak vyvovalt <code>close</code> event):
 			<pre><code class="language-javascript">&lt;script&gt;
-	let n = new Notification( 'nadpis', { body: 'na tuto notifikaci jsou navázané události… alerty' } );
+	let n = new Notification( 'nadpis', {
+		body: 'na tuto notifikaci jsou navázané události… alerty',
+		requireInteraction: true
+	} );
 	n.addEventListener( 'click', () => { alert( 'event click' ); } );
 	n.addEventListener( 'close', () => { alert( 'event close' ); } );
 	n.addEventListener( 'error', () => { alert( 'event error' ); } );
@@ -464,7 +468,10 @@
 					const button = document.createElement( 'button' );
 					button.textContent = 'Spustit kód';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
-						let n = new Notification( 'nadpis', { body: 'na tuto notifikaci jsou navázané události… alerty' } );
+						let n = new Notification( 'nadpis', {
+							body: 'na tuto notifikaci jsou navázané události… alerty',
+							requireInteraction: true
+						} );
 						n.addEventListener( 'click', () => { alert( 'event click' ); } );
 						n.addEventListener( 'close', () => { alert( 'event close' ); } );
 						n.addEventListener( 'error', () => { alert( 'event error' ); } );
