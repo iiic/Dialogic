@@ -343,6 +343,149 @@
 	</section>
 
 	<br>
+	<h3>Automatické skrývání oznámení… možnosti</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic, ve výchozím stavu popupy neskrývají (<code>requireInteraction</code> = <code>true</code>) v tomto příkladě je pro změnu ukázané, jak je možné popupy automaticky skrývat po 6s (<code>requireInteraction</code> = <code>false</code>) :
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Dialogic( 'nadpis', {
+		body: 'tento popup se sám zavře po 6s',
+		requireInteraction: false
+	} );
+&lt;/script&gt;
+			</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Dialogic( 'nadpis', {
+							body: 'tento popup se sám zavře po 6s',
+							requireInteraction: false
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			Notification, ve výchozím nastavení skrývá oznámení za 6s, tady v tomto kousku kódu nastavím, že nechci notifikaci skrývat nikdy:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Notification( 'nadpis', {
+		body: 'tato notifikace sama od sebe nikdy nezmizí, vyžaduje klik',
+		requireInteraction: true
+	} );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Notification( 'nadpis', {
+							body: 'tato notifikace sama od sebe nikdy nezmizí, vyžaduje klik',
+							requireInteraction: true
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
+	<h3>Navázané události</h3>
+
+	<section class="two-examples">
+
+		<div>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script&gt;
+	let n = new Dialogic( 'nadpis', { body: 'na tento dialog jsou navázané události… alerty' } );
+	n.addEventListener( 'click', () => { alert( 'event click' ); } );
+	n.addEventListener( 'close', () => { alert( 'event close' ); } );
+	n.addEventListener( 'error', () => { alert( 'event error' ); } );
+	n.addEventListener( 'show', () => { alert( 'event show' ); } );
+	// alternativně se dá zapsat jako (a fungovat to bude stejně):
+	// n.onclick = () => { alert( 'event click' ); };
+	// n.onclose = () => { alert( 'event close' ); };
+	// n.onerror = () => { alert( 'event error' ); };
+	// n.onshow = () => { alert( 'event show' ); };
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						let n = new Dialogic( 'nadpis', { body: 'na tento dialog jsou navázané události… alerty' } );
+						n.addEventListener( 'click', () => { alert( 'event click' ); } );
+						n.addEventListener( 'close', () => { alert( 'event close' ); } );
+						n.addEventListener( 'error', () => { alert( 'event error' ); } );
+						n.addEventListener( 'show', () => { alert( 'event show' ); } );
+						// alternativně se dá zapsat jako (a fungovat to bude stejně):
+						// n.onclick = () => { alert( 'event click' ); };
+						// n.onclose = () => { alert( 'event close' ); };
+						// n.onerror = () => { alert( 'event error' ); };
+						// n.onshow = () => { alert( 'event show' ); };
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+
+		<div>
+			Notification:
+			<pre><code class="language-javascript">&lt;script&gt;
+	let n = new Notification( 'nadpis', { body: 'na tuto notifikaci jsou navázané události… alerty' } );
+	n.addEventListener( 'click', () => { alert( 'event click' ); } );
+	n.addEventListener( 'close', () => { alert( 'event close' ); } );
+	n.addEventListener( 'error', () => { alert( 'event error' ); } );
+	n.addEventListener( 'show', () => { alert( 'event show' ); } );
+	// alternativně se dá zapsat jako (a fungovat to bude stejně):
+	// n.onclick = () => { alert( 'event click' ); };
+	// n.onclose = () => { alert( 'event close' ); };
+	// n.onerror = () => { alert( 'event error' ); };
+	// n.onshow = () => { alert( 'event show' ); };
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						let n = new Notification( 'nadpis', { body: 'na tuto notifikaci jsou navázané události… alerty' } );
+						n.addEventListener( 'click', () => { alert( 'event click' ); } );
+						n.addEventListener( 'close', () => { alert( 'event close' ); } );
+						n.addEventListener( 'error', () => { alert( 'event error' ); } );
+						n.addEventListener( 'show', () => { alert( 'event show' ); } );
+						// alternativně se dá zapsat jako (a fungovat to bude stejně):
+						// n.onclick = () => { alert( 'event click' ); };
+						// n.onclose = () => { alert( 'event close' ); };
+						// n.onerror = () => { alert( 'event error' ); };
+						// n.onshow = () => { alert( 'event show' ); };
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
 	<h3>Dialog s možnostmi ano / ne</h3>
 
 	<section class="two-examples">
@@ -350,16 +493,12 @@
 		<div>
 			Dialogic:
 			<pre><code class="language-javascript">&lt;script type="module"&gt;
-	const lol = new Dialogic( 'nadpis', { type: Dialogic.CONFIRM } );
-	console.log( lol );
-&lt;/script&gt;</code></pre>
+		const lol = new Dialogic( 'nadpis', { type: Dialogic.CONFIRM } );
+		console.log( lol );
+	&lt;/script&gt;</code></pre>
 			ukázka
 		</div>
 
-		<div>
-			Notification:
-			/// asi nějak půjde s pomocí návazných událostí na klik na notifikaci a klik na křížek
-		</div>
 	</section>
 
 	<!-- <strong>Whats happening?</strong>

@@ -25,7 +25,7 @@ const DialogicInternal = class
 			image: null,
 			lang: '',
 			renotify: false,
-			requireInteraction: false,
+			requireInteraction: true,
 			silent: false,
 			tag: '',
 			timestamp: Date.now(),
@@ -89,7 +89,8 @@ const DialogicInternal = class
 		],
 		modulesImportPath: 'https://iiic.dev/js/modules',
 		autoRemoveDialogElementOnClose: true,
-		showDialogWaitingBeforeShow: 100, // in ms
+		autoCloseAfter: 6000, // in ms
+		showDialogWaitingBeforeShow: 50, // in ms
 		autoRun: true,
 	};
 
@@ -219,6 +220,10 @@ export class Dialogic extends DialogicInternal
 			enumerable: false,
 		} );
 
+		/** @type {HTMLDialogElement} */
+		const dialogElement = document.createElement( this.settings.resultSnippetElements.dialog );
+
+		this.dialogElement = dialogElement;
 		if ( this.settings.autoRun ) {
 			this.run();
 		}
@@ -231,11 +236,26 @@ export class Dialogic extends DialogicInternal
 		/** @type {Boolean} */ useCapture = false
 	)
 	{
+
+		if ( type === 'show' ) {
+			// alert( 'ags' );
+		}
+
 		if ( options && Object.keys( options ).length !== 0 ) {
 			this.dialogElement.addEventListener( type, listener, options, useCapture );
 		} else {
 			this.dialogElement.addEventListener( type, listener, useCapture );
 		}
+	}
+
+	show ()
+	{
+		this.dialogElement.show();
+	}
+
+	close ()
+	{
+		this.dialogElement.close();
 	}
 
 	checkRequirements ()
@@ -312,7 +332,7 @@ export class Dialogic extends DialogicInternal
 	{
 
 		/** @type {HTMLDialogElement} */
-		const dialogElement = document.createElement( this.settings.resultSnippetElements.dialog );
+		const dialogElement = this.dialogElement;
 
 		/** @type {HTMLElement} */
 		const innerWrapperElement = document.createElement( this.settings.resultSnippetElements.innerWrapper );
@@ -376,7 +396,14 @@ export class Dialogic extends DialogicInternal
 				passive: true,
 			} );
 		}
-
+		closerElement.addEventListener( 'click', function ( /** @type {PointerEvent} */ event )
+		{
+			event.stopPropagation();
+		}, {
+			capture: false,
+			once: false,
+			passive: false,
+		} );
 		dialogElement.appendChild( innerWrapperElement );
 		if ( iconElement ) {
 			innerWrapperElement.appendChild( iconElement );
@@ -385,7 +412,6 @@ export class Dialogic extends DialogicInternal
 		innerWrapperElement.appendChild( descriptionElement );
 		dialogElement.appendChild( closerElement );
 		this.rootElement.appendChild( dialogElement );
-		this.dialogElement = dialogElement;
 	}
 
 	async loadExternalFunctions ()
@@ -420,7 +446,7 @@ export class Dialogic extends DialogicInternal
 	{
 		this.addEventListener( 'close', ( /** @type {Event} event */ ) =>
 		{
-			this.showDialogsQueue();
+			this.showDialogsFromQueue();
 		}, {
 			capture: false,
 			once: true,
@@ -428,7 +454,7 @@ export class Dialogic extends DialogicInternal
 		} );
 	}
 
-	showDialogsQueue ()
+	showDialogsFromQueue ()
 	{
 		setTimeout( () =>
 		{
@@ -446,14 +472,20 @@ export class Dialogic extends DialogicInternal
 			const nodeList = this.rootElement.querySelectorAll( baseSelector + ':not([open])' );
 
 			if ( nodeList && nodeList.length && !this.rootElement.querySelector( baseSelector + '[open]' ) ) {
+				nodeList[ ( nodeList.length - 1 ) ].dispatchEvent( new Event( 'show' ) );
 				nodeList[ ( nodeList.length - 1 ) ].show();
 			}
 		}, this.settings.showDialogWaitingBeforeShow );
 	}
 
-	appendAutoCloseListener ()
+	appendRequireInteractionListener ()
 	{
-		/// @todo … Notification se po nějaké době sama zavře, zjistit co je to za dobu, jestli se někde nastavuje a nastavit to tady stejně, případně dát do globálního nastavení
+		if ( !this.requireInteraction ) {
+			setTimeout( () =>
+			{
+				this.close();
+			}, this.settings.autoCloseAfter );
+		}
 	}
 
 	async run ()
@@ -463,9 +495,9 @@ export class Dialogic extends DialogicInternal
 		await this.addCSSStyleSheets();
 		await this.createDialogSnippet();
 		this.appendRemoveDialogElementOnCloseListener();
-		this.appendAutoCloseListener();
+		this.appendRequireInteractionListener();
 		this.appendShowNextDialogAfterCloseListener();
-		this.showDialogsQueue();
+		this.showDialogsFromQueue();
 	}
 
 }
