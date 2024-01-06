@@ -22,7 +22,7 @@
 
 		.two-examples {
 			display: grid;
-			grid-template-columns: auto auto;
+			grid-template-columns: 50% 50%;
 			grid-auto-rows: 49%;
 			column-gap: 0.5em;
 			align-items: start;
@@ -43,12 +43,6 @@
 	<p>Just vanilla javascript, no <s>jQuery</s> or other libraries. Styles and examples included in repo. Same parameters as browser's default <code>Notification()</code> function</p>
 
 	<div id="dialogic-root" hidden></div>
-	<script type="text/json" id="dialogic-settings">
-			{
-				"modulesImportPath": "/modules",
-				"novaHodnota": "je tu"
-			}
-		</script>
 	<script type="module" src="dialogic.mjs?v=0.1" crossorigin="anonymous" data-integrity="sha256-todo"></script>
 	<script type="module">
 		// const lol = new Dialogic( 'nadpis', { type: Dialogic.CONFIRM } );
@@ -57,7 +51,23 @@
 
 	<h2>Příklady:</h2>
 
-	<h3>Inicializace</h3>
+	<ol id="table-of-content" role="list">
+		<li>
+			<a href="#inicializace">Inicializace</a>
+		</li>
+		<li>
+			<a href="#zakladni-priklad">Základní příklad</a>
+		</li>
+		<li>
+			<a href="#globalni-nastaveni-vsech-popupu-dialogic">Globální nastavení všech popupů Dialogic</a>
+		</li>
+		<li>
+			// @todo
+		</li>
+	</ol>
+
+	<br>
+	<h3 id="inicializace">Inicializace</h3>
 
 	<section class="two-examples">
 		<div>
@@ -89,7 +99,7 @@
 	</section>
 
 	<br>
-	<h3>Základní příklad</h3>
+	<h3 id="zakladni-priklad">Základní příklad</h3>
 
 	<section class="two-examples">
 		<div>
@@ -188,7 +198,9 @@
 		<div>
 			Dialogic:
 			<pre><code class="language-javascript">&lt;script&gt;
-	new Dialogic( 'nadpis', {htmlBody: 'obsah &lt;strong&gt;i s tagy&lt;/strong&gt;&lt;br&gt;odřádkováním a obecně &lt;h4&gt;veškeré html&lt;/h4&gt;, nejsou žádné omezení'} );
+	new Dialogic( 'nadpis', {
+		htmlBody: 'obsah &lt;strong&gt;i s tagy&lt;/strong&gt;&lt;br&gt;odřádkováním a obecně &lt;h4&gt;veškeré html&lt;/h4&gt;, nejsou žádné omezení'
+	} );
 &lt;/script&gt;
 		</code></pre>
 			<script defer>
@@ -196,7 +208,9 @@
 					const button = document.createElement( 'button' );
 					button.textContent = 'Spustit kód';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
-						new Dialogic( 'nadpis', { htmlBody: 'obsah <strong>i s tagy</strong><br>odřádkováním a obecně <h4>veškeré html</h4>, nejsou žádné omezení' } );
+						new Dialogic( 'nadpis', {
+							htmlBody: 'obsah <strong>i s tagy</strong><br>odřádkováním a obecně <h4>veškeré html</h4>, nejsou žádné omezení'
+						} );
 					}, {
 						capture: false,
 						once: false,
@@ -344,11 +358,60 @@
 	<small>V obou případech stejné chování. Notifikace i dialogy se ukládají do fronty a zobrazí se jednou za daný časový interval (v případě <code>Dialogic</code> je to 50ms (hodnota se dá změnit globálním nastavením) v případě <code>Notification</code> nevím, odhadem tak 250ms). Pořadí je v obou případech od té nejnovější k té nejstarší. Tedy v zde uvedeném příkladu odspodu.</small>
 
 	<br>
+	<h3>Zobrazení více oznámení paralelně</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic (tohle zatím neumí, umí zobrazit notifikace jen sériově):
+			<pre><code class="language-javascript">&lt;script&gt;
+	// nope, na tohle nemám odpovídající příklad :( , nepřijde mi to tak důležité, dodělám v pozdějších verzích.
+&lt;/script&gt;
+			</code></pre>
+		</div>
+		<div>
+			Notification:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Notification( 'nadpis', {
+		body: 'První z notifikace, a pod ní bude další',
+		icon: 'img/crow.png',
+		requireInteraction: true
+	} );
+	new Notification( 'jiný nadpis', {
+		body: 'tyto notifikace budou viditelné současně',
+		requireInteraction: true
+	} );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Notification( 'nadpis', {
+							body: 'První z notifikace, a pod ní bude další',
+							icon: 'img/crow.png',
+							requireInteraction: true
+						} );
+						new Notification( 'jiný nadpis', {
+							body: 'tyto notifikace budou viditelné současně',
+							requireInteraction: true
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
 	<h3>Automatické skrývání oznámení… možnosti</h3>
 
 	<section class="two-examples">
 		<div>
-			Dialogic, ve výchozím stavu popupy neskrývají (<code>requireInteraction</code> = <code>true</code>) v tomto příkladě je pro změnu ukázané, jak je možné popupy automaticky skrývat po 6s (<code>requireInteraction</code> = <code>false</code>) :
+			Dialogic, ve výchozím stavu popupy neskrývají (<code>requireInteraction</code> = <code>true</code>) v tomto příkladě je pro změnu ukázané, jak je možné popupy automaticky skrývat s (<code>requireInteraction</code> = <code>false</code>) po 6s (což je výchozí čas, dá se <a href="#globalni-nastaveni-vsech-popupu-dialogic">změnit pomocí globálního nastavení které je v příkladu níže</a>):
 			<pre><code class="language-javascript">&lt;script&gt;
 	new Dialogic( 'nadpis', {
 		body: 'tento popup se sám zavře po 6s',
@@ -406,7 +469,6 @@
 	<h3>Navázané události</h3>
 
 	<section class="two-examples">
-
 		<div>
 			Dialogic:
 			<pre><code class="language-javascript">&lt;script&gt;
@@ -445,7 +507,6 @@
 				} )();
 			</script>
 		</div>
-
 		<div>
 			Notification (<strong>důležité:</strong> často dochází k nepochopení kdy se vyvolá <code>close</code> event. Protože ten se <b>ne</b>vyvolá při skrytí notifikace z notifikačního centra, ale jen po kliku na "zavřít", které ovšem mají jen notifikace s <code>requireInteraction</code> = <code>true</code>. Tedy <code>requireInteraction</code> = <code>true</code> je jediná možnost jak vyvovalt <code>close</code> event):
 			<pre><code class="language-javascript">&lt;script&gt;
@@ -493,21 +554,228 @@
 	</section>
 
 	<br>
+	<h3>Kombinace 2 po sobě jdoucích volání a návazných událostí</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script&gt;
+	let jedna = new Dialogic( 'jedna', {
+		body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text…',
+		icon: 'img/crow.png'
+	} );
+	let dva = new Dialogic( 'dva', {
+		body: 'a kratší text'
+	} );
+	jedna.addEventListener( 'click', () => { alert( 'jedna click' ); } );
+	jedna.addEventListener( 'close', () => { alert( 'jedna close' ); } );
+	jedna.addEventListener( 'error', () => { alert( 'jedna error' ); } );
+	jedna.addEventListener( 'show', () => { alert( 'jedna show' ); } );
+	dva.addEventListener( 'click', () => { alert( 'dva click' ); } );
+	dva.addEventListener( 'close', () => { alert( 'dva close' ); } );
+	dva.addEventListener( 'error', () => { alert( 'dva error' ); } );
+	dva.addEventListener( 'show', () => { alert( 'dva show' ); } );
+	// obdobně jako v předchozím případu jdou použít on-eventy
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						let jedna = new Dialogic( 'jedna', {
+							body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text…',
+							icon: 'img/crow.png'
+						} );
+						let dva = new Dialogic( 'dva', {
+							body: 'a kratší text'
+						} );
+						jedna.addEventListener( 'click', () => { alert( 'jedna click' ); } );
+						jedna.addEventListener( 'close', () => { alert( 'jedna close' ); } );
+						jedna.addEventListener( 'error', () => { alert( 'jedna error' ); } );
+						jedna.addEventListener( 'show', () => { alert( 'jedna show' ); } );
+						dva.addEventListener( 'click', () => { alert( 'dva click' ); } );
+						dva.addEventListener( 'close', () => { alert( 'dva close' ); } );
+						dva.addEventListener( 'error', () => { alert( 'dva error' ); } );
+						dva.addEventListener( 'show', () => { alert( 'dva show' ); } );
+						// jedna.onclick = () => { alert( 'jedna click' ); };
+						// jedna.onclose = () => { alert( 'jedna close' ); };
+						// jedna.onerror = () => { alert( 'jedna error' ); };
+						// jedna.onshow = () => { alert( 'jedna show' ); };
+						// dva.onclick = () => { alert( 'dva click' ); };
+						// dva.onclose = () => { alert( 'dva close' ); };
+						// dva.onerror = () => { alert( 'dva error' ); };
+						// dva.onshow = () => { alert( 'dva show' ); };
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			Notification (stejná podmínka jako v předchozím příkladu: onclose se volá jen při kliku na tlačítko "zavřít" a tlačítko "zavřít" se použije jen s optionem <code>requireInteraction</code> = <code>true</code>):
+			<pre><code class="language-javascript">&lt;script&gt;
+	let jedna = new Notification( 'jedna', {
+		body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text…',
+		icon: 'img/crow.png',
+		requireInteraction: true
+	} );
+	let dva = new Notification( 'dva', {
+		body: 'a kratší text',
+		requireInteraction: true
+	} );
+	jedna.addEventListener( 'click', () => { alert( 'jedna click' ); } );
+	jedna.addEventListener( 'close', () => { alert( 'jedna close' ); } );
+	jedna.addEventListener( 'error', () => { alert( 'jedna error' ); } );
+	jedna.addEventListener( 'show', () => { alert( 'jedna show' ); } );
+	dva.addEventListener( 'click', () => { alert( 'dva click' ); } );
+	dva.addEventListener( 'close', () => { alert( 'dva close' ); } );
+	dva.addEventListener( 'error', () => { alert( 'dva error' ); } );
+	dva.addEventListener( 'show', () => { alert( 'dva show' ); } );
+	// obdobně jako v předchozím případu jdou použít on-eventy
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						let jedna = new Notification( 'jedna', {
+							body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text…',
+							icon: 'img/crow.png',
+							requireInteraction: true
+						} );
+						let dva = new Notification( 'dva', {
+							body: 'a kratší text',
+							requireInteraction: true
+						} );
+						jedna.addEventListener( 'click', () => { alert( 'jedna click' ); } );
+						jedna.addEventListener( 'close', () => { alert( 'jedna close' ); } );
+						jedna.addEventListener( 'error', () => { alert( 'jedna error' ); } );
+						jedna.addEventListener( 'show', () => { alert( 'jedna show' ); } );
+						dva.addEventListener( 'click', () => { alert( 'dva click' ); } );
+						dva.addEventListener( 'close', () => { alert( 'dva close' ); } );
+						dva.addEventListener( 'error', () => { alert( 'dva error' ); } );
+						dva.addEventListener( 'show', () => { alert( 'dva show' ); } );
+						// jedna.onclick = () => { alert( 'jedna click' ); };
+						// jedna.onclose = () => { alert( 'jedna close' ); };
+						// jedna.onerror = () => { alert( 'jedna error' ); };
+						// jedna.onshow = () => { alert( 'jedna show' ); };
+						// dva.onclick = () => { alert( 'dva click' ); };
+						// dva.onclose = () => { alert( 'dva close' ); };
+						// dva.onerror = () => { alert( 'dva error' ); };
+						// dva.onshow = () => { alert( 'dva show' ); };
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
 	<h3>Dialog s možnostmi ano / ne</h3>
 
 	<section class="two-examples">
-
 		<div>
 			Dialogic:
 			<pre><code class="language-javascript">&lt;script type="module"&gt;
-		const lol = new Dialogic( 'nadpis', { type: Dialogic.CONFIRM } );
-		console.log( lol );
-	&lt;/script&gt;</code></pre>
-			ukázka
+	let d = new Dialogic( 'otázka', {
+		type: Dialogic.CONFIRM, // tohle zobrazí tlačítka ano / ne
+		body: 'souhlasíte?'
+	} );
+	d.onclick = () => { alert( 'kliknuto na ano' ); };
+	d.onclose = () => { alert( 'kliknuto na ne' ); };
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						let d = new Dialogic( 'otázka', {
+							type: Dialogic.CONFIRM,
+							body: 'souhlasíte?'
+						} );
+						d.onclick = () => { alert( 'kliknuto na ano' ); };
+						d.onclose = () => { alert( 'kliknuto na ne' ); };
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
 		</div>
-
+		<div>
+			Notification … nejde napodobit zcela přesně, ale na základě předchozího příkladu se dá udělat něco jako:
+			<pre><code class="language-javascript">&lt;script&gt;
+	let n = new Notification( 'otázka', {
+		body: 'souhlasíte?',
+		requireInteraction: true
+	} );
+	n.onclick = () => { alert( 'kliknuto na ano' ); };
+	n.onclose = () => { alert( 'kliknuto na ne' ); };
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						let n = new Notification( 'otázka', {
+							body: 'souhlasíte?',
+							requireInteraction: true
+						} );
+						n.onclick = () => { alert( 'kliknuto na ano' ); };
+						n.onclose = () => { alert( 'kliknuto na ne' ); };
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
 	</section>
 
+	<br>
+	<h3 id="globalni-nastaveni-vsech-popupu-dialogic">Globální nastavení všech popupů Dialogic</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic… takto mohu změnit každou z výchozích vlastností. V tomto případě přepisuji text na title u křížku zavírajícím popup okno. Tento příklad je tu převedený do praxe částečně, tím title pro zavření okna, ne už výchozí ikonku, ta by zbytečně zkomplikovala příklady:
+			<pre><code class="language-javascript">&lt;script type="text/json" id="dialogic-settings"&gt;
+	{
+		"defaultOptions": {
+			"icon": "img/crow.png"
+		},
+		"snippetAttributes": {
+			"closer": {
+				"title": "Zavřít popup"
+			}
+		}
+	}
+&lt;/script&gt;</code></pre>
+			<script type="text/json" id="dialogic-settings">
+				{
+					"snippetAttributes": {
+						"closer": {
+							"title": "Zavřít popup"
+						}
+					}
+				}
+			</script>
+		</div>
+		<div>
+			Notification:
+			<pre><code class="language-javascript">// nemá odpovídající příklad, Notification nemá nic jako globální nastavení :(</code></pre>
+		</div>
+	</section>
 	<!-- <strong>Whats happening?</strong>
 	<p>This page is showing notifications periodically every 8 seconds, and automatically hide them 15 seconds from display. (so max 2 notifications at the same tame).</p>
 	<p>When tab is active notification is on page, when you switch to another tab, notifications will be shown by browser <code>Notification()</code> function.</p>

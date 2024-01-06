@@ -90,7 +90,7 @@ const DialogicInternal = class
 		modulesImportPath: 'https://iiic.dev/js/modules',
 		autoRemoveDialogElementOnClose: true,
 		autoCloseAfter: 6000, // in ms
-		showDialogWaitingBeforeShow: 50, // in ms
+		showDialogWaitingBeforeShow: 5, // in ms
 		autoRun: true,
 	};
 
@@ -154,10 +154,77 @@ const DialogicInternal = class
 		return currentLevel;
 	}
 
+	static async addCSSStyleSheets ( /** @type {Array} */ CSSStyleSheets = [] )
+	{
+
+		/** @type {Set} */
+		const existingStyleSheets = new Set();
+
+		[ ...document.styleSheets ].forEach( ( /** @type {CSSStyleSheet} */ css ) =>
+		{
+			if ( css.disabled === false ) {
+				existingStyleSheets.add( css.href );
+			}
+		} );
+
+		return Promise.all( CSSStyleSheets.map( async ( /** @type {Object} */ assignment ) =>
+		{
+
+			/** @type {URL} */
+			let url = URL;
+
+			if ( assignment.href.startsWith( 'https://', 0 ) || assignment.href.startsWith( 'http://', 0 ) ) {
+				url = new URL( assignment.href );
+			} else {
+				url = new URL( assignment.href, window.location.protocol + '//' + window.location.host );
+			}
+			if ( !existingStyleSheets.has( url.href ) ) {
+				return fetch( url.href, {
+					method: 'HEAD',
+					credentials: 'omit',
+					cache: 'force-cache',
+					referrerPolicy: 'no-referrer',
+					redirect: 'manual',
+					mode: 'cors'
+				} ).then( function ( /** @type {Response} */ response )
+				{
+					if ( response.ok && response.status === 200 ) {
+						return url.href;
+					} else {
+						throw new Error( 'Bad path to css stylesheet' );
+					}
+				} ).then( function ( /** @type {String} */ linkHref )
+				{
+
+					/** @type {HTMLLinkElement} */
+					const link = document.createElement( 'LINK' );
+
+					link.href = linkHref;
+					link.rel = 'stylesheet';
+					link.crossOrigin = 'anonymous';
+					if ( assignment.title ) {
+						link.title = assignment.title;
+					}
+					if ( assignment.integrity ) {
+						link.integrity = assignment.integrity;
+					}
+					document.head.appendChild( link );
+				} ).catch( function ( /** @type {Error|Response} */ error )
+				{
+					return Promise.reject( error );
+				} );
+			}
+		} ) );
+	}
+
 }
 
 export class Dialogic extends DialogicInternal
 {
+
+	/** @type {Number|null} */
+	#runningTimeout = null;
+
 	constructor ( /** @type {String} */ title = '', /** @type {Object} */ options = {} )
 	{
 		super();
@@ -220,10 +287,7 @@ export class Dialogic extends DialogicInternal
 			enumerable: false,
 		} );
 
-		/** @type {HTMLDialogElement} */
-		const dialogElement = document.createElement( this.settings.resultSnippetElements.dialog );
-
-		this.dialogElement = dialogElement;
+		Dialogic.list = this;
 		if ( this.settings.autoRun ) {
 			this.run();
 		}
@@ -236,11 +300,6 @@ export class Dialogic extends DialogicInternal
 		/** @type {Boolean} */ useCapture = false
 	)
 	{
-
-		if ( type === 'show' ) {
-			// alert( 'ags' );
-		}
-
 		if ( options && Object.keys( options ).length !== 0 ) {
 			this.dialogElement.addEventListener( type, listener, options, useCapture );
 		} else {
@@ -250,12 +309,48 @@ export class Dialogic extends DialogicInternal
 
 	show ()
 	{
+		// console.log( 'Dialogic show' );
+		if ( this.onshow ) {
+			this.onshow();
+		}
+		this.dialogElement.dispatchEvent( new Event( 'show' ) );
 		this.dialogElement.show();
 	}
 
 	close ()
 	{
+		console.log( 'Dialogic close' );
+		if ( this.#runningTimeout ) {
+			clearTimeout( this.#runningTimeout );
+		}
+		if ( this.onclose ) {
+			this.onclose();
+		}
+
+		/** @type {Number} */
+		const index = Dialogic.list.indexOf( this );
+
+		if ( index > -1 ) {
+			Dialogic.list.splice( index, 1 );
+		}
 		this.dialogElement.close();
+	}
+
+	click ()
+	{
+		// console.log( 'Dialogic click' );
+		if ( this.onclick ) {
+			this.onclick();
+		}
+	}
+
+	error ()
+	{
+		// console.log( 'Dialogic error' );
+		if ( this.onerror ) {
+			this.onerror();
+		}
+		this.dialogElement.error();
 	}
 
 	checkRequirements ()
@@ -267,72 +362,14 @@ export class Dialogic extends DialogicInternal
 
 	async addCSSStyleSheets ()
 	{
-
-		/** @type {Set} */
-		const existingStyleSheets = new Set();
-
-		[ ...document.styleSheets ].forEach( ( /** @type {CSSStyleSheet} */ css ) =>
-		{
-			if ( css.disabled === false ) {
-				existingStyleSheets.add( css.href );
-			}
-		} );
-
-		return Promise.all( this.settings.CSSStyleSheets.map( async ( /** @type {Object} */ assignment ) =>
-		{
-
-			/** @type {URL} */
-			let url = URL;
-
-			if ( assignment.href.startsWith( 'https://', 0 ) || assignment.href.startsWith( 'http://', 0 ) ) {
-				url = new URL( assignment.href );
-			} else {
-				url = new URL( assignment.href, window.location.protocol + '//' + window.location.host );
-			}
-			if ( !existingStyleSheets.has( url.href ) ) {
-				return fetch( url.href, {
-					method: 'HEAD',
-					credentials: 'omit',
-					cache: 'force-cache',
-					referrerPolicy: 'no-referrer',
-					redirect: 'manual',
-					mode: 'cors'
-				} ).then( function ( /** @type {Response} */ response )
-				{
-					if ( response.ok && response.status === 200 ) {
-						return url.href;
-					} else {
-						throw new Error( 'Bad path to css stylesheet' );
-					}
-				} ).then( function ( /** @type {String} */ linkHref )
-				{
-
-					/** @type {HTMLLinkElement} */
-					const link = document.createElement( 'LINK' );
-
-					link.href = linkHref;
-					link.rel = 'stylesheet';
-					link.crossOrigin = 'anonymous';
-					if ( assignment.title ) {
-						link.title = assignment.title;
-					}
-					if ( assignment.integrity ) {
-						link.integrity = assignment.integrity;
-					}
-					document.head.appendChild( link );
-				} ).catch( function ( /** @type {Error|Response} */ error )
-				{
-					return Promise.reject( error );
-				} );
-			}
-		} ) );
+		return DialogicInternal.addCSSStyleSheets( this.settings.CSSStyleSheets );
 	}
 
 	async createDialogSnippet ()
 	{
 
 		/** @type {HTMLDialogElement} */
-		const dialogElement = this.dialogElement;
+		const dialogElement = document.createElement( this.settings.resultSnippetElements.dialog );
 
 		/** @type {HTMLElement} */
 		const innerWrapperElement = document.createElement( this.settings.resultSnippetElements.innerWrapper );
@@ -358,10 +395,16 @@ export class Dialogic extends DialogicInternal
 		/** @type {HTMLImageElement|null} */
 		const iconElement = this.icon ? document.createElement( 'IMG' ) : null;
 
+		this.dialogElement = dialogElement;
 		Object.assign( dialogElement, { ...{ id: dialogId }, ...this.settings.snippetAttributes.dialog } );
 		dialogElement.setAttribute( 'aria-labelledby', titleElementId );
 		dialogElement.setAttribute( 'aria-describedby', descriptionElementId );
 		Object.assign( innerWrapperElement, this.settings.snippetAttributes.innerWrapper );
+		innerWrapperElement.addEventListener( 'click', this.click.bind( this ), {
+			capture: false,
+			once: false,
+			passive: true,
+		} );
 		if ( iconElement ) {
 			Object.assign( iconElement, { ...{ src: this.icon }, ...this.settings.snippetAttributes.icon } );
 		}
@@ -380,19 +423,9 @@ export class Dialogic extends DialogicInternal
 				closerElement.dataset[ key ] = value;
 			}
 		} else {
-			closerElement.addEventListener( 'click', ( /** @type {PointerEvent} */ event ) => /// @todo: @refactor … do samostatné funkce, možná do internal sekce
-			{
-
-				/** @type {HTMLElement} */
-				let dialogElement = event.target;
-
-				while ( dialogElement.nodeName !== this.settings.resultSnippetElements.dialog.toUpperCase() ) {
-					dialogElement = dialogElement.parentElement;
-				}
-				dialogElement.close();
-			}, {
+			closerElement.addEventListener( 'click', this.close.bind( this ), {
 				capture: false,
-				once: false,
+				once: true,
 				passive: true,
 			} );
 		}
@@ -421,7 +454,7 @@ export class Dialogic extends DialogicInternal
 		}
 		return importWithIntegrity(
 			this.settings.modulesImportPath + '/string/hashCode.mjs',
-			'sha256-wujpULOI6urz9Qust0pbGs0BBeNwwfuxyg6lPGPioNA='
+			'sha256-+MupuRrWLEIV9umMAgx9nqCJUfikCsACr9hgHXstC30='
 		).then( ( /** @type {Module} */ hashCode ) =>
 		{
 			return new hashCode.append( String );
@@ -459,21 +492,23 @@ export class Dialogic extends DialogicInternal
 		setTimeout( () =>
 		{
 
-			/** @type {String} */
-			const idPrefix = this.settings.snippetIdPrefixes.dialog;
+			/** @type {Boolean} */
+			let isSomeDialogShown = false;
 
-			/** @type {String} */
-			const safeDialogIdPrefix = idPrefix.substring( idPrefix.length - 1 ) === '-' ? idPrefix.slice( 0, -1 ) : idPrefix;
+			Dialogic.list.forEach( ( /** @type {Dialogic} */ dialog ) =>
+			{
+				if ( dialog.dialogElement.open ) {
+					isSomeDialogShown = true;
+				}
+			} );
+			if ( !isSomeDialogShown ) {
 
-			/** @type {String} */
-			const baseSelector = this.settings.resultSnippetElements.dialog + '[id|=' + safeDialogIdPrefix + ']';
+				/** @type {Array} */
+				const reversedList = Dialogic.list.reverse();
 
-			/** @type {NodeList} */
-			const nodeList = this.rootElement.querySelectorAll( baseSelector + ':not([open])' );
-
-			if ( nodeList && nodeList.length && !this.rootElement.querySelector( baseSelector + '[open]' ) ) {
-				nodeList[ ( nodeList.length - 1 ) ].dispatchEvent( new Event( 'show' ) );
-				nodeList[ ( nodeList.length - 1 ) ].show();
+				if ( reversedList.length ) {
+					reversedList[ 0 ].show();
+				}
 			}
 		}, this.settings.showDialogWaitingBeforeShow );
 	}
@@ -481,7 +516,7 @@ export class Dialogic extends DialogicInternal
 	appendRequireInteractionListener ()
 	{
 		if ( !this.requireInteraction ) {
-			setTimeout( () =>
+			this.#runningTimeout = setTimeout( () =>
 			{
 				this.close();
 			}, this.settings.autoCloseAfter );
@@ -503,12 +538,34 @@ export class Dialogic extends DialogicInternal
 }
 
 // Private properties
-Object.defineProperty( Dialogic, 'maxActions', {
+Object.defineProperty( Dialogic, 'maxActions', { /// @todo : sloučit defineProperty do defineProperties
 	get: function ()
 	{
 		return 2;
 	},
 	set: function () { },
+	enumerable: true,
+	configurable: false
+} );
+
+Object.defineProperty( Dialogic, '_list', {
+	value: [],
+	writable: true,
+	enumerable: false,
+	configurable: false,
+} );
+
+Object.defineProperty( Dialogic, 'list', {
+	get: function ()
+	{
+		return this._list;
+	},
+	set: function ( listItem = Dialogic )
+	{
+		if ( listItem.constructor.name === 'Dialogic' ) {
+			this._list.push( listItem );
+		}
+	},
 	enumerable: true,
 	configurable: false
 } );
