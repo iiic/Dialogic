@@ -122,6 +122,7 @@ const DialogicInternal = class
 			},
 			set: function ( /** @type {HTMLElement} */ dialogElement )
 			{
+				console.warn( 'GGGGGGGG' );
 				if ( dialogElement && 'nodeType' in dialogElement && dialogElement.nodeType === Node.ELEMENT_NODE ) {
 					this.#dialogElement = dialogElement;
 				} else {
@@ -251,9 +252,16 @@ export class Dialogic extends DialogicInternal
 			configurable: true,
 		} );
 
+		/** @type {Function|null} */
 		this.onclick = null;
+
+		/** @type {Function|null} */
 		this.onclose = null;
+
+		/** @type {Function|null} */
 		this.onerror = null;
+
+		/** @type {Function|null} */
 		this.onshow = null;
 
 		if ( options !== null ) {
@@ -286,6 +294,9 @@ export class Dialogic extends DialogicInternal
 			configurable: false,
 			enumerable: false,
 		} );
+
+		/** @type {HTMLDialogElement} */
+		this.dialogElement = document.createElement( this.settings.resultSnippetElements.dialog );
 
 		Dialogic.list = this;
 		if ( this.settings.autoRun ) {
@@ -369,7 +380,7 @@ export class Dialogic extends DialogicInternal
 	{
 
 		/** @type {HTMLDialogElement} */
-		const dialogElement = document.createElement( this.settings.resultSnippetElements.dialog );
+		const dialogElement = this.dialogElement;
 
 		/** @type {HTMLElement} */
 		const innerWrapperElement = document.createElement( this.settings.resultSnippetElements.innerWrapper );
@@ -395,7 +406,6 @@ export class Dialogic extends DialogicInternal
 		/** @type {HTMLImageElement|null} */
 		const iconElement = this.icon ? document.createElement( 'IMG' ) : null;
 
-		this.dialogElement = dialogElement;
 		Object.assign( dialogElement, { ...{ id: dialogId }, ...this.settings.snippetAttributes.dialog } );
 		dialogElement.setAttribute( 'aria-labelledby', titleElementId );
 		dialogElement.setAttribute( 'aria-describedby', descriptionElementId );
@@ -538,56 +548,106 @@ export class Dialogic extends DialogicInternal
 }
 
 // Private properties
-Object.defineProperty( Dialogic, 'maxActions', { /// @todo : sloučit defineProperty do defineProperties
-	get: function ()
-	{
-		return 2;
+Object.defineProperties( Dialogic, {
+	maxActions: {
+		get: function ()
+		{
+			return 2;
+		},
+		set: function () { },
+		enumerable: true,
+		configurable: false
 	},
-	set: function () { },
-	enumerable: true,
-	configurable: false
+	_list: {
+		value: [],
+		writable: true,
+		enumerable: false,
+		configurable: false,
+	},
+	list: {
+		get: function ()
+		{
+			return this._list;
+		},
+		set: function ( listItem = Dialogic )
+		{
+			if ( listItem.constructor.name === 'Dialogic' ) {
+				this._list.push( listItem );
+			}
+		},
+		enumerable: true,
+		configurable: false
+	},
+	ALERT: {
+		get: function ()
+		{
+			return 0;
+		},
+		set: function () { },
+		enumerable: true,
+		configurable: false
+	},
+	CONFIRM: {
+		get: function ()
+		{
+			return 1;
+		},
+		set: function () { },
+		enumerable: true,
+		configurable: false
+	}
 } );
 
-Object.defineProperty( Dialogic, '_list', {
-	value: [],
-	writable: true,
-	enumerable: false,
-	configurable: false,
-} );
+// Object.defineProperty( Dialogic, 'maxActions', { /// @todo : jestli správně funguje defineProperties tak tohle smazat
+// 	get: function ()
+// 	{
+// 		return 2;
+// 	},
+// 	set: function () { },
+// 	enumerable: true,
+// 	configurable: false
+// } );
 
-Object.defineProperty( Dialogic, 'list', {
-	get: function ()
-	{
-		return this._list;
-	},
-	set: function ( listItem = Dialogic )
-	{
-		if ( listItem.constructor.name === 'Dialogic' ) {
-			this._list.push( listItem );
-		}
-	},
-	enumerable: true,
-	configurable: false
-} );
+// Object.defineProperty( Dialogic, '_list', {
+// 	value: [],
+// 	writable: true,
+// 	enumerable: false,
+// 	configurable: false,
+// } );
 
-Object.defineProperty( Dialogic, 'ALERT', {
-	get: function ()
-	{
-		return 0;
-	},
-	set: function () { },
-	enumerable: true,
-	configurable: false
-} );
+// Object.defineProperty( Dialogic, 'list', {
+// 	get: function ()
+// 	{
+// 		return this._list;
+// 	},
+// 	set: function ( listItem = Dialogic )
+// 	{
+// 		if ( listItem.constructor.name === 'Dialogic' ) {
+// 			this._list.push( listItem );
+// 		}
+// 	},
+// 	enumerable: true,
+// 	configurable: false
+// } );
 
-Object.defineProperty( Dialogic, 'CONFIRM', {
-	get: function ()
-	{
-		return 1;
-	},
-	set: function () { },
-	enumerable: true,
-	configurable: false
-} );
+// Object.defineProperty( Dialogic, 'ALERT', {
+// 	get: function ()
+// 	{
+// 		return 0;
+// 	},
+// 	set: function () { },
+// 	enumerable: true,
+// 	configurable: false
+// } );
+
+// Object.defineProperty( Dialogic, 'CONFIRM', {
+// 	get: function ()
+// 	{
+// 		return 1;
+// 	},
+// 	set: function () { },
+// 	enumerable: true,
+// 	configurable: false
+// } );
 
 window.Dialogic = Dialogic;
