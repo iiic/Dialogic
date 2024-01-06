@@ -122,7 +122,6 @@ const DialogicInternal = class
 			},
 			set: function ( /** @type {HTMLElement} */ dialogElement )
 			{
-				console.warn( 'GGGGGGGG' );
 				if ( dialogElement && 'nodeType' in dialogElement && dialogElement.nodeType === Node.ELEMENT_NODE ) {
 					this.#dialogElement = dialogElement;
 				} else {
@@ -330,7 +329,7 @@ export class Dialogic extends DialogicInternal
 
 	close ()
 	{
-		console.log( 'Dialogic close' );
+		// console.log( 'Dialogic close' );
 		if ( this.#runningTimeout ) {
 			clearTimeout( this.#runningTimeout );
 		}
@@ -597,57 +596,5 @@ Object.defineProperties( Dialogic, {
 		configurable: false
 	}
 } );
-
-// Object.defineProperty( Dialogic, 'maxActions', { /// @todo : jestli správně funguje defineProperties tak tohle smazat
-// 	get: function ()
-// 	{
-// 		return 2;
-// 	},
-// 	set: function () { },
-// 	enumerable: true,
-// 	configurable: false
-// } );
-
-// Object.defineProperty( Dialogic, '_list', {
-// 	value: [],
-// 	writable: true,
-// 	enumerable: false,
-// 	configurable: false,
-// } );
-
-// Object.defineProperty( Dialogic, 'list', {
-// 	get: function ()
-// 	{
-// 		return this._list;
-// 	},
-// 	set: function ( listItem = Dialogic )
-// 	{
-// 		if ( listItem.constructor.name === 'Dialogic' ) {
-// 			this._list.push( listItem );
-// 		}
-// 	},
-// 	enumerable: true,
-// 	configurable: false
-// } );
-
-// Object.defineProperty( Dialogic, 'ALERT', {
-// 	get: function ()
-// 	{
-// 		return 0;
-// 	},
-// 	set: function () { },
-// 	enumerable: true,
-// 	configurable: false
-// } );
-
-// Object.defineProperty( Dialogic, 'CONFIRM', {
-// 	get: function ()
-// 	{
-// 		return 1;
-// 	},
-// 	set: function () { },
-// 	enumerable: true,
-// 	configurable: false
-// } );
 
 window.Dialogic = Dialogic;
