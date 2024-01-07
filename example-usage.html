@@ -688,8 +688,8 @@
 		type: Dialogic.CONFIRM, // tohle zobrazí tlačítka ano / ne
 		body: 'souhlasíte?'
 	} );
-	d.onclick = () => { alert( 'kliknuto na ano' ); };
-	d.onclose = () => { alert( 'kliknuto na ne' ); };
+	d.onclick = () => { alert( 'zvoleno ano' ); };
+	d.onclose = () => { alert( 'zvoleno ne' ); };
 &lt;/script&gt;</code></pre>
 			<script defer>
 				( () => {
@@ -700,8 +700,8 @@
 							type: Dialogic.CONFIRM,
 							body: 'souhlasíte?'
 						} );
-						d.onclick = () => { alert( 'kliknuto na ano' ); };
-						d.onclose = () => { alert( 'kliknuto na ne' ); };
+						d.onclick = () => { alert( 'zvoleno ano' ); };
+						d.onclose = () => { alert( 'zvoleno ne' ); };
 					}, {
 						capture: false,
 						once: false,
@@ -718,8 +718,8 @@
 		body: 'souhlasíte?',
 		requireInteraction: true
 	} );
-	n.onclick = () => { alert( 'kliknuto na ano' ); };
-	n.onclose = () => { alert( 'kliknuto na ne' ); };
+	n.onclick = () => { alert( 'zvoleno ano' ); };
+	n.onclose = () => { alert( 'zvoleno ne' ); };
 &lt;/script&gt;</code></pre>
 			<script defer>
 				( () => {
@@ -730,8 +730,8 @@
 							body: 'souhlasíte?',
 							requireInteraction: true
 						} );
-						n.onclick = () => { alert( 'kliknuto na ano' ); };
-						n.onclose = () => { alert( 'kliknuto na ne' ); };
+						n.onclick = () => { alert( 'zvoleno ano' ); };
+						n.onclose = () => { alert( 'zvoleno ne' ); };
 					}, {
 						capture: false,
 						once: false,
@@ -776,6 +776,9 @@
 			<pre><code class="language-javascript">// nemá odpovídající příklad, Notification nemá nic jako globální nastavení :(</code></pre>
 		</div>
 	</section>
+
+	/// @todo : vyzkoušet použití root elementu pro dialogy
+
 	<!-- <strong>Whats happening?</strong>
 	<p>This page is showing notifications periodically every 8 seconds, and automatically hide them 15 seconds from display. (so max 2 notifications at the same tame).</p>
 	<p>When tab is active notification is on page, when you switch to another tab, notifications will be shown by browser <code>Notification()</code> function.</p>

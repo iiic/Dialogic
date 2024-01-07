@@ -1,7 +1,5 @@
 import { importWithIntegrity } from '/modules/importWithIntegrity.mjs';
 
-//https://github.com/wootzapp/wootz-browser/blob/11f9323feb5ef4ab7dc420d7c3e9dbe372d868b3/js/web_notification.js#L18
-
 const DialogicInternal = class
 {
 
@@ -39,6 +37,8 @@ const DialogicInternal = class
 			title: 'H3',
 			description: 'P',
 			closer: 'BUTTON',
+			confirmYes: 'BUTTON',
+			confirmNo: 'BUTTON',
 		},
 		snippetIdPrefixes: {
 			dialog: 'dialogic-',
@@ -47,7 +47,7 @@ const DialogicInternal = class
 		},
 		snippetAttributes: {
 			dialog: {
-				open: false, // create dialog opened by default
+				open: false,
 				role: 'alertdialog',
 			},
 			innerWrapper: {
@@ -76,13 +76,19 @@ const DialogicInternal = class
 			},
 			closerDataset: { // data- preffix
 			},
+			confirmYes: {
+				className: 'confirm-yes',
+				title: 'answer Yes and close this popup'
+			},
+			confirmNo: {
+				className: 'confirm-no',
+				title: 'answer NO and close this popup'
+			}
 		},
 		texts: {
 			closerTextContent: 'x',
-		},
-		typeConfirm: {
-			yes: 'yes',
-			no: 'no',
+			confirmYes: 'yes',
+			confirmNo: 'no'
 		},
 		CSSStyleSheets: [
 			{ href: 'css/dialogic.css', title: 'CSS styles for Dialogic script' /*, integrity: 'sha256-Ovtq2BR6TO/fv2khbLYu9yWRdkPjNVeVffIOEhh4LWY=' */ }
@@ -99,39 +105,36 @@ const DialogicInternal = class
 
 	constructor ()
 	{
-
-		/** @param settings */
-		Object.defineProperty( this, 'settings', {
-			get: function ()
-			{
-				return this.#settings;
+		Object.defineProperties( this, {
+			settings: {
+				get: function ()
+				{
+					return this.#settings;
+				},
+				set: function ( /** @type {Object} */ newSettings )
+				{
+					this.#settings = DialogicInternal.#deepAssign( this.#settings, newSettings );
+				},
+				enumerable: true,
+				configurable: true
 			},
-			set: function ( /** @type {Object} */ newSettings )
-			{
-				this.#settings = DialogicInternal.#deepAssign( this.#settings, newSettings );
-			},
-			enumerable: true,
-			configurable: true
+			dialogElement: {
+				get: function ()
+				{
+					return this.#dialogElement;
+				},
+				set: function ( /** @type {HTMLElement} */ dialogElement )
+				{
+					if ( dialogElement && 'nodeType' in dialogElement && dialogElement.nodeType === Node.ELEMENT_NODE ) {
+						this.#dialogElement = dialogElement;
+					} else {
+						throw new Error( 'Not a valid HTMLElement' );
+					}
+				},
+				configurable: false,
+				enumerable: false,
+			}
 		} );
-
-		/** @param dialogElement */
-		Object.defineProperty( this, 'dialogElement', {
-			get: function ()
-			{
-				return this.#dialogElement;
-			},
-			set: function ( /** @type {HTMLElement} */ dialogElement )
-			{
-				if ( dialogElement && 'nodeType' in dialogElement && dialogElement.nodeType === Node.ELEMENT_NODE ) {
-					this.#dialogElement = dialogElement;
-				} else {
-					throw new Error( 'Not a valid HTMLElement' );
-				}
-			},
-			configurable: false,
-			enumerable: false,
-		} );
-
 	}
 
 	static #deepAssign ( /** @type {Array} */ ...args )
@@ -217,7 +220,67 @@ const DialogicInternal = class
 		} ) );
 	}
 
+	static async showDialogsFromQueue ( /** @type {Number} */ showDialogWaitingBeforeShow = 5 )
+	{
+		return new Promise( function ( /** @type {Function} */ resolve )
+		{
+			setTimeout( function ()
+			{
+
+				/** @type {Boolean} */
+				let isSomeDialogShown = false;
+
+				Dialogic.list.forEach( ( /** @type {Dialogic} */ dialog ) =>
+				{
+					if ( dialog.dialogElement.open ) {
+						isSomeDialogShown = true;
+					}
+				} );
+				if ( !isSomeDialogShown ) {
+
+					/** @type {Array} */
+					const reversedList = Dialogic.list.reverse();
+
+					if ( reversedList.length ) {
+						reversedList[ 0 ].show();
+					}
+				}
+				resolve();
+			}, showDialogWaitingBeforeShow );
+		} );
+	}
+
+	static async loadExternalFunctions ( /** @type {String} */ modulesImportPath = '' )
+	{
+		if ( 'hashCode' in String.prototype ) {
+			return;
+		}
+		return importWithIntegrity(
+			modulesImportPath + '/string/hashCode.mjs',
+			'sha256-+MupuRrWLEIV9umMAgx9nqCJUfikCsACr9hgHXstC30='
+		).then( ( /** @type {Module} */ hashCode ) =>
+		{
+			return new hashCode.append( String );
+		} );
+	}
+
+	static removeDialogFromList ( /** @type {Dialogic} */ dialogic = Dialogic.prototype )
+	{
+		/** @type {Number} */
+		const index = Dialogic.list.indexOf( dialogic );
+
+		if ( index > -1 ) {
+			Dialogic.list.splice( index, 1 );
+		}
+	}
 }
+
+Object.defineProperty( DialogicInternal, 'list', {
+	value: [],
+	writable: true,
+	enumerable: false,
+	configurable: false,
+} );
 
 export class Dialogic extends DialogicInternal
 {
@@ -242,14 +305,6 @@ export class Dialogic extends DialogicInternal
 
 		/** @type {Object} */
 		options = options === null ? defaultOptions : { ...defaultOptions, ...options };
-
-		/** @param title */
-		Object.defineProperty( this, 'title', {
-			value: title,
-			writable: false,
-			enumerable: true,
-			configurable: true,
-		} );
 
 		/** @type {Function|null} */
 		this.onclick = null;
@@ -279,19 +334,117 @@ export class Dialogic extends DialogicInternal
 			} );
 		}
 
-		/** @param rootElement */
-		Object.defineProperty( this, 'rootElement', {
-			get: function ()
-			{
-
-				/** @type {HTMLElement|null} */
-				const foundRootElement = this.settings.rootElementId ? document.getElementById( this.settings.rootElementId ) : null;
-
-				return foundRootElement ? foundRootElement : document.body;
+		Object.defineProperties( this, {
+			title: {
+				value: title,
+				writable: false,
+				enumerable: true,
+				configurable: true,
 			},
-			set: function () { },
-			configurable: false,
-			enumerable: false,
+			rootElement: {
+				get: function ()
+				{
+
+					/** @type {HTMLElement|null} */
+					const foundRootElement = this.settings.rootElementId ? document.getElementById( this.settings.rootElementId ) : null;
+
+					return foundRootElement ? foundRootElement : document.body;
+				},
+				set: function () { },
+				configurable: false,
+				enumerable: false,
+			},
+			show: {
+				value: function ()
+				{
+					// console.log( 'Dialogic show' );
+					if ( this.onshow ) {
+						this.onshow();
+					}
+					this.dialogElement.dispatchEvent( new Event( 'show' ) );
+					this.dialogElement.show();
+				},
+				writable: false,
+				enumerable: true,
+				configurable: false,
+			},
+			close: {
+				value: function ()
+				{
+					// console.log( 'Dialogic close' );
+					if ( this.#runningTimeout ) {
+						clearTimeout( this.#runningTimeout );
+					}
+					if ( this.onclose ) {
+						this.onclose();
+					}
+					Dialogic.removeDialogFromList( this );
+					this.dialogElement.close();
+				},
+				writable: false,
+				enumerable: true,
+				configurable: false,
+			},
+			click: {
+				value: function ()
+				{
+					// console.log( 'Dialogic click' );
+					if ( this.onclick ) {
+						this.onclick();
+					}
+				},
+				writable: false,
+				enumerable: true,
+				configurable: false,
+			},
+			error: {
+				value: function ()
+				{
+					// console.log( 'Dialogic error' );
+					if ( this.onerror ) {
+						this.onerror();
+					}
+					this.dialogElement.error();
+				},
+				writable: false,
+				enumerable: true,
+				configurable: false,
+			},
+			addEventListener: {
+				value: function (
+					/** @type {String} */ type = '',
+					/** @type {Function} */ listener = Function,
+					/** @type {Object} */ options = {},
+					/** @type {Boolean} */ useCapture = false
+				)
+				{
+					if ( options && Object.keys( options ).length !== 0 ) {
+						this.dialogElement.addEventListener( type, listener, options, useCapture );
+					} else {
+						this.dialogElement.addEventListener( type, listener, useCapture );
+					}
+				},
+				writable: false,
+				enumerable: true,
+				configurable: false,
+			},
+			run: {
+				value: async function ()
+				{
+					this.checkRequirements();
+					await Dialogic.loadExternalFunctions( this.settings.modulesImportPath );
+					await Dialogic.addCSSStyleSheets( this.settings.CSSStyleSheets );
+					if ( this.createDialogSnippet() ) {
+						this.appendRemoveDialogElementOnCloseListener();
+						this.appendRequireInteractionListener();
+						this.appendShowNextDialogAfterCloseListener();
+					}
+					Dialogic.showDialogsFromQueue( this.settings.showDialogWaitingBeforeShow );
+				},
+				writable: false,
+				enumerable: false,
+				configurable: false,
+			}
 		} );
 
 		/** @type {HTMLDialogElement} */
@@ -303,66 +456,6 @@ export class Dialogic extends DialogicInternal
 		}
 	}
 
-	addEventListener (
-		/** @type {String} */ type = '',
-		/** @type {Function} */ listener = Function,
-		/** @type {Object} */ options = {},
-		/** @type {Boolean} */ useCapture = false
-	)
-	{
-		if ( options && Object.keys( options ).length !== 0 ) {
-			this.dialogElement.addEventListener( type, listener, options, useCapture );
-		} else {
-			this.dialogElement.addEventListener( type, listener, useCapture );
-		}
-	}
-
-	show ()
-	{
-		// console.log( 'Dialogic show' );
-		if ( this.onshow ) {
-			this.onshow();
-		}
-		this.dialogElement.dispatchEvent( new Event( 'show' ) );
-		this.dialogElement.show();
-	}
-
-	close ()
-	{
-		// console.log( 'Dialogic close' );
-		if ( this.#runningTimeout ) {
-			clearTimeout( this.#runningTimeout );
-		}
-		if ( this.onclose ) {
-			this.onclose();
-		}
-
-		/** @type {Number} */
-		const index = Dialogic.list.indexOf( this );
-
-		if ( index > -1 ) {
-			Dialogic.list.splice( index, 1 );
-		}
-		this.dialogElement.close();
-	}
-
-	click ()
-	{
-		// console.log( 'Dialogic click' );
-		if ( this.onclick ) {
-			this.onclick();
-		}
-	}
-
-	error ()
-	{
-		// console.log( 'Dialogic error' );
-		if ( this.onerror ) {
-			this.onerror();
-		}
-		this.dialogElement.error();
-	}
-
 	checkRequirements ()
 	{
 		if ( !this.settings ) {
@@ -370,16 +463,15 @@ export class Dialogic extends DialogicInternal
 		}
 	}
 
-	async addCSSStyleSheets ()
-	{
-		return DialogicInternal.addCSSStyleSheets( this.settings.CSSStyleSheets );
-	}
-
-	async createDialogSnippet ()
+	createDialogSnippet ()
 	{
 
 		/** @type {HTMLDialogElement} */
 		const dialogElement = this.dialogElement;
+
+		if ( dialogElement.open ) {
+			return false;
+		}
 
 		/** @type {HTMLElement} */
 		const innerWrapperElement = document.createElement( this.settings.resultSnippetElements.innerWrapper );
@@ -409,11 +501,6 @@ export class Dialogic extends DialogicInternal
 		dialogElement.setAttribute( 'aria-labelledby', titleElementId );
 		dialogElement.setAttribute( 'aria-describedby', descriptionElementId );
 		Object.assign( innerWrapperElement, this.settings.snippetAttributes.innerWrapper );
-		innerWrapperElement.addEventListener( 'click', this.click.bind( this ), {
-			capture: false,
-			once: false,
-			passive: true,
-		} );
 		if ( iconElement ) {
 			Object.assign( iconElement, { ...{ src: this.icon }, ...this.settings.snippetAttributes.icon } );
 		}
@@ -425,49 +512,81 @@ export class Dialogic extends DialogicInternal
 			descriptionElement.insertAdjacentHTML( 'beforeend', this.htmlBody );
 		}
 		Object.assign( descriptionElement, { ...{ id: descriptionElementId }, ...this.settings.snippetAttributes.description } );
-		closerElement.appendChild( document.createTextNode( this.settings.texts.closerTextContent ) );
-		Object.assign( closerElement, this.settings.snippetAttributes.closer );
-		if ( this.settings.snippetAttributes.closerDataset && this.settings.snippetAttributes.closerDataset.length ) {
-			for ( const [ key, value ] of Object.entries( this.settings.snippetAttributes.closerDataset ) ) {
-				closerElement.dataset[ key ] = value;
-			}
-		} else {
-			closerElement.addEventListener( 'click', this.close.bind( this ), {
-				capture: false,
-				once: true,
-				passive: true,
-			} );
-		}
-		closerElement.addEventListener( 'click', function ( /** @type {PointerEvent} */ event )
-		{
-			event.stopPropagation();
-		}, {
-			capture: false,
-			once: false,
-			passive: false,
-		} );
 		dialogElement.appendChild( innerWrapperElement );
 		if ( iconElement ) {
 			innerWrapperElement.appendChild( iconElement );
 		}
 		innerWrapperElement.appendChild( titleElement );
 		innerWrapperElement.appendChild( descriptionElement );
-		dialogElement.appendChild( closerElement );
-		this.rootElement.appendChild( dialogElement );
-	}
+		if ( this.type === Dialogic.ALERT ) {
+			innerWrapperElement.addEventListener( 'click', this.click.bind( this ), {
+				capture: false,
+				once: false,
+				passive: true,
+			} );
+			closerElement.appendChild( document.createTextNode( this.settings.texts.closerTextContent ) );
+			Object.assign( closerElement, this.settings.snippetAttributes.closer );
+			if ( this.settings.snippetAttributes.closerDataset && this.settings.snippetAttributes.closerDataset.length ) {
+				for ( const [ key, value ] of Object.entries( this.settings.snippetAttributes.closerDataset ) ) {
+					closerElement.dataset[ key ] = value;
+				}
+			} else {
+				closerElement.addEventListener( 'click', this.close.bind( this ), {
+					capture: false,
+					once: true,
+					passive: true,
+				} );
+			}
+			closerElement.addEventListener( 'click', function ( /** @type {PointerEvent} */ event )
+			{
+				event.stopPropagation();
+			}, {
+				capture: false,
+				once: false,
+				passive: false,
+			} );
+			dialogElement.appendChild( closerElement );
+		} else if ( this.type === Dialogic.CONFIRM ) {
 
-	async loadExternalFunctions ()
-	{
-		if ( 'hashCode' in String.prototype ) {
-			return;
+			/** @type {HTMLButtonElement} */
+			const confirmYes = document.createElement( this.settings.resultSnippetElements.confirmYes );
+
+			/** @type {HTMLButtonElement} */
+			const confirmNo = document.createElement( this.settings.resultSnippetElements.confirmNo );
+
+			Object.assign( confirmYes, this.settings.snippetAttributes.confirmYes );
+			Object.assign( confirmNo, this.settings.snippetAttributes.confirmNo );
+			confirmYes.appendChild( document.createTextNode( this.settings.texts.confirmYes ) );
+			confirmNo.appendChild( document.createTextNode( this.settings.texts.confirmNo ) );
+			confirmYes.addEventListener( 'click', ( /** @type {PointerEvent} event */ ) =>
+			{
+				if ( this.#runningTimeout ) {
+					clearTimeout( this.#runningTimeout );
+				}
+				this.click();
+				Dialogic.removeDialogFromList( this );
+				this.dialogElement.close(); // close popup without close() event on Dialogic
+			}, {
+				capture: false,
+				once: true,
+				passive: true,
+			} );
+			confirmNo.addEventListener( 'click', ( /** @type {PointerEvent} event */ ) =>
+			{
+				if ( this.#runningTimeout ) {
+					clearTimeout( this.#runningTimeout );
+				}
+				this.close();
+			}, {
+				capture: false,
+				once: true,
+				passive: true,
+			} );
+			dialogElement.appendChild( confirmYes );
+			dialogElement.appendChild( confirmNo );
 		}
-		return importWithIntegrity(
-			this.settings.modulesImportPath + '/string/hashCode.mjs',
-			'sha256-+MupuRrWLEIV9umMAgx9nqCJUfikCsACr9hgHXstC30='
-		).then( ( /** @type {Module} */ hashCode ) =>
-		{
-			return new hashCode.append( String );
-		} );
+		this.rootElement.appendChild( dialogElement );
+		return true;
 	}
 
 	appendRemoveDialogElementOnCloseListener ()
@@ -488,7 +607,7 @@ export class Dialogic extends DialogicInternal
 	{
 		this.addEventListener( 'close', ( /** @type {Event} event */ ) =>
 		{
-			this.showDialogsFromQueue();
+			Dialogic.showDialogsFromQueue( this.settings.showDialogWaitingBeforeShow );
 		}, {
 			capture: false,
 			once: true,
@@ -496,57 +615,23 @@ export class Dialogic extends DialogicInternal
 		} );
 	}
 
-	showDialogsFromQueue ()
+	async appendRequireInteractionListener ()
 	{
-		setTimeout( () =>
+		return new Promise( ( /** @type {Function} */ resolve ) =>
 		{
-
-			/** @type {Boolean} */
-			let isSomeDialogShown = false;
-
-			Dialogic.list.forEach( ( /** @type {Dialogic} */ dialog ) =>
-			{
-				if ( dialog.dialogElement.open ) {
-					isSomeDialogShown = true;
-				}
-			} );
-			if ( !isSomeDialogShown ) {
-
-				/** @type {Array} */
-				const reversedList = Dialogic.list.reverse();
-
-				if ( reversedList.length ) {
-					reversedList[ 0 ].show();
-				}
+			if ( this.requireInteraction ) {
+				resolve();
+			} else {
+				this.#runningTimeout = setTimeout( () =>
+				{
+					this.close();
+					resolve();
+				}, this.settings.autoCloseAfter );
 			}
-		}, this.settings.showDialogWaitingBeforeShow );
+		} );
 	}
-
-	appendRequireInteractionListener ()
-	{
-		if ( !this.requireInteraction ) {
-			this.#runningTimeout = setTimeout( () =>
-			{
-				this.close();
-			}, this.settings.autoCloseAfter );
-		}
-	}
-
-	async run ()
-	{
-		this.checkRequirements();
-		await this.loadExternalFunctions();
-		await this.addCSSStyleSheets();
-		await this.createDialogSnippet();
-		this.appendRemoveDialogElementOnCloseListener();
-		this.appendRequireInteractionListener();
-		this.appendShowNextDialogAfterCloseListener();
-		this.showDialogsFromQueue();
-	}
-
 }
 
-// Private properties
 Object.defineProperties( Dialogic, {
 	maxActions: {
 		get: function ()
@@ -557,25 +642,44 @@ Object.defineProperties( Dialogic, {
 		enumerable: true,
 		configurable: false
 	},
-	_list: {
-		value: [],
-		writable: true,
-		enumerable: false,
+	removeDialogFromList:
+	{
+		value: DialogicInternal.removeDialogFromList,
+		writable: false,
+		enumerable: true,
+		configurable: false,
+	},
+	loadExternalFunctions: {
+		value: DialogicInternal.loadExternalFunctions,
+		writable: false,
+		enumerable: true,
 		configurable: false,
 	},
 	list: {
 		get: function ()
 		{
-			return this._list;
+			return DialogicInternal.list;
 		},
-		set: function ( listItem = Dialogic )
+		set: function ( /** @type {Dialogic} */ listItem = Dialogic )
 		{
 			if ( listItem.constructor.name === 'Dialogic' ) {
-				this._list.push( listItem );
+				DialogicInternal.list.push( listItem );
 			}
 		},
 		enumerable: true,
 		configurable: false
+	},
+	showDialogsFromQueue: {
+		value: DialogicInternal.showDialogsFromQueue,
+		writable: false,
+		enumerable: true,
+		configurable: false,
+	},
+	addCSSStyleSheets: {
+		value: DialogicInternal.addCSSStyleSheets,
+		writable: false,
+		enumerable: true,
+		configurable: false,
 	},
 	ALERT: {
 		get: function ()
