@@ -3,33 +3,21 @@ import { importWithIntegrity } from '/modules/importWithIntegrity.mjs';
 const DialogicInternal = class
 {
 
-	/** private (
-	 * enumerable: false,
-	 * not showing in Object.keys,
-	 * not showing in Object.getOwnPropertyDescriptors,
-	 * not showing in Object.getOwnPropertyNames
-	 * …
-	 * )
-	 */
+	/** @type {Array} */
+	static list = [];
+	static getList ()
+	{
+		return DialogicInternal.list;
+	}
+	static setList ( /** @type {Dialogic} */ listItem = Dialogic.prototype )
+	{
+		if ( listItem.constructor.name === 'Dialogic' ) {
+			DialogicInternal.list.push( listItem );
+		}
+	}
+
+	/** @type {Object} */
 	#settings = {
-		defaultOptions: {
-			actions: [],
-			badge: '',
-			body: '',
-			htmlBody: '',
-			data: null,
-			dir: 'auto',
-			icon: '', // will be displayed as 96x96 px by default
-			image: null,
-			lang: '',
-			renotify: false,
-			requireInteraction: true,
-			silent: false,
-			tag: '',
-			timestamp: Date.now(),
-			vibrate: [],
-			type: Dialogic.ALERT,
-		},
 		rootElementId: 'dialogic-canvas',
 		resultSnippetElements: {
 			dialog: 'DIALOG',
@@ -99,42 +87,138 @@ const DialogicInternal = class
 		showDialogWaitingBeforeShow: 5, // in ms
 		autoRun: true,
 	};
+	getSettings ()
+	{
+		return this.#settings;
+	}
+	setSettings ( /** @type {Object} */ newSettings = {} )
+	{
+		this.#settings = DialogicInternal.#deepAssign( this.#settings, newSettings );
+	}
 
 	/** @type {HTMLElement|null} */
-	#dialogElement = null;
-
-	constructor ()
+	#dialogElement;
+	getDialogElement ()
 	{
+		return this.#dialogElement;
+	}
+	setDialogElement ( /** @type {HTMLElement} */ dialogElement = HTMLDialogElement.prototype )
+	{
+		if ( dialogElement && 'nodeType' in dialogElement && dialogElement.nodeType === Node.ELEMENT_NODE ) {
+			this.#dialogElement = dialogElement;
+		} else {
+			this.error();
+			throw new Error( 'Not a valid HTMLElement' );
+		}
+	}
+
+	/** @type {Number|null} */
+	#runningTimeout = null;
+
+	/** @type {Function|null} */
+	onclick = null;
+
+	/** @type {Function|null} */
+	onclose = null;
+
+	/** @type {Function|null} */
+	onerror = null;
+
+	/** @type {Function|null} */
+	onshow = null;
+
+	constructor ( /** @type {String} */ title = '', /** @type {Object} */ options = {}, settingsElementId = 'dialogic-settings' )
+	{
+		if ( arguments.length === 0 ) {
+			throw new TypeError( 'Failed to construct \'Dialogic\': 1 argument required, but only 0 present.' );
+		}
+		this.createProperties( {
+			enumerable: [
+				'dialogElement',
+				'list',
+			],
+			'configurable enumerable': [ 'settings' ]
+		} );
 		Object.defineProperties( this, {
-			settings: {
-				get: function ()
-				{
-					return this.#settings;
-				},
-				set: function ( /** @type {Object} */ newSettings )
-				{
-					this.#settings = DialogicInternal.#deepAssign( this.#settings, newSettings );
-				},
-				enumerable: true,
-				configurable: true
-			},
-			dialogElement: {
-				get: function ()
-				{
-					return this.#dialogElement;
-				},
-				set: function ( /** @type {HTMLElement} */ dialogElement )
-				{
-					if ( dialogElement && 'nodeType' in dialogElement && dialogElement.nodeType === Node.ELEMENT_NODE ) {
-						this.#dialogElement = dialogElement;
-					} else {
-						throw new Error( 'Not a valid HTMLElement' );
+			eventListeners: {
+				value: {
+					click: {
+						preventClickOnClose: function ( /** @type {PointerEvent} */ event )
+						{
+							event.stopPropagation();
+						},
+						confirmYes: function ( /** @type {PointerEvent} event */ )
+						{
+							if ( this.#runningTimeout ) {
+								clearTimeout( this.#runningTimeout );
+							}
+							this.click();
+							Dialogic.removeDialogFromList( this );
+							this.dialogElement.close(); // close popup without close() event on Dialogic
+						},
+						confirmNo: function ( /** @type {PointerEvent} event */ )
+						{
+							if ( this.#runningTimeout ) {
+								clearTimeout( this.#runningTimeout );
+							}
+							this.close();
+						},
+					},
+					close: {
+						showNextDialog: function ( /** @type {Event} event */ )
+						{
+							Dialogic.showDialogsFromQueue( this.settings.showDialogWaitingBeforeShow );
+						},
+						removeDialogElement: function ( /** @type {Event} event */ )
+						{
+							this.rootElement.removeChild( this.dialogElement );
+						},
 					}
 				},
-				configurable: false,
+				writable: false,
 				enumerable: false,
-			}
+				configurable: false,
+			},
 		} );
+
+		this.title = title;
+
+		/** @type {HTMLScriptElement | null} */
+		const settingsElement = document.getElementById( settingsElementId );
+
+		this.settings = settingsElement ? JSON.parse( settingsElement.text ) : null;
+		if ( options ) {
+
+			/** @type {Array} */
+			const keys = Object.keys( options );
+
+			keys.forEach( ( /** @type {String} */ key ) =>
+			{
+				this[ key ] = options[ key ];
+			} );
+		}
+
+		/** @type {HTMLDialogElement} */
+		this.dialogElement = document.createElement( this.settings.resultSnippetElements.dialog );
+
+		Dialogic.list = this;
+	}
+
+	static emptySetter () { }
+
+	static getMaxActions ()
+	{
+		return 2;
+	}
+
+	static getALERT ()
+	{
+		return 0;
+	}
+
+	static getCONFIRM ()
+	{
+		return 1;
 	}
 
 	static #deepAssign ( /** @type {Array} */ ...args )
@@ -273,193 +357,99 @@ const DialogicInternal = class
 			Dialogic.list.splice( index, 1 );
 		}
 	}
-}
 
-Object.defineProperty( DialogicInternal, 'list', {
-	value: [],
-	writable: true,
-	enumerable: false,
-	configurable: false,
-} );
-
-export class Dialogic extends DialogicInternal
-{
-
-	/** @type {Number|null} */
-	#runningTimeout = null;
-
-	constructor ( /** @type {String} */ title = '', /** @type {Object} */ options = {} )
+	getRootElement ()
 	{
-		super();
-		if ( arguments.length === 0 ) {
-			throw new TypeError( 'Failed to construct \'Dialogic\': 1 argument required, but only 0 present.' );
-		}
 
-		/** @type {HTMLScriptElement | null} */
-		const settingsElement = document.getElementById( 'dialogic-settings' );
+		/** @type {HTMLElement|null} */
+		const foundRootElement = this.settings.rootElementId ? document.getElementById( this.settings.rootElementId ) : null;
 
-		this.settings = settingsElement ? JSON.parse( settingsElement.text ) : null;
+		return foundRootElement ? foundRootElement : document.body;
+	}
 
-		/** @type {Object} */
-		const defaultOptions = this.settings.defaultOptions;
-
-		/** @type {Object} */
-		options = options === null ? defaultOptions : { ...defaultOptions, ...options };
-
-		/** @type {Function|null} */
-		this.onclick = null;
-
-		/** @type {Function|null} */
-		this.onclose = null;
-
-		/** @type {Function|null} */
-		this.onerror = null;
-
-		/** @type {Function|null} */
-		this.onshow = null;
-
-		if ( options !== null ) {
-
-			/** @type {Array} */
-			const keys = Object.keys( defaultOptions );
-
-			keys.forEach( ( /** @type {String} */ key ) =>
-			{
-				Object.defineProperty( this, key, {
-					value: options[ key ],
-					writable: false,
-					enumerable: true,
-					configurable: true
-				} );
-			} );
-		}
-
-		Object.defineProperties( this, {
-			title: {
-				value: title,
-				writable: false,
-				enumerable: true,
-				configurable: true,
-			},
-			rootElement: {
-				get: function ()
-				{
-
-					/** @type {HTMLElement|null} */
-					const foundRootElement = this.settings.rootElementId ? document.getElementById( this.settings.rootElementId ) : null;
-
-					return foundRootElement ? foundRootElement : document.body;
-				},
-				set: function () { },
-				configurable: false,
-				enumerable: false,
-			},
-			show: {
-				value: function ()
-				{
-					// console.log( 'Dialogic show' );
-					if ( this.onshow ) {
-						this.onshow();
-					}
-					this.dialogElement.dispatchEvent( new Event( 'show' ) );
-					this.dialogElement.show();
-				},
-				writable: false,
-				enumerable: true,
-				configurable: false,
-			},
-			close: {
-				value: function ()
-				{
-					// console.log( 'Dialogic close' );
-					if ( this.#runningTimeout ) {
-						clearTimeout( this.#runningTimeout );
-					}
-					if ( this.onclose ) {
-						this.onclose();
-					}
-					Dialogic.removeDialogFromList( this );
-					this.dialogElement.close();
-				},
-				writable: false,
-				enumerable: true,
-				configurable: false,
-			},
-			click: {
-				value: function ()
-				{
-					// console.log( 'Dialogic click' );
-					if ( this.onclick ) {
-						this.onclick();
-					}
-				},
-				writable: false,
-				enumerable: true,
-				configurable: false,
-			},
-			error: {
-				value: function ()
-				{
-					// console.log( 'Dialogic error' );
-					if ( this.onerror ) {
-						this.onerror();
-					}
-					this.dialogElement.error();
-				},
-				writable: false,
-				enumerable: true,
-				configurable: false,
-			},
-			addEventListener: {
-				value: function (
-					/** @type {String} */ type = '',
-					/** @type {Function} */ listener = Function,
-					/** @type {Object} */ options = {},
-					/** @type {Boolean} */ useCapture = false
-				)
-				{
-					if ( options && Object.keys( options ).length !== 0 ) {
-						this.dialogElement.addEventListener( type, listener, options, useCapture );
-					} else {
-						this.dialogElement.addEventListener( type, listener, useCapture );
-					}
-				},
-				writable: false,
-				enumerable: true,
-				configurable: false,
-			},
-			run: {
-				value: async function ()
-				{
-					this.checkRequirements();
-					await Dialogic.loadExternalFunctions( this.settings.modulesImportPath );
-					await Dialogic.addCSSStyleSheets( this.settings.CSSStyleSheets );
-					if ( this.createDialogSnippet() ) {
-						this.appendRemoveDialogElementOnCloseListener();
-						this.appendRequireInteractionListener();
-						this.appendShowNextDialogAfterCloseListener();
-					}
-					Dialogic.showDialogsFromQueue( this.settings.showDialogWaitingBeforeShow );
-				},
-				writable: false,
-				enumerable: false,
-				configurable: false,
-			}
-		} );
-
-		/** @type {HTMLDialogElement} */
-		this.dialogElement = document.createElement( this.settings.resultSnippetElements.dialog );
-
-		Dialogic.list = this;
-		if ( this.settings.autoRun ) {
-			this.run();
+	click ()
+	{
+		if ( this.onclick ) {
+			this.onclick();
 		}
 	}
 
-	checkRequirements ()
+	show ()
 	{
-		if ( !this.settings ) {
-			throw new Error( 'Settings object is missing' );
+		if ( this.onshow ) {
+			this.onshow();
+		}
+		this.dialogElement.dispatchEvent( new Event( 'show' ) );
+		this.dialogElement.show();
+	}
+
+	close ()
+	{
+		if ( this.#runningTimeout ) {
+			clearTimeout( this.#runningTimeout );
+		}
+		if ( this.onclose ) {
+			this.onclose();
+		}
+		Dialogic.removeDialogFromList( this );
+		this.dialogElement.close();
+	}
+
+	error ()
+	{
+		if ( this.onerror ) {
+			this.onerror();
+		}
+		this.dialogElement.dispatchEvent( new Event( 'error' ) );
+	}
+
+	addEventListener (
+		/** @type {String} */ type = '',
+		/** @type {Function} */ listener = Function,
+		/** @type {Object} */ options = {},
+		/** @type {Boolean} */ useCapture = false
+	)
+	{
+		if ( options && Object.keys( options ).length !== 0 ) {
+			this.dialogElement.addEventListener( type, listener, options, useCapture );
+		} else {
+			this.dialogElement.addEventListener( type, listener, useCapture );
+		}
+	}
+
+	async appendRequireInteractionListener ()
+	{
+		return new Promise( ( /** @type {Function} */ resolve ) =>
+		{
+			if ( this.requireInteraction ) {
+				resolve();
+			} else {
+				this.#runningTimeout = setTimeout( () =>
+				{
+					this.close();
+					resolve();
+				}, this.settings.autoCloseAfter );
+			}
+		} );
+	}
+
+	appendShowNextDialogAfterCloseListener ()
+	{
+		this.addEventListener( 'close', this.eventListeners.close.showNextDialog.bind( this ), {
+			capture: false,
+			once: true,
+			passive: true,
+		} );
+	}
+
+	appendRemoveDialogElementOnCloseListener ()
+	{
+		if ( this.settings.autoRemoveDialogElementOnClose ) {
+			this.addEventListener( 'close', this.eventListeners.close.removeDialogElement.bind( this ), {
+				capture: false,
+				once: true,
+				passive: true,
+			} );
 		}
 	}
 
@@ -537,10 +527,7 @@ export class Dialogic extends DialogicInternal
 					passive: true,
 				} );
 			}
-			closerElement.addEventListener( 'click', function ( /** @type {PointerEvent} */ event )
-			{
-				event.stopPropagation();
-			}, {
+			closerElement.addEventListener( 'click', this.eventListeners.click.preventClickOnClose, {
 				capture: false,
 				once: false,
 				passive: false,
@@ -558,26 +545,12 @@ export class Dialogic extends DialogicInternal
 			Object.assign( confirmNo, this.settings.snippetAttributes.confirmNo );
 			confirmYes.appendChild( document.createTextNode( this.settings.texts.confirmYes ) );
 			confirmNo.appendChild( document.createTextNode( this.settings.texts.confirmNo ) );
-			confirmYes.addEventListener( 'click', ( /** @type {PointerEvent} event */ ) =>
-			{
-				if ( this.#runningTimeout ) {
-					clearTimeout( this.#runningTimeout );
-				}
-				this.click();
-				Dialogic.removeDialogFromList( this );
-				this.dialogElement.close(); // close popup without close() event on Dialogic
-			}, {
+			confirmYes.addEventListener( 'click', this.eventListeners.click.confirmYes.bind( this ), {
 				capture: false,
 				once: true,
 				passive: true,
 			} );
-			confirmNo.addEventListener( 'click', ( /** @type {PointerEvent} event */ ) =>
-			{
-				if ( this.#runningTimeout ) {
-					clearTimeout( this.#runningTimeout );
-				}
-				this.close();
-			}, {
+			confirmNo.addEventListener( 'click', this.eventListeners.click.confirmNo.bind( this ), {
 				capture: false,
 				once: true,
 				passive: true,
@@ -589,116 +562,184 @@ export class Dialogic extends DialogicInternal
 		return true;
 	}
 
-	appendRemoveDialogElementOnCloseListener ()
+	checkRequirements ()
 	{
-		if ( this.settings.autoRemoveDialogElementOnClose ) {
-			this.addEventListener( 'close', ( /** @type {Event} event */ ) =>
-			{
-				this.rootElement.removeChild( this.dialogElement );
-			}, {
-				capture: false,
-				once: true,
-				passive: true,
-			} );
+		if ( !this.settings ) {
+			this.error();
+			throw new Error( 'Settings object is missing' );
 		}
 	}
 
-	appendShowNextDialogAfterCloseListener ()
+	createProperties ( /** @type {Object} */ sections = {} )
 	{
-		this.addEventListener( 'close', ( /** @type {Event} event */ ) =>
+
+		/** @type {Array} */
+		const groupDescriptors = Object.keys( sections );
+
+		groupDescriptors.forEach( ( /** @type {String} */ joinedPositiveDescriptors ) =>
 		{
-			Dialogic.showDialogsFromQueue( this.settings.showDialogWaitingBeforeShow );
-		}, {
-			capture: false,
-			once: true,
-			passive: true,
+
+			/** @type {Array} */
+			const descriptors = joinedPositiveDescriptors.split( ' ' );
+
+			/** @type {Object|Array} */
+			let allProperties = sections[ joinedPositiveDescriptors ];
+
+			if ( !( Symbol.iterator in Object( allProperties ) ) ) {
+
+				/** @type {Array} */
+				allProperties = Object.keys( allProperties );
+
+			}
+
+			allProperties.forEach( ( /** @type {String} */ property ) =>
+			{
+
+				/** @type {Object} */
+				const descriptor = {
+					configurable: descriptors.includes( 'configurable' ),
+					enumerable: descriptors.includes( 'enumerable' ),
+				};
+
+				/** @type {String} */
+				const capitalizedProperty = property.charAt( 0 ).toUpperCase() + property.slice( 1 );
+
+				/** @type {String} */
+				const getterName = 'get' + capitalizedProperty;
+
+				/** @type {String} */
+				const setterName = 'set' + capitalizedProperty;
+
+				/** @type {Boolean} */
+				const isDynamicGetter = Boolean( this[ getterName ] );
+
+				/** @type {Boolean} */
+				const isDynamicSetter = Boolean( this[ setterName ] );
+
+				/** @type {Boolean} */
+				const isDynamicValue = Boolean( this[ property ] );
+
+				/** @type {Boolean} */
+				const isStaticGetter = Boolean( DialogicInternal.hasOwnProperty( getterName ) );
+
+				/** @type {Boolean} */
+				const isStaticSetter = Boolean( DialogicInternal.hasOwnProperty( setterName ) );
+
+				/** @type {Boolean} */
+				const isStaticValue = Boolean( DialogicInternal.hasOwnProperty( property ) );
+
+				if ( isDynamicGetter || isDynamicSetter || isDynamicValue ) { // existing dynamic
+					if ( isDynamicGetter && isDynamicSetter ) {
+						descriptor.get = this[ getterName ];
+						descriptor.set = this[ setterName ];
+					} else if ( isDynamicGetter ) {
+						descriptor.get = this[ getterName ];
+						descriptor.set = DialogicInternal.emptySetter;
+					} else if ( isDynamicSetter ) {
+						descriptor.set = this[ setterName ];
+					} else if ( isDynamicValue ) {
+						descriptor.value = this[ property ];
+						descriptor.writable = descriptors.includes( 'writable' );
+					}
+					Object.defineProperty( this, property, descriptor );
+				} else if ( isStaticGetter || isStaticSetter || isStaticValue ) { // existing static
+					if ( isStaticGetter && isStaticSetter ) {
+						descriptor.get = DialogicInternal[ getterName ];
+						descriptor.set = DialogicInternal[ setterName ];
+					} else if ( isStaticGetter ) {
+						descriptor.get = DialogicInternal[ getterName ];
+						descriptor.set = DialogicInternal.emptySetter;
+					} else if ( isStaticSetter ) {
+						descriptor.set = DialogicInternal[ setterName ];
+					} else if ( isStaticValue ) {
+						descriptor.value = DialogicInternal[ property ];
+						descriptor.writable = descriptors.includes( 'writable' );
+					}
+					Object.defineProperty( Dialogic, property, descriptor );
+				} else { // create new and set default
+
+					/** @type {any} */
+					const possibleValue = sections[ joinedPositiveDescriptors ][ property ];
+
+					descriptor.value = ( typeof possibleValue === 'undefined' ) ? null : possibleValue;
+					descriptor.writable = descriptors.includes( 'writable' );
+					Object.defineProperty( this, property, descriptor );
+				}
+			} );
 		} );
 	}
 
-	async appendRequireInteractionListener ()
+	async run ()
 	{
-		return new Promise( ( /** @type {Function} */ resolve ) =>
-		{
-			if ( this.requireInteraction ) {
-				resolve();
-			} else {
-				this.#runningTimeout = setTimeout( () =>
-				{
-					this.close();
-					resolve();
-				}, this.settings.autoCloseAfter );
-			}
-		} );
+		this.checkRequirements();
+		await Dialogic.loadExternalFunctions( this.settings.modulesImportPath );
+		await Dialogic.addCSSStyleSheets( this.settings.CSSStyleSheets );
+		if ( this.createDialogSnippet() ) {
+			this.appendRemoveDialogElementOnCloseListener();
+			this.appendRequireInteractionListener();
+			this.appendShowNextDialogAfterCloseListener();
+		}
+		Dialogic.showDialogsFromQueue( this.settings.showDialogWaitingBeforeShow );
 	}
 }
 
-Object.defineProperties( Dialogic, {
-	maxActions: {
-		get: function ()
-		{
-			return 2;
-		},
-		set: function () { },
-		enumerable: true,
-		configurable: false
-	},
-	removeDialogFromList:
+export class Dialogic extends DialogicInternal
+{
+	constructor ( /** @type {String} */ title = '', /** @type {Object} */ options = {}, settingsElementId = 'dialogic-settings' )
 	{
-		value: DialogicInternal.removeDialogFromList,
-		writable: false,
-		enumerable: true,
-		configurable: false,
-	},
-	loadExternalFunctions: {
-		value: DialogicInternal.loadExternalFunctions,
-		writable: false,
-		enumerable: true,
-		configurable: false,
-	},
-	list: {
-		get: function ()
-		{
-			return DialogicInternal.list;
-		},
-		set: function ( /** @type {Dialogic} */ listItem = Dialogic )
-		{
-			if ( listItem.constructor.name === 'Dialogic' ) {
-				DialogicInternal.list.push( listItem );
-			}
-		},
-		enumerable: true,
-		configurable: false
-	},
-	showDialogsFromQueue: {
-		value: DialogicInternal.showDialogsFromQueue,
-		writable: false,
-		enumerable: true,
-		configurable: false,
-	},
-	addCSSStyleSheets: {
-		value: DialogicInternal.addCSSStyleSheets,
-		writable: false,
-		enumerable: true,
-		configurable: false,
-	},
-	ALERT: {
-		get: function ()
-		{
-			return 0;
-		},
-		set: function () { },
-		enumerable: true,
-		configurable: false
-	},
-	CONFIRM: {
-		get: function ()
-		{
-			return 1;
-		},
-		set: function () { },
-		enumerable: true,
-		configurable: false
+		super( ...arguments );
+		this.createProperties( {
+			noneAll: [
+				'rootElement',
+			],
+			enumerable: [
+				'show',
+				'close',
+				'click',
+				'error',
+				'addEventListener',
+				'appendRemoveDialogElementOnCloseListener',
+				'appendShowNextDialogAfterCloseListener',
+				'checkRequirements',
+				'createDialogSnippet',
+				'maxActions',
+				'removeDialogFromList',
+				'loadExternalFunctions',
+				'showDialogsFromQueue',
+				'addCSSStyleSheets',
+				'ALERT',
+				'CONFIRM',
+				'run'
+			],
+			'configurable enumerable': {
+				title,
+				actions: [],
+				badge: '',
+				body: '',
+				htmlBody: '',
+				data: null,
+				dir: 'auto',
+				icon: '', // will be displayed as 96x96 px by default
+				image: null,
+				lang: '',
+				renotify: false,
+				requireInteraction: true,
+				silent: false,
+				tag: '',
+				timestamp: Date.now(),
+				vibrate: [],
+				type: DialogicInternal.getALERT(),
+			},
+		} );
+		if ( this.settings.autoRun ) {
+			this.run();
+		}
 	}
-} );
+}
 
-window.Dialogic = Dialogic;
+Object.defineProperty( window, 'Dialogic', {
+	value: Dialogic,
+	configurable: false,
+	enumerable: true,
+	writable: false,
+} );
