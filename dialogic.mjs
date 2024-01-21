@@ -135,7 +135,6 @@ const DialogicInternal = class
 		this.createProperties( {
 			enumerable: [
 				'dialogElement',
-				'list',
 			],
 			'configurable enumerable': [ 'settings' ]
 		} );
@@ -619,15 +618,6 @@ const DialogicInternal = class
 				/** @type {Boolean} */
 				const isDynamicValue = Boolean( this[ property ] );
 
-				/** @type {Boolean} */
-				const isStaticGetter = Boolean( DialogicInternal.hasOwnProperty( getterName ) );
-
-				/** @type {Boolean} */
-				const isStaticSetter = Boolean( DialogicInternal.hasOwnProperty( setterName ) );
-
-				/** @type {Boolean} */
-				const isStaticValue = Boolean( DialogicInternal.hasOwnProperty( property ) );
-
 				if ( isDynamicGetter || isDynamicSetter || isDynamicValue ) { // existing dynamic
 					if ( isDynamicGetter && isDynamicSetter ) {
 						descriptor.get = this[ getterName ];
@@ -642,7 +632,69 @@ const DialogicInternal = class
 						descriptor.writable = descriptors.includes( 'writable' );
 					}
 					Object.defineProperty( this, property, descriptor );
-				} else if ( isStaticGetter || isStaticSetter || isStaticValue ) { // existing static
+				} else { // create new and set default
+
+					/** @type {any} */
+					const possibleValue = sections[ joinedPositiveDescriptors ][ property ];
+
+					descriptor.value = ( typeof possibleValue === 'undefined' ) ? null : possibleValue;
+					descriptor.writable = descriptors.includes( 'writable' );
+					Object.defineProperty( this, property, descriptor );
+				}
+			} );
+		} );
+	}
+
+	static createProperties ( /** @type {Object} */ sections = {} )
+	{
+
+		/** @type {Array} */
+		const groupDescriptors = Object.keys( sections );
+
+		groupDescriptors.forEach( ( /** @type {String} */ joinedPositiveDescriptors ) =>
+		{
+
+			/** @type {Array} */
+			const descriptors = joinedPositiveDescriptors.split( ' ' );
+
+			/** @type {Object|Array} */
+			let allProperties = sections[ joinedPositiveDescriptors ];
+
+			if ( !( Symbol.iterator in Object( allProperties ) ) ) {
+
+				/** @type {Array} */
+				allProperties = Object.keys( allProperties );
+
+			}
+
+			allProperties.forEach( ( /** @type {String} */ property ) =>
+			{
+
+				/** @type {Object} */
+				const descriptor = {
+					configurable: descriptors.includes( 'configurable' ),
+					enumerable: descriptors.includes( 'enumerable' ),
+				};
+
+				/** @type {String} */
+				const capitalizedProperty = property.charAt( 0 ).toUpperCase() + property.slice( 1 );
+
+				/** @type {String} */
+				const getterName = 'get' + capitalizedProperty;
+
+				/** @type {String} */
+				const setterName = 'set' + capitalizedProperty;
+
+				/** @type {Boolean} */
+				const isStaticGetter = Boolean( DialogicInternal.hasOwnProperty( getterName ) );
+
+				/** @type {Boolean} */
+				const isStaticSetter = Boolean( DialogicInternal.hasOwnProperty( setterName ) );
+
+				/** @type {Boolean} */
+				const isStaticValue = Boolean( DialogicInternal.hasOwnProperty( property ) );
+
+				if ( isStaticGetter || isStaticSetter || isStaticValue ) { // existing static
 					if ( isStaticGetter && isStaticSetter ) {
 						descriptor.get = DialogicInternal[ getterName ];
 						descriptor.set = DialogicInternal[ setterName ];
@@ -663,7 +715,7 @@ const DialogicInternal = class
 
 					descriptor.value = ( typeof possibleValue === 'undefined' ) ? null : possibleValue;
 					descriptor.writable = descriptors.includes( 'writable' );
-					Object.defineProperty( this, property, descriptor );
+					Object.defineProperty( Dialogic, property, descriptor );
 				}
 			} );
 		} );
@@ -702,13 +754,6 @@ export class Dialogic extends DialogicInternal
 				'appendShowNextDialogAfterCloseListener',
 				'checkRequirements',
 				'createDialogSnippet',
-				'maxActions',
-				'removeDialogFromList',
-				'loadExternalFunctions',
-				'showDialogsFromQueue',
-				'addCSSStyleSheets',
-				'ALERT',
-				'CONFIRM',
 				'run'
 			],
 			'configurable enumerable': {
@@ -736,6 +781,19 @@ export class Dialogic extends DialogicInternal
 		}
 	}
 }
+
+DialogicInternal.createProperties( {
+	enumerable: [
+		'list',
+		'maxActions',
+		'removeDialogFromList',
+		'loadExternalFunctions',
+		'showDialogsFromQueue',
+		'addCSSStyleSheets',
+		'ALERT',
+		'CONFIRM',
+	]
+} );
 
 Object.defineProperty( window, 'Dialogic', {
 	value: Dialogic,
