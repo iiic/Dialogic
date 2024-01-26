@@ -25,6 +25,7 @@ const DialogicInternal = class
 			title: 'H3',
 			description: 'P',
 			closer: 'BUTTON',
+			actionsWrapper: 'DIV',
 			confirmYes: 'BUTTON',
 			confirmNo: 'BUTTON',
 		},
@@ -489,6 +490,9 @@ const DialogicInternal = class
 		Object.assign( dialogElement, { ...{ id: dialogId }, ...this.settings.snippetAttributes.dialog } );
 		dialogElement.setAttribute( 'aria-labelledby', titleElementId );
 		dialogElement.setAttribute( 'aria-describedby', descriptionElementId );
+		if ( this.type === Dialogic.CONFIRM ) {
+			dialogElement.className = 'confirm';
+		}
 		Object.assign( innerWrapperElement, this.settings.snippetAttributes.innerWrapper );
 		if ( iconElement ) {
 			Object.assign( iconElement, { ...{ src: this.icon }, ...this.settings.snippetAttributes.icon } );
@@ -534,6 +538,9 @@ const DialogicInternal = class
 			dialogElement.appendChild( closerElement );
 		} else if ( this.type === Dialogic.CONFIRM ) {
 
+			/** @type {HTMLElement} */
+			const actionsWrapperElement = document.createElement( this.settings.resultSnippetElements.actionsWrapper );
+
 			/** @type {HTMLButtonElement} */
 			const confirmYes = document.createElement( this.settings.resultSnippetElements.confirmYes );
 
@@ -554,8 +561,9 @@ const DialogicInternal = class
 				once: true,
 				passive: true,
 			} );
-			dialogElement.appendChild( confirmYes );
-			dialogElement.appendChild( confirmNo );
+			actionsWrapperElement.appendChild( confirmYes );
+			actionsWrapperElement.appendChild( confirmNo );
+			dialogElement.appendChild( actionsWrapperElement );
 		}
 		this.rootElement.appendChild( dialogElement );
 		return true;

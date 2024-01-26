@@ -4,6 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<title>Dialogic html example</title>
+	<link rel="preload" as="script" href="/js/modules/importWithIntegrity.mjs" integrity="sha256-cfOxrPKw+HRch/o1HAGTjzeo5g+8Ho2VW5Ki75Y6DII=" crossorigin="anonymous">
 	<!-- <link rel="stylesheet" href="/notific.css" crossorigin="anonymous" integrity="sha256-DErgeoS4SQg0UMgS8E4mhJbyqNPHbyooBGsPqlRQviw="> -->
 	<style>
 		html {
@@ -758,15 +759,26 @@
 			"closer": {
 				"title": "Zavřít popup"
 			}
+		},
+		"texts": {
+			"confirmYes": "ano",
+			"confirmNo": "ne"
 		}
 	}
 &lt;/script&gt;</code></pre>
 			<script type="text/json" id="dialogic-settings">
 				{
+					"defaultOptions": {
+						"icon": "img/crow.png"
+					},
 					"snippetAttributes": {
 						"closer": {
 							"title": "Zavřít popup"
 						}
+					},
+					"texts": {
+						"confirmYes": "ano",
+						"confirmNo": "ne"
 					}
 				}
 			</script>

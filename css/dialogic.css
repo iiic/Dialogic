@@ -40,6 +40,28 @@ dialog[open] {
 	opacity: 1;
 }
 
+dialog.confirm::after {
+	content: '';
+	top: -100vh;
+	left: -100vw;
+	width: 200vw;
+	height: 200vh;
+	position: absolute;
+	opacity: 0.5;
+	backdrop-filter: blur(1px);
+}
+
+dialog.confirm::before {
+	content: '';
+	top: -100vh;
+	left: -100vw;
+	width: 200vw;
+	height: 200vh;
+	position: absolute;
+	background: black;
+	opacity: 0.5;
+}
+
 dialog>div {
 	display: grid;
 	grid-template-columns: auto 1fr;
@@ -53,6 +75,11 @@ dialog>div {
 	padding: 1rem;
 	min-height: var(--dialog-height);
 	z-index: calc(var(--dialog-z-index) + 1);
+}
+
+dialog>div:last-child {
+	min-height: auto;
+	padding-top: 0;
 }
 
 dialog .icon {
