@@ -520,7 +520,9 @@ const DialogicInternal = class
 		Object.assign( dialogElement, { ...{ id: dialogId }, ...this.settings.snippetAttributes.dialog } );
 		dialogElement.setAttribute( 'aria-labelledby', titleElementId );
 		dialogElement.setAttribute( 'aria-describedby', descriptionElementId );
-		dialogElement.dir = this.dir;
+		if ( this.dir !== 'auto' ) {
+			dialogElement.dir = this.dir;
+		}
 		dialogElement.addEventListener( 'click', this.eventListeners.click.focusOnPopup.bind( this ), {
 			capture: false,
 			once: false,
