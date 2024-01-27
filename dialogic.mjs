@@ -77,7 +77,8 @@ const DialogicInternal = class
 		texts: {
 			closerTextContent: 'x',
 			confirmYes: 'yes',
-			confirmNo: 'no'
+			confirmNo: 'no',
+			dividerBetweenButtons: ' ',
 		},
 		CSSStyleSheets: [
 			{ href: 'css/dialogic.css', title: 'CSS styles for Dialogic script' /*, integrity: 'sha256-Ovtq2BR6TO/fv2khbLYu9yWRdkPjNVeVffIOEhh4LWY=' */ }
@@ -108,9 +109,22 @@ const DialogicInternal = class
 		if ( dialogElement && 'nodeType' in dialogElement && dialogElement.nodeType === Node.ELEMENT_NODE ) {
 			this.#dialogElement = dialogElement;
 		} else {
-			this.error();
 			throw new Error( 'Not a valid HTMLElement' );
 		}
+	}
+
+	/** @type {String} */
+	#dir;
+	getDir ()
+	{
+		return this.#dir;
+	}
+	setDir ( /** @type {String} */ dir = '' )
+	{
+		if ( ![ 'auto', 'ltr', 'rtl' ].includes( dir ) ) {
+			throw new Error( 'Dir value is invalid' );
+		}
+		this.#dir = dir;
 	}
 
 	/** @type {Number|null} */
@@ -137,7 +151,11 @@ const DialogicInternal = class
 			enumerable: [
 				'dialogElement',
 			],
-			'configurable enumerable': [ 'settings' ]
+			'configurable enumerable':
+			{
+				settings: {},
+				dir: 'auto',
+			}
 		} );
 		Object.defineProperties( this, {
 			eventListeners: {
@@ -162,6 +180,18 @@ const DialogicInternal = class
 								clearTimeout( this.#runningTimeout );
 							}
 							this.close();
+						},
+						focusOnPopup: function ( /** @type {PointerEvent} */ event )
+						{
+							if ( event.target === this.dialogElement ) {
+
+								/** @type {HTMLElement} */
+								const innerWrapperElement = this.dialogElement.firstElementChild;
+
+								innerWrapperElement.contentEditable = 'true'; // string with true/false not Boolean
+								innerWrapperElement.focus(); // { focusVisible: true } option currently not working
+								innerWrapperElement.contentEditable = 'false';
+							}
 						},
 					},
 					close: {
@@ -490,8 +520,16 @@ const DialogicInternal = class
 		Object.assign( dialogElement, { ...{ id: dialogId }, ...this.settings.snippetAttributes.dialog } );
 		dialogElement.setAttribute( 'aria-labelledby', titleElementId );
 		dialogElement.setAttribute( 'aria-describedby', descriptionElementId );
+		dialogElement.dir = this.dir;
+		dialogElement.addEventListener( 'click', this.eventListeners.click.focusOnPopup.bind( this ), {
+			capture: false,
+			once: false,
+			passive: true,
+		} );
 		if ( this.type === Dialogic.CONFIRM ) {
 			dialogElement.className = 'confirm';
+		} else {
+			dialogElement.className = 'alert';
 		}
 		Object.assign( innerWrapperElement, this.settings.snippetAttributes.innerWrapper );
 		if ( iconElement ) {
@@ -562,8 +600,9 @@ const DialogicInternal = class
 				passive: true,
 			} );
 			actionsWrapperElement.appendChild( confirmYes );
+			actionsWrapperElement.appendChild( document.createTextNode( this.settings.texts.dividerBetweenButtons ) );
 			actionsWrapperElement.appendChild( confirmNo );
-			dialogElement.appendChild( actionsWrapperElement );
+			innerWrapperElement.appendChild( actionsWrapperElement );
 		}
 		this.rootElement.appendChild( dialogElement );
 		return true;
@@ -575,82 +614,6 @@ const DialogicInternal = class
 			this.error();
 			throw new Error( 'Settings object is missing' );
 		}
-	}
-
-	createProperties ( /** @type {Object} */ sections = {} )
-	{
-
-		/** @type {Array} */
-		const groupDescriptors = Object.keys( sections );
-
-		groupDescriptors.forEach( ( /** @type {String} */ joinedPositiveDescriptors ) =>
-		{
-
-			/** @type {Array} */
-			const descriptors = joinedPositiveDescriptors.split( ' ' );
-
-			/** @type {Object|Array} */
-			let allProperties = sections[ joinedPositiveDescriptors ];
-
-			if ( !( Symbol.iterator in Object( allProperties ) ) ) {
-
-				/** @type {Array} */
-				allProperties = Object.keys( allProperties );
-
-			}
-
-			allProperties.forEach( ( /** @type {String} */ property ) =>
-			{
-
-				/** @type {Object} */
-				const descriptor = {
-					configurable: descriptors.includes( 'configurable' ),
-					enumerable: descriptors.includes( 'enumerable' ),
-				};
-
-				/** @type {String} */
-				const capitalizedProperty = property.charAt( 0 ).toUpperCase() + property.slice( 1 );
-
-				/** @type {String} */
-				const getterName = 'get' + capitalizedProperty;
-
-				/** @type {String} */
-				const setterName = 'set' + capitalizedProperty;
-
-				/** @type {Boolean} */
-				const isDynamicGetter = Boolean( this[ getterName ] );
-
-				/** @type {Boolean} */
-				const isDynamicSetter = Boolean( this[ setterName ] );
-
-				/** @type {Boolean} */
-				const isDynamicValue = Boolean( this[ property ] );
-
-				if ( isDynamicGetter || isDynamicSetter || isDynamicValue ) { // existing dynamic
-					if ( isDynamicGetter && isDynamicSetter ) {
-						descriptor.get = this[ getterName ];
-						descriptor.set = this[ setterName ];
-					} else if ( isDynamicGetter ) {
-						descriptor.get = this[ getterName ];
-						descriptor.set = DialogicInternal.emptySetter;
-					} else if ( isDynamicSetter ) {
-						descriptor.set = this[ setterName ];
-					} else if ( isDynamicValue ) {
-						descriptor.value = this[ property ];
-						descriptor.writable = descriptors.includes( 'writable' );
-					}
-					Object.defineProperty( this, property, descriptor );
-				} else { // create new and set default
-
-					/** @type {any} */
-					const possibleValue = sections[ joinedPositiveDescriptors ][ property ];
-
-					descriptor.value = ( typeof possibleValue === 'undefined' ) ? null : possibleValue;
-					descriptor.writable = descriptors.includes( 'writable' );
-					Object.defineProperty( this, property, descriptor );
-				}
-			} );
-		} );
 	}
 
 	static createProperties ( /** @type {Object} */ sections = {} )
@@ -729,6 +692,82 @@ const DialogicInternal = class
 		} );
 	}
 
+	createProperties ( /** @type {Object} */ sections = {} )
+	{
+
+		/** @type {Array} */
+		const groupDescriptors = Object.keys( sections );
+
+		groupDescriptors.forEach( ( /** @type {String} */ joinedPositiveDescriptors ) =>
+		{
+
+			/** @type {Array} */
+			const descriptors = joinedPositiveDescriptors.split( ' ' );
+
+			/** @type {Object|Array} */
+			let allProperties = sections[ joinedPositiveDescriptors ];
+
+			if ( !( Symbol.iterator in Object( allProperties ) ) ) {
+
+				/** @type {Array} */
+				allProperties = Object.keys( allProperties );
+
+			}
+
+			allProperties.forEach( ( /** @type {String} */ property ) =>
+			{
+
+				/** @type {Object} */
+				const descriptor = {
+					configurable: descriptors.includes( 'configurable' ),
+					enumerable: descriptors.includes( 'enumerable' ),
+				};
+
+				/** @type {String} */
+				const capitalizedProperty = property.charAt( 0 ).toUpperCase() + property.slice( 1 );
+
+				/** @type {String} */
+				const getterName = 'get' + capitalizedProperty;
+
+				/** @type {String} */
+				const setterName = 'set' + capitalizedProperty;
+
+				/** @type {Boolean} */
+				const isDynamicGetter = Boolean( this[ getterName ] );
+
+				/** @type {Boolean} */
+				const isDynamicSetter = Boolean( this[ setterName ] );
+
+				/** @type {Boolean} */
+				const isDynamicValue = Boolean( typeof this[ property ] !== 'undefined' );
+
+				if ( isDynamicGetter || isDynamicSetter || isDynamicValue ) { // existing dynamic
+					if ( isDynamicGetter && isDynamicSetter ) {
+						descriptor.get = this[ getterName ];
+						descriptor.set = this[ setterName ];
+					} else if ( isDynamicGetter ) {
+						descriptor.get = this[ getterName ];
+						descriptor.set = DialogicInternal.emptySetter;
+					} else if ( isDynamicSetter ) {
+						descriptor.set = this[ setterName ];
+					} else if ( isDynamicValue ) {
+						descriptor.value = this[ property ];
+						descriptor.writable = descriptors.includes( 'writable' );
+					}
+					Object.defineProperty( this, property, descriptor );
+				} else { // create new and set default
+
+					/** @type {any} */
+					const possibleValue = sections[ joinedPositiveDescriptors ][ property ];
+
+					descriptor.value = ( typeof possibleValue === 'undefined' ) ? null : possibleValue;
+					descriptor.writable = descriptors.includes( 'writable' );
+					Object.defineProperty( this, property, descriptor );
+				}
+			} );
+		} );
+	}
+
 	async run ()
 	{
 		this.checkRequirements();
@@ -771,7 +810,6 @@ export class Dialogic extends DialogicInternal
 				body: '',
 				htmlBody: '',
 				data: null,
-				dir: 'auto',
 				icon: '', // will be displayed as 96x96 px by default
 				image: null,
 				lang: '',
