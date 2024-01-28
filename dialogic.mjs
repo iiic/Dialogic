@@ -506,7 +506,7 @@ const DialogicInternal = class
 		const closerElement = document.createElement( this.settings.resultSnippetElements.closer );
 
 		/** @type {String} */
-		const dialogId = this.tag ? this.tag : this.settings.snippetIdPrefixes.dialog + this.timestamp + '-' + ( this.title ).hashCode();
+		const dialogId = this.settings.snippetIdPrefixes.dialog + this.timestamp + '-' + ( this.title ).hashCode();
 
 		/** @type {String} */
 		const titleElementId = this.settings.snippetIdPrefixes.title + this.timestamp + '-' + ( this.title ).hashCode();
@@ -522,6 +522,9 @@ const DialogicInternal = class
 		dialogElement.setAttribute( 'aria-describedby', descriptionElementId );
 		if ( this.dir !== 'auto' ) {
 			dialogElement.dir = this.dir;
+		}
+		if ( this.lang ) {
+			dialogElement.lang = this.lang;
 		}
 		dialogElement.addEventListener( 'click', this.eventListeners.click.focusOnPopup.bind( this ), {
 			capture: false,

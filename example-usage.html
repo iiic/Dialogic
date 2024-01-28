@@ -58,10 +58,6 @@
 
 	<div id="dialogic-root" hidden></div>
 	<script type="module" src="dialogic.mjs?v=0.1" crossorigin="anonymous" data-integrity="sha256-todo"></script>
-	<script type="module">
-		// const lol = new Dialogic( 'nadpis', { type: Dialogic.CONFIRM } );
-		// console.log( lol );
-	</script>
 
 	<h2>Příklady:</h2>
 
@@ -90,7 +86,7 @@
 			<pre><code>&lt;script type="module" src="dialogic.mjs?v=0.1" crossorigin="anonymous" data-integrity="sha256-todo"&gt;&lt;/script&gt;</code></pre>
 		</div>
 		<div>
-			Notification:
+			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission_static">Notification</a>:
 			<p>Pro použití příkladů s API <code>Notification</code> jsou nutné oprávnění, bez nich se notifikace <strong>nezobrazí</strong>. Bez oprávnění se po volání <code>Notification</code> provede <code>onerror</code> event</p>
 			<pre><code class="language-javascript">&lt;script defer&gt;
 	Notification.requestPermission();
@@ -137,7 +133,7 @@
 			</script>
 		</div>
 		<div>
-			Notification:
+			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/title">Notification</a>:
 			<pre><code class="language-javascript">&lt;script&gt;
 	new Notification( 'nadpis' );
 &lt;/script&gt;</code></pre>
@@ -184,7 +180,7 @@
 			</script>
 		</div>
 		<div>
-			Notification:
+			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/body">Notification</a>:
 			<pre><code class="language-javascript">&lt;script&gt;
 	new Notification( 'nadpis', {body: 'delší obsah který lépe popisuje o co vlastně jde'} );
 &lt;/script&gt;</code></pre>
@@ -241,7 +237,7 @@
 	</section>
 
 	<br>
-	<h3>S obrázkem, nadpisem a body</h3>
+	<h3>S ikonkou, nadpisem a body</h3>
 
 	<section class="two-examples">
 		<div>
@@ -272,7 +268,7 @@
 			</script>
 		</div>
 		<div>
-			Notification (použije obrázek 48 x 48 px … tedy polovinu <code>Dialogic</code>):
+			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/icon">Notification</a> (použije obrázek 48 x 48 px … tedy polovinu <code>Dialogic</code>):
 			<pre><code class="language-javascript">&lt;script&gt;
 	new Notification( 'nadpis', {
 		body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text…',
@@ -287,6 +283,65 @@
 						new Notification( 'nadpis', {
 							body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text, aby to bylo dlouhé a bylo z toho patrné, jakým způsobem je obtékaný obrázek.',
 							icon: 'img/crow.png'
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
+	<h3>S obrázkem, nadpisem a body /// @todo … dokončit</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Dialogic( 'nadpis', {
+		body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text…',
+		image: 'img/crow.png'
+	} );
+&lt;/script&gt;
+		</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Dialogic( 'nadpis', {
+							body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text, aby to bylo dlouhé a bylo z toho patrné, jakým způsobem je obtékaný obrázek. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Praesent id justo in neque elementum ultrices. Etiam bibendum elit eget erat. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. Donec ipsum massa, ullamcorper in, auctor et, scelerisque sed, est. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. In dapibus augue non sapien. Maecenas ipsum velit, consectetuer eu lobortis ut, dictum at dui. Sed elit dui, pellentesque a, faucibus vel, interdum nec, diam. Nulla turpis magna, cursus sit amet, suscipit a, interdum id, felis. Fusce consectetuer risus a nunc. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus.',
+							image: 'img/crow.png'
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/image">Notification</a>:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Notification( 'nadpis', {
+		body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text…',
+		image: 'img/crow.png'
+	} );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Notification( 'nadpis', {
+							body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text, aby to bylo dlouhé a bylo z toho patrné, jakým způsobem je obtékaný obrázek.',
+							image: 'img/crow.png'
 						} );
 					}, {
 						capture: false,
@@ -421,6 +476,239 @@
 	</section>
 
 	<br>
+	<h3>Využití tagu, k zobrazení oznámení/popup pouze 1x /// @todo : dokončit</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic, zpráva s <code>tag</code>em se nezobrazí znovu dokud se neobnoví stránka:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Dialogic( 'popup s tagem', {
+		icon: 'img/crow.png',
+		tag: 'some-id-text-or-number',
+	} );
+&lt;/script&gt;
+			</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Dialogic( 'popup s tagem', {
+							icon: 'img/crow.png',
+							tag: 'some-id-text-or-number',
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			<strong><a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/tag">Notification</a></strong>, pokud má zpráva <code>tag</code> (a volbu <code>renotify</code> nastavneou na <code>false</code>, což je výchozí nastavení) a je volána vícekrát chování záleží na notifikačním centur vašeho OS, pokud z něj zprávu nesmažete, podruhé se nezobrazí, ale přesto druhé volání může změnit obsah notifikace (pokud je volána znovu s jiným textovým obsahem, ale stejným <code>tag</code>em):
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Notification( 'zpráva s tagem', {
+		icon: 'img/crow.png',
+		tag: 'some-id-text-or-number'
+	} );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElements( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Notification( 'zpráva s tagem', {
+							icon: 'img/crow.png',
+							tag: 'some-id-text-or-number',
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+			<small>(opakované volání <code>Notification</code> vám zprávu znovu nezobrazí, doukd ji neodstraníte z notifikačního centra)</small>
+		</div>
+	</section>
+
+	<br>
+	<h3>Použití <code>tag</code>u a <code>renotify</code> současně /// @todo : dokončit</h3>
+	<p>V obou případech, zobrazím notifikaci/popup a ten následně překryji dalším o 3s později. Díky shodnému tagu se přepíše původní namísto zobrazení nové.</p>
+
+	<section class="two-examples">
+		<div>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Dialogic( 'popup s tagem', {
+		tag: 42,
+		renotify: true,
+	} );
+	setTimeout(function() {
+		new Dialogic( 'jiný popup se stejným tagem', {
+			icon: 'img/crow.png',
+			tag: 42,
+		} );
+	}, "3000");
+&lt;/script&gt;
+				</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Dialogic( 'popup s tagem', {
+							tag: 42,
+							renotify: true,
+						} );
+						setTimeout( function () {
+							new Dialogic( 'jiný popup se stejným tagem', {
+								icon: 'img/crow.png',
+								tag: 42,
+							} );
+						}, "3000" );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			<strong>Notification</strong>:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Notification( 'notifikace s tagem', {
+		tag: 42,
+		renotify: true,
+	} );
+	setTimeout( function () {
+		new Notification( 'jiná notifikace se stejným tagem', {
+			icon: 'img/crow.png',
+			tag: 42,
+		} );
+	}, "3000" );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Notification( 'notifikace s tagem', {
+							tag: 42,
+							renotify: true,
+						} );
+						setTimeout( function () {
+							new Notification( 'jiná notifikace se stejným tagem', {
+								icon: 'img/crow.png',
+								tag: 42,
+								// renotify: true,
+							} );
+						}, "3000" );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
+	<h3>Použití <code>tag</code>u a <code>renotify</code> 2x… tedy s efektem /// @todo : dokončit</h3>
+	<p>Obdobně jako v předchozím příkladě (jen s jiným <code>tag</code>em) ovšem změna je v použití <code>renotify: true</code> i u volání druhé notifikace/popupu. Oproti předchozímu příkladu je drobný rozdíl, v tom že druhá notifikace/popup se zobrazí s efektem nového zobrazení. <small>(také je zde vidět že ID se v obou případech nepřetypovává tedy že číslo 42 není to stejné jako řetězec '42')</small></p>
+
+	<section class="two-examples">
+		<div>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Dialogic( 'popup s tagem', {
+		tag: '42',
+		renotify: true,
+	} );
+	setTimeout(function() {
+		new Dialogic( 'jiný popup se stejným tagem', {
+			icon: 'img/crow.png',
+			tag: '42',
+			renotify: true,
+		} );
+	}, "3000");
+&lt;/script&gt;
+					</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Dialogic( 'popup s tagem', {
+							tag: '42',
+							renotify: true,
+						} );
+						setTimeout( function () {
+							new Dialogic( 'jiný popup se stejným tagem', {
+								icon: 'img/crow.png',
+								tag: '42',
+								renotify: true,
+							} );
+						}, "3000" );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			<strong>Notification</strong>:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Notification( 'notifikace s tagem, a teď to přijde…', {
+		tag: '42',
+		renotify: true,
+	} );
+	setTimeout( function () {
+		new Notification( 'jiná notifikace se stejným tagem, a efektem', {
+			icon: 'img/crow.png',
+			tag: '42',
+			renotify: true,
+		} );
+	}, "3000" );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Notification( 'notifikace s tagem, a teď to přijde…', {
+							tag: '42',
+							renotify: true,
+						} );
+						setTimeout( function () {
+							new Notification( 'jiná notifikace se stejným tagem, a efektem', {
+								icon: 'img/crow.png',
+								tag: '42',
+								renotify: true,
+							} );
+						}, "3000" );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
 	<h3>Automatické skrývání oznámení… možnosti</h3>
 
 	<section class="two-examples">
@@ -452,7 +740,7 @@
 			</script>
 		</div>
 		<div>
-			Notification, ve výchozím nastavení skrývá oznámení za 6s, tady v tomto kousku kódu nastavím, že nechci notifikaci skrývat nikdy:
+			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/requireInteraction">Notification</a>, ve výchozím nastavení skrývá oznámení za 6s, tady v tomto kousku kódu nastavím, že nechci notifikaci skrývat nikdy:
 			<pre><code class="language-javascript">&lt;script&gt;
 	new Notification( 'nadpis', {
 		body: 'tato notifikace sama od sebe nikdy nezmizí, vyžaduje klik',
@@ -832,16 +1120,76 @@
 	</section>
 
 	<br>
+	<h3>Vlastnost <code>dir</code> pro určení směru čtení textu</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic… data se vypíší v konzoli:
+			<pre><code class="language-javascript">&lt;script type="module"&gt;
+	new Dialogic( "New review activity", {
+		body: "Your code submission has received 3 new review comments.",
+		icon: 'img/crow.png',
+		dir: 'rtl',
+	} );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Dialogic( "New review activity", {
+							body: "Your code submission has received 3 new review comments.",
+							icon: 'img/crow.png',
+							dir: 'rtl',
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/dir">Notification</a>
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Notification( "New review activity", {
+		body: "Your code submission has received 3 new review comments.",
+		icon: 'img/crow.png',
+		dir: 'rtl',
+	} );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Notification( "New review activity", {
+							body: "Your code submission has received 3 new review comments.",
+							icon: 'img/crow.png',
+							dir: 'rtl',
+						} );
+						console.log( n.data ); // Logs the data object
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
 	<h3 id="globalni-nastaveni-vsech-popupu-dialogic">Globální nastavení všech popupů Dialogic</h3>
 
 	<section class="two-examples">
 		<div>
-			Dialogic… takto mohu změnit každou z výchozích vlastností. V tomto případě přepisuji text na title u křížku zavírajícím popup okno. Tento příklad je tu převedený do praxe částečně, tím title pro zavření okna, ne už výchozí ikonku, ta by zbytečně zkomplikovala příklady:
+			Dialogic… takto mohu změnit každou z výchozích vlastností. V tomto případě tuto možnost používám pro překlady, přepisuji text na title u křížku zavírajícím popup okno:
 			<pre><code class="language-javascript">&lt;script type="text/json" id="dialogic-settings"&gt;
 	{
-		"defaultOptions": {
-			"icon": "img/crow.png"
-		},
 		"snippetAttributes": {
 			"closer": {
 				"title": "Zavřít popup"
@@ -855,9 +1203,6 @@
 &lt;/script&gt;</code></pre>
 			<script type="text/json" id="dialogic-settings">
 				{
-					"defaultOptions": {
-						"icon": "img/crow.png"
-					},
 					"snippetAttributes": {
 						"closer": {
 							"title": "Zavřít popup"
@@ -875,6 +1220,14 @@
 			<pre><code class="language-javascript">// nemá odpovídající příklad, Notification nemá nic jako globální nastavení :(</code></pre>
 		</div>
 	</section>
+
+	/// @todo : ještě doplnit vlastnosti:
+
+	https://developer.mozilla.org/en-US/docs/Web/API/Notification/silent
+
+	https://developer.mozilla.org/en-US/docs/Web/API/Notification/vibrate
+
+	https://developer.mozilla.org/en-US/docs/Web/API/Notification/timestamp
 
 	/// @todo : vyzkoušet použití root elementu pro dialogy
 
