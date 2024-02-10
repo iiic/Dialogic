@@ -81,8 +81,13 @@ const DialogicInternal = class
 			dividerBetweenButtons: ' ',
 		},
 		CSSStyleSheets: [
-			{ href: 'css/dialogic.css', title: 'CSS styles for Dialogic script' /*, integrity: 'sha256-Ovtq2BR6TO/fv2khbLYu9yWRdkPjNVeVffIOEhh4LWY=' */ }
+			{ href: 'css/dialogic.css', title: 'CSS styles for Dialogic script' }
 		],
+		preloadFiles: [
+			{ as: 'style', href: 'css/dialogic.css', integrity: 'sha256-ymXTU3JziuuUCLcA28TR0Lw39jn5rgOAZuij69qWVrA=' },
+			{ as: 'audio', href: 'media/bell.mp3' },
+		],
+		dialogShowAudio: 'media/bell.mp3',
 		modulesImportPath: 'https://iiic.dev/js/modules',
 		autoRemoveDialogElementOnClose: true,
 		autoCloseAfter: 6000, // in ms
@@ -150,6 +155,7 @@ const DialogicInternal = class
 		this.createProperties( {
 			enumerable: [
 				'dialogElement',
+				'dialogShowAudio',
 			],
 			'configurable enumerable':
 			{
@@ -271,7 +277,37 @@ const DialogicInternal = class
 		return currentLevel;
 	}
 
-	static async addCSSStyleSheets ( /** @type {Array} */ CSSStyleSheets = [] )
+	static addLinksIntoHead ( /** @type {Object} */ attributesObject = {}, /** @type {String} */ rel = 'preload', /** @type {Set|null} */ excludeSet = null )
+	{
+		attributesObject.forEach( function ( /** @type {Object} */ resource = {} )
+		{
+
+			/** @type {URL} */
+			const url = DialogicInternal.getAbsoluteUrl( resource[ 'href' ] );
+
+			if ( url && !excludeSet.has( url.href ) ) {
+
+				/** @type {HTMLLinkElement} */
+				const link = document.createElement( 'link' );
+
+				/** @type {Array} */
+				const attributeNames = Object.keys( resource );
+
+				link.rel = rel;
+				link.crossOrigin = 'anonymous';
+				attributeNames.forEach( function ( /** @type {String} */ attributeName = '' )
+				{
+					if ( attributeName === 'href' ) {
+						resource[ attributeName ] = url.href;
+					}
+					link.setAttribute( attributeName, resource[ attributeName ] );
+				} );
+				document.head.appendChild( link );
+			}
+		} );
+	}
+
+	static addCSSStyleSheets ( /** @type {Array} */ CSSStyleSheets = [], /** @type {String} */ rel = 'stylesheet' )
 	{
 
 		/** @type {Set} */
@@ -284,54 +320,24 @@ const DialogicInternal = class
 			}
 		} );
 
-		return Promise.all( CSSStyleSheets.map( async ( /** @type {Object} */ assignment ) =>
+		DialogicInternal.addLinksIntoHead( CSSStyleSheets, rel, existingStyleSheets );
+	}
+
+	static preloadResources ( /** @type {Array} */ resources = [], /** @type {String} */ rel = 'preload' )
+	{
+
+		/** @type {NodeList} */
+		const alreadyPreloaded = document.querySelectorAll( 'link[rel=preload][href]' );
+
+		/** @type {Set} */
+		const preloadedHrefList = new Set();
+
+		alreadyPreloaded.forEach( function ( /** @type {HTMLLinkElement} */ link )
 		{
+			preloadedHrefList.add( link.href );
+		} );
 
-			/** @type {URL} */
-			let url = URL;
-
-			if ( assignment.href.startsWith( 'https://', 0 ) || assignment.href.startsWith( 'http://', 0 ) ) {
-				url = new URL( assignment.href );
-			} else {
-				url = new URL( assignment.href, window.location.protocol + '//' + window.location.host );
-			}
-			if ( !existingStyleSheets.has( url.href ) ) {
-				return fetch( url.href, {
-					method: 'HEAD',
-					credentials: 'omit',
-					cache: 'force-cache',
-					referrerPolicy: 'no-referrer',
-					redirect: 'manual',
-					mode: 'cors'
-				} ).then( function ( /** @type {Response} */ response )
-				{
-					if ( response.ok && response.status === 200 ) {
-						return url.href;
-					} else {
-						throw new Error( 'Bad path to css stylesheet' );
-					}
-				} ).then( function ( /** @type {String} */ linkHref )
-				{
-
-					/** @type {HTMLLinkElement} */
-					const link = document.createElement( 'LINK' );
-
-					link.href = linkHref;
-					link.rel = 'stylesheet';
-					link.crossOrigin = 'anonymous';
-					if ( assignment.title ) {
-						link.title = assignment.title;
-					}
-					if ( assignment.integrity ) {
-						link.integrity = assignment.integrity;
-					}
-					document.head.appendChild( link );
-				} ).catch( function ( /** @type {Error|Response} */ error )
-				{
-					return Promise.reject( error );
-				} );
-			}
-		} ) );
+		DialogicInternal.addLinksIntoHead( resources, rel, preloadedHrefList );
 	}
 
 	static async showDialogsFromQueue ( /** @type {Number} */ showDialogWaitingBeforeShow = 5 )
@@ -378,6 +384,20 @@ const DialogicInternal = class
 		} );
 	}
 
+	static getAbsoluteUrl ( /** @type {String} */ urlString = '' )
+	{
+
+		/** @type {URL} */
+		let url;
+
+		if ( urlString.startsWith( 'https://', 0 ) || urlString.startsWith( 'http://', 0 ) ) {
+			url = new URL( urlString );
+		} else {
+			url = new URL( urlString, window.location.protocol + '//' + window.location.host );
+		}
+		return url;
+	}
+
 	static removeDialogFromList ( /** @type {Dialogic} */ dialogic = Dialogic.prototype )
 	{
 		/** @type {Number} */
@@ -408,6 +428,30 @@ const DialogicInternal = class
 	{
 		if ( this.onshow ) {
 			this.onshow();
+		}
+		if ( !this.silent && this.settings.dialogShowAudio ) {
+			if ( DialogicInternal.dialogShowAudio ) {
+
+				/** @type {HTMLAudioElement} */
+				const audio = DialogicInternal.dialogShowAudio;
+
+				audio.pause();
+				audio.currentTime = 0;
+				audio.play();
+			} else {
+
+				/** @type {URL} */
+				const url = DialogicInternal.getAbsoluteUrl( this.settings.dialogShowAudio );
+
+				/** @type {HTMLAudioElement} */
+				const audio = new Audio( url.href );
+
+				audio.addEventListener( 'canplaythrough', ( /** @type {Event} event */ ) =>
+				{
+					audio.play();
+				} );
+				DialogicInternal.dialogShowAudio = audio;
+			}
 		}
 		this.dialogElement.dispatchEvent( new Event( 'show' ) );
 		this.dialogElement.show();
@@ -515,7 +559,7 @@ const DialogicInternal = class
 		const descriptionElementId = this.settings.snippetIdPrefixes.description + this.timestamp + '-' + ( this.title ).hashCode();
 
 		/** @type {HTMLImageElement|null} */
-		const iconElement = this.icon ? document.createElement( 'IMG' ) : null;
+		const iconElement = this.icon ? document.createElement( 'img' ) : null;
 
 		Object.assign( dialogElement, { ...{ id: dialogId }, ...this.settings.snippetAttributes.dialog } );
 		dialogElement.setAttribute( 'aria-labelledby', titleElementId );
@@ -718,7 +762,6 @@ const DialogicInternal = class
 				allProperties = Object.keys( allProperties );
 
 			}
-
 			allProperties.forEach( ( /** @type {String} */ property ) =>
 			{
 
@@ -777,7 +820,8 @@ const DialogicInternal = class
 	{
 		this.checkRequirements();
 		await Dialogic.loadExternalFunctions( this.settings.modulesImportPath );
-		await Dialogic.addCSSStyleSheets( this.settings.CSSStyleSheets );
+		Dialogic.preloadResources( this.settings.preloadFiles );
+		Dialogic.addCSSStyleSheets( this.settings.CSSStyleSheets );
 		if ( this.createDialogSnippet() ) {
 			this.appendRemoveDialogElementOnCloseListener();
 			this.appendRequireInteractionListener();
@@ -841,6 +885,7 @@ DialogicInternal.createProperties( {
 		'loadExternalFunctions',
 		'showDialogsFromQueue',
 		'addCSSStyleSheets',
+		'preloadResources',
 		'ALERT',
 		'CONFIRM',
 	]

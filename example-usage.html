@@ -5,6 +5,7 @@
 	<meta charset="utf-8">
 	<title>Dialogic html example</title>
 	<link rel="preload" as="script" href="/modules/importWithIntegrity.mjs" integrity="sha256-cfOxrPKw+HRch/o1HAGTjzeo5g+8Ho2VW5Ki75Y6DII=" crossorigin="anonymous">
+	<!-- <audio src="/media/bell.mp3" preload="metadata" crossorigin="anonymous"></audio> -->
 	<!-- <link rel="stylesheet" href="/notific.css" crossorigin="anonymous" integrity="sha256-DErgeoS4SQg0UMgS8E4mhJbyqNPHbyooBGsPqlRQviw="> -->
 	<style>
 		html {
@@ -143,6 +144,60 @@
 					button.textContent = 'Spustit kód';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
 						new Notification( 'nadpis' );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
+	<h3 id="zakladni-priklad">Silent … bez zvukového efektu</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Dialogic( 'nadpis', {
+		silent: true
+	} );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Dialogic( 'nadpis', {
+							silent: true
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/title">Notification</a>:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Notification( 'nadpis', {
+		silent: true
+	} );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Notification( 'nadpis', {
+							silent: true
+						} );
 					}, {
 						capture: false,
 						once: false,
@@ -516,7 +571,7 @@
 &lt;/script&gt;</code></pre>
 			<script defer>
 				( () => {
-					const button = document.createElements( 'button' );
+					const button = document.createElement( 'button' );
 					button.textContent = 'Spustit kód';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
 						new Notification( 'zpráva s tagem', {
@@ -1223,7 +1278,7 @@
 
 	/// @todo : ještě doplnit vlastnosti:
 
-	https://developer.mozilla.org/en-US/docs/Web/API/Notification/silent
+	https://developer.mozilla.org/en-US/docs/Web/API/Notification/silent ( https://developer.mozilla.org/en-US/docs/Web/API/HTMLAudioElement/Audio )
 
 	https://developer.mozilla.org/en-US/docs/Web/API/Notification/vibrate
 
