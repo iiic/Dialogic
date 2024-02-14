@@ -20,14 +20,16 @@ const DialogicInternal = class
 	#settings = {
 		rootElementId: 'dialogic-canvas',
 		resultSnippetElements: {
-			dialog: 'DIALOG',
-			innerWrapper: 'DIV',
-			title: 'H3',
-			description: 'P',
-			closer: 'BUTTON',
-			actionsWrapper: 'DIV',
-			confirmYes: 'BUTTON',
-			confirmNo: 'BUTTON',
+			dialog: 'dialog',
+			innerWrapper: 'div',
+			title: 'h3',
+			description: 'p',
+			closer: 'button',
+			actionsWrapper: 'div',
+			confirmYes: 'button',
+			confirmNo: 'button',
+			confirmYesInner: 'data',
+			confirmNoInner: 'data',
 		},
 		snippetIdPrefixes: {
 			dialog: 'dialogic-',
@@ -38,10 +40,12 @@ const DialogicInternal = class
 			dialog: {
 				open: false,
 				role: 'alertdialog',
+				className: 'h-entry',
 			},
 			innerWrapper: {
 				role: 'document',
 				tabIndex: 0,
+				className: 'e-content',
 			},
 			icon: {
 				alt: 'Dialog icon',
@@ -51,19 +55,25 @@ const DialogicInternal = class
 				width: 96, // html attribute… it means it's in px without unit
 				height: 96, // html attribute… it means it's in px without unit
 				loading: 'eager',
-				className: 'icon',
+				className: 'u-featured',
 			},
 			title: {
-				className: 'title',
+				className: 'p-name',
 			},
 			description: {
-				className: 'description',
+				className: 'p-summary',
+			},
+			timePublished: {
+				className: 'dt-published',
+			},
+			timeUpdated: {
+				className: 'dt-updated',
 			},
 			closer: {
 				className: 'closer',
 				title: 'close this popup',
 			},
-			closerDataset: { // data- preffix
+			closerDataset: { // data- prefix
 			},
 			confirmYes: {
 				className: 'confirm-yes',
@@ -72,19 +82,29 @@ const DialogicInternal = class
 			confirmNo: {
 				className: 'confirm-no',
 				title: 'answer NO and close this popup'
-			}
+			},
+			confirmYesInner: {
+				className: 'p-rsvp',
+				value: 'yes',
+			},
+			confirmNoInner: {
+				className: 'p-rsvp',
+				value: 'no',
+			},
 		},
 		texts: {
 			closerTextContent: 'x',
 			confirmYes: 'yes',
 			confirmNo: 'no',
 			dividerBetweenButtons: ' ',
+			timestampCreatedTitle: 'created at',
+			timestampUpdatedTitle: 'updated at',
 		},
 		CSSStyleSheets: [
 			{ href: 'css/dialogic.css', title: 'CSS styles for Dialogic script' }
 		],
 		preloadFiles: [
-			{ as: 'style', href: 'css/dialogic.css', integrity: 'sha256-ymXTU3JziuuUCLcA28TR0Lw39jn5rgOAZuij69qWVrA=' },
+			{ as: 'style', href: 'css/dialogic.css', 'data-integrity': 'sha256-ymXTU3JziuuUCLcA28TR0Lw39jn5rgOAZuij69qWVrA=' },
 			{ as: 'audio', href: 'media/bell.mp3' },
 		],
 		dialogShowAudio: 'media/bell.mp3',
@@ -119,12 +139,12 @@ const DialogicInternal = class
 	}
 
 	/** @type {String} */
-	#dir;
+	#dir = 'auto';
 	getDir ()
 	{
 		return this.#dir;
 	}
-	setDir ( /** @type {String} */ dir = '' )
+	setDir ( /** @type {String} */ dir = 'auto' )
 	{
 		if ( ![ 'auto', 'ltr', 'rtl' ].includes( dir ) ) {
 			throw new Error( 'Dir value is invalid' );
@@ -453,6 +473,9 @@ const DialogicInternal = class
 				DialogicInternal.dialogShowAudio = audio;
 			}
 		}
+		if ( this.vibrate ) {
+			navigator.vibrate( this.vibrate );
+		}
 		this.dialogElement.dispatchEvent( new Event( 'show' ) );
 		this.dialogElement.show();
 	}
@@ -576,9 +599,9 @@ const DialogicInternal = class
 			passive: true,
 		} );
 		if ( this.type === Dialogic.CONFIRM ) {
-			dialogElement.className = 'confirm';
+			dialogElement.classList.add( 'confirm' );
 		} else {
-			dialogElement.className = 'alert';
+			dialogElement.classList.add( 'alert' );
 		}
 		Object.assign( innerWrapperElement, this.settings.snippetAttributes.innerWrapper );
 		if ( iconElement ) {
@@ -598,6 +621,18 @@ const DialogicInternal = class
 		}
 		innerWrapperElement.appendChild( titleElement );
 		innerWrapperElement.appendChild( descriptionElement );
+		if ( this.timestamp ) {
+
+			/// <time itemprop="datePublished" datetime="2020-09-18T17:57:23+02:00" title="datum uveřejnění" class="dt-published"> 18.09.2020 v 17:57:23 </time> // @todo
+
+			/** @type {HTMLTimeElement} */
+			const timeElement = document.createElement( 'time' );
+
+			Object.assign( timeElement, this.settings.snippetAttributes.timePublished );
+
+			timeElement.appendChild( document.createTextNode( this.timestamp ) );
+			innerWrapperElement.appendChild( timeElement );
+		}
 		if ( this.type === Dialogic.ALERT ) {
 			innerWrapperElement.addEventListener( 'click', this.click.bind( this ), {
 				capture: false,
@@ -631,13 +666,23 @@ const DialogicInternal = class
 			/** @type {HTMLButtonElement} */
 			const confirmYes = document.createElement( this.settings.resultSnippetElements.confirmYes );
 
+			/** @type {HTMLElement} */
+			const confirmYesInner = document.createElement( this.settings.resultSnippetElements.confirmYesInner );
+
 			/** @type {HTMLButtonElement} */
 			const confirmNo = document.createElement( this.settings.resultSnippetElements.confirmNo );
 
+			/** @type {HTMLElement} */
+			const confirmNoInner = document.createElement( this.settings.resultSnippetElements.confirmNoInner );
+
 			Object.assign( confirmYes, this.settings.snippetAttributes.confirmYes );
 			Object.assign( confirmNo, this.settings.snippetAttributes.confirmNo );
-			confirmYes.appendChild( document.createTextNode( this.settings.texts.confirmYes ) );
-			confirmNo.appendChild( document.createTextNode( this.settings.texts.confirmNo ) );
+			Object.assign( confirmYesInner, this.settings.snippetAttributes.confirmYesInner );
+			Object.assign( confirmNoInner, this.settings.snippetAttributes.confirmNoInner );
+			confirmYesInner.appendChild( document.createTextNode( this.settings.texts.confirmYes ) );
+			confirmNoInner.appendChild( document.createTextNode( this.settings.texts.confirmNo ) );
+			confirmYes.appendChild( confirmYesInner );
+			confirmNo.appendChild( confirmNoInner );
 			confirmYes.addEventListener( 'click', this.eventListeners.click.confirmYes.bind( this ), {
 				capture: false,
 				once: true,

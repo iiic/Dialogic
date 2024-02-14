@@ -156,7 +156,7 @@
 	</section>
 
 	<br>
-	<h3 id="zakladni-priklad">Silent … bez zvukového efektu</h3>
+	<h3>Silent … bez zvukového efektu</h3>
 
 	<section class="two-examples">
 		<div>
@@ -184,7 +184,7 @@
 			</script>
 		</div>
 		<div>
-			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/title">Notification</a>:
+			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/silent">Notification</a>:
 			<pre><code class="language-javascript">&lt;script&gt;
 	new Notification( 'nadpis', {
 		silent: true
@@ -338,6 +338,60 @@
 						new Notification( 'nadpis', {
 							body: 'Delší obsah který lépe popisuje o co vlastně jde. Plus další text, aby to bylo dlouhé a bylo z toho patrné, jakým způsobem je obtékaný obrázek.',
 							icon: 'img/crow.png'
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
+	<h3>Vibrate</h3>
+
+	<section class="two-examples">
+		<div>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Dialogic( 'nadpis', {
+		vibrate: [ 200, 100, 200 ]
+	} );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Dialogic( 'nadpis', {
+							vibrate: [ 200, 100, 200 ]
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/vibrate">Notification</a>:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Notification( 'nadpis', {
+		vibrate: [ 200, 100, 200 ]
+	} );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Notification( 'nadpis', {
+							vibrate: [ 200, 100, 200 ]
 						} );
 					}, {
 						capture: false,
@@ -1179,7 +1233,7 @@
 
 	<section class="two-examples">
 		<div>
-			Dialogic… data se vypíší v konzoli:
+			Dialogic:
 			<pre><code class="language-javascript">&lt;script type="module"&gt;
 	new Dialogic( "New review activity", {
 		body: "Your code submission has received 3 new review comments.",
@@ -1207,7 +1261,7 @@
 			</script>
 		</div>
 		<div>
-			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/dir">Notification</a>
+			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/dir">Notification</a>, není podporováno všemi prohlížeči, někdy má globální nastavení OS/prohlížeče přednost a zadaný <code>dir</code> se ignoruje:
 			<pre><code class="language-javascript">&lt;script&gt;
 	new Notification( "New review activity", {
 		body: "Your code submission has received 3 new review comments.",
@@ -1276,15 +1330,73 @@
 		</div>
 	</section>
 
-	/// @todo : ještě doplnit vlastnosti:
+	<br>
+	<h3>Timestamp… možnost přidání času v budoucnu i minulosti</h3>
+	<p>V obou případech stejné chování. Tedy datum a čas se vypíše u daného objektu (dialogu / notifikace) v případě dialogu v levém spodním rohu, v případě notifikace v notifikačním centru. Tato vlastnost ale <strong>neslouží</strong> k odloženému zobrazení, vždy se jak notifikace tak dialog zobrazí okamžitě, nastavený čas je jen informací uživateli.</p>
 
-	https://developer.mozilla.org/en-US/docs/Web/API/Notification/silent ( https://developer.mozilla.org/en-US/docs/Web/API/HTMLAudioElement/Audio )
-
-	https://developer.mozilla.org/en-US/docs/Web/API/Notification/vibrate
-
-	https://developer.mozilla.org/en-US/docs/Web/API/Notification/timestamp
+	<section class="two-examples">
+		<div>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script&gt;
+	const plus30min = Math.floor( new Date(Date.now() + 30 + 60 * 1000) );
+	new Dialogic( 'nadpis', {
+		body: 'Tento dialog se zobrazí okamžitě, vypíše čas o minutu později oproti aktuálnímu.',
+		timestamp: plus30min
+	} );
+&lt;/script&gt;
+				</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						const plus30min = Math.floor( new Date( Date.now() + 30 + 60 * 1000 ) );
+						new Dialogic( 'nadpis', {
+							body: 'Tento dialog se zobrazí okamžitě, vypíše čas o minutu později oproti aktuálnímu.',
+							timestamp: plus30min
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/timestamp">Notification</a>:
+			<pre><code class="language-javascript">&lt;script&gt;
+	const yesterday = Math.floor( new Date(Date.now() - 24 * 60 * 60 * 1000) );
+	new Notification( 'včerejší', {
+		body: 'tato notifikace předstírá včerejší datum',
+		timestamp: yesterday
+	} );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						const yesterday = Math.floor( new Date( Date.now() - 24 * 60 * 60 * 1000 ) );
+						new Notification( 'včerejší', {
+							body: 'tato notifikace předstírá včerejší datum',
+							timestamp: yesterday
+						} );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
 
 	/// @todo : vyzkoušet použití root elementu pro dialogy
+
+	/// @todo : přidat mikrodata : https://schema.org/SpecialAnnouncement
 
 	<!-- <strong>Whats happening?</strong>
 	<p>This page is showing notifications periodically every 8 seconds, and automatically hide them 15 seconds from display. (so max 2 notifications at the same tame).</p>
