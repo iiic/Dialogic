@@ -2,11 +2,13 @@ export class append
 {
 	constructor ( s = String )
 	{
+
+		/** @type {String} */
 		const FUNCTION_NAME = 'hashCode';
 
-		if ( typeof s()[ FUNCTION_NAME ] !== 'function' ) {
-
+		if ( !s.prototype.hasOwnProperty( FUNCTION_NAME ) ) {
 			Object.defineProperty( s.prototype, FUNCTION_NAME, {
+
 				/** @returns {String} */
 				value: function ()
 				{
@@ -18,6 +20,7 @@ export class append
 					}
 					return Number( hash ).toString( 36 );
 				},
+
 				writable: false,
 				configurable: false,
 				enumerable: false,

@@ -30,6 +30,9 @@ const DialogicInternal = class
 			confirmNo: 'button',
 			confirmYesInner: 'data',
 			confirmNoInner: 'data',
+			timePublished: 'time',
+			timeUpdated: 'time',
+			timeExpires: 'time'
 		},
 		snippetIdPrefixes: {
 			dialog: 'dialogic-',
@@ -40,55 +43,68 @@ const DialogicInternal = class
 			dialog: {
 				open: false,
 				role: 'alertdialog',
-				className: 'h-entry',
+				itemscope: '',
+				itemtype: 'https://schema.org/SpecialAnnouncement',
+				class: 'h-entry',
 			},
 			innerWrapper: {
 				role: 'document',
-				tabIndex: 0,
-				className: 'e-content',
+				tabindex: 0,
+				itemprop: 'text',
+				class: 'e-content',
 			},
 			icon: {
 				alt: 'Dialog icon',
 				decoding: 'sync',
-				crossOrigin: 'anonymous',
-				fetchPriority: 'high',
+				crossorigin: 'anonymous',
+				fetchpriority: 'high',
 				width: 96, // html attribute… it means it's in px without unit
 				height: 96, // html attribute… it means it's in px without unit
 				loading: 'eager',
-				className: 'u-featured',
+				itemprop: 'thumbnail',
+				class: 'u-featured',
+			},
+			image: {
+				itemprop: 'image',
 			},
 			title: {
-				className: 'p-name',
+				itemprop: 'headline name',
+				class: 'p-name',
 			},
 			description: {
-				className: 'p-summary',
+				itemprop: 'abstract',
+				class: 'p-summary',
 			},
 			timePublished: {
-				className: 'dt-published',
+				itemprop: 'datePosted',
+				class: 'dt-published',
 			},
 			timeUpdated: {
-				className: 'dt-updated',
+				class: 'dt-updated',
+			},
+			timeExpires: {
+				itemprop: 'expires',
 			},
 			closer: {
-				className: 'closer',
+				class: 'closer',
 				title: 'close this popup',
 			},
 			closerDataset: { // data- prefix
 			},
 			confirmYes: {
-				className: 'confirm-yes',
+				class: 'confirm-yes',
 				title: 'answer Yes and close this popup'
 			},
 			confirmNo: {
-				className: 'confirm-no',
+				class: 'confirm-no',
 				title: 'answer NO and close this popup'
 			},
 			confirmYesInner: {
-				className: 'p-rsvp',
+				class: 'p-rsvp',
 				value: 'yes',
 			},
 			confirmNoInner: {
-				className: 'p-rsvp',
+				class: 'p-rsvp',
 				value: 'no',
 			},
 		},
@@ -108,8 +124,9 @@ const DialogicInternal = class
 			{ as: 'audio', href: 'media/bell.mp3' },
 		],
 		dialogShowAudio: 'media/bell.mp3',
-		modulesImportPath: 'https://iiic.dev/js/modules',
+		modulesImportPath: '/modules', // 'https://iiic.dev/js/modules',
 		autoRemoveDialogElementOnClose: true,
+		showTimeIfDiff: 30, // in s
 		autoCloseAfter: 6000, // in ms
 		showDialogWaitingBeforeShow: 5, // in ms
 		autoRun: true,
@@ -392,16 +409,31 @@ const DialogicInternal = class
 
 	static async loadExternalFunctions ( /** @type {String} */ modulesImportPath = '' )
 	{
-		if ( 'hashCode' in String.prototype ) {
-			return;
-		}
-		return importWithIntegrity(
-			modulesImportPath + '/string/hashCode.mjs',
-			'sha256-+MupuRrWLEIV9umMAgx9nqCJUfikCsACr9hgHXstC30='
-		).then( ( /** @type {Module} */ hashCode ) =>
+		return Promise.all( [
+			{
+				name: 'hashCode',
+				appendInto: String,
+				path: modulesImportPath + '/string/hashCode.mjs',
+				integrity: 'sha256-4tiphaWWIybGhWVriVschX8Wtl7oOGP6fCt/tu7Jt0M='
+			},
+			{
+				name: 'setMultipleAttributes',
+				appendInto: Element,
+				path: modulesImportPath + '/element/setMultipleAttributes.mjs',
+				integrity: 'sha256-Lza0Ffmr4xZiHN/nbYoCri8nbuE+HRI6GMNaORCLEQo='
+			},
+		].map( async ( /** @type {Object} */ assignment ) =>
 		{
-			return new hashCode.append( String );
-		} );
+			if ( !assignment.appendInto.hasOwnProperty( assignment.name ) ) {
+				return importWithIntegrity(
+					assignment.path,
+					assignment.integrity
+				).then( ( /** @type {Module} */ module ) =>
+				{
+					return new module.append( assignment.appendInto );
+				} );
+			}
+		} ) );
 	}
 
 	static getAbsoluteUrl ( /** @type {String} */ urlString = '' )
@@ -584,14 +616,19 @@ const DialogicInternal = class
 		/** @type {HTMLImageElement|null} */
 		const iconElement = this.icon ? document.createElement( 'img' ) : null;
 
-		Object.assign( dialogElement, { ...{ id: dialogId }, ...this.settings.snippetAttributes.dialog } );
-		dialogElement.setAttribute( 'aria-labelledby', titleElementId );
-		dialogElement.setAttribute( 'aria-describedby', descriptionElementId );
+		dialogElement.setMultipleAttributes( {
+			...{
+				id: dialogId,
+				'aria-labelledby': titleElementId,
+				'aria-describedby': descriptionElementId,
+			}, ...this.settings.snippetAttributes.dialog
+		} );
 		if ( this.dir !== 'auto' ) {
 			dialogElement.dir = this.dir;
 		}
 		if ( this.lang ) {
 			dialogElement.lang = this.lang;
+			// @todo : itemprop="inLanguage" nejlépe pomocí <meta itemprop="inLanguage" content="cs">
 		}
 		dialogElement.addEventListener( 'click', this.eventListeners.click.focusOnPopup.bind( this ), {
 			capture: false,
@@ -603,18 +640,18 @@ const DialogicInternal = class
 		} else {
 			dialogElement.classList.add( 'alert' );
 		}
-		Object.assign( innerWrapperElement, this.settings.snippetAttributes.innerWrapper );
+		innerWrapperElement.setMultipleAttributes( this.settings.snippetAttributes.innerWrapper );
 		if ( iconElement ) {
-			Object.assign( iconElement, { ...{ src: this.icon }, ...this.settings.snippetAttributes.icon } );
+			iconElement.setMultipleAttributes( { ...{ src: this.icon }, ...this.settings.snippetAttributes.icon } );
 		}
 		titleElement.appendChild( document.createTextNode( this.title ) );
-		Object.assign( titleElement, { ...{ id: titleElementId }, ...this.settings.snippetAttributes.title } );
+		titleElement.setMultipleAttributes( { ...{ id: titleElementId }, ...this.settings.snippetAttributes.title } );
 		if ( this.body ) {
 			descriptionElement.appendChild( document.createTextNode( this.body ) );
 		} else if ( this.htmlBody ) {
 			descriptionElement.insertAdjacentHTML( 'beforeend', this.htmlBody );
 		}
-		Object.assign( descriptionElement, { ...{ id: descriptionElementId }, ...this.settings.snippetAttributes.description } );
+		descriptionElement.setMultipleAttributes( { ...{ id: descriptionElementId }, ...this.settings.snippetAttributes.description } );
 		dialogElement.appendChild( innerWrapperElement );
 		if ( iconElement ) {
 			innerWrapperElement.appendChild( iconElement );
@@ -623,15 +660,26 @@ const DialogicInternal = class
 		innerWrapperElement.appendChild( descriptionElement );
 		if ( this.timestamp ) {
 
-			/// <time itemprop="datePublished" datetime="2020-09-18T17:57:23+02:00" title="datum uveřejnění" class="dt-published"> 18.09.2020 v 17:57:23 </time> // @todo
+			/** @type {Number} */
+			const timeDiff = Math.abs( ( this.timestamp - Date.now() ) / 1000 );
 
-			/** @type {HTMLTimeElement} */
-			const timeElement = document.createElement( 'time' );
+			if ( timeDiff > this.settings.showTimeIfDiff ) {
 
-			Object.assign( timeElement, this.settings.snippetAttributes.timePublished );
+				/** @type {HTMLTimeElement} */
+				const timeElement = document.createElement( this.settings.snippetAttributes.timePublished );
 
-			timeElement.appendChild( document.createTextNode( this.timestamp ) );
-			innerWrapperElement.appendChild( timeElement );
+				/** @type {String} */
+				const timeElementTextContent = ( timeDiff > ( 60 * 12 ) ) ? new Date( this.timestamp ).toLocaleString() : new Date( this.timestamp ).toLocaleTimeString();
+
+				timeElement.setMultipleAttributes( {
+					...{
+						title: this.settings.texts.timestampCreatedTitle,
+						dateTime: new Date( this.timestamp ).toISOString(),
+					}, ...this.settings.snippetAttributes.timePublished
+				} );
+				timeElement.appendChild( document.createTextNode( timeElementTextContent ) );
+				innerWrapperElement.appendChild( timeElement );
+			}
 		}
 		if ( this.type === Dialogic.ALERT ) {
 			innerWrapperElement.addEventListener( 'click', this.click.bind( this ), {
@@ -640,7 +688,7 @@ const DialogicInternal = class
 				passive: true,
 			} );
 			closerElement.appendChild( document.createTextNode( this.settings.texts.closerTextContent ) );
-			Object.assign( closerElement, this.settings.snippetAttributes.closer );
+			closerElement.setMultipleAttributes( this.settings.snippetAttributes.closer );
 			if ( this.settings.snippetAttributes.closerDataset && this.settings.snippetAttributes.closerDataset.length ) {
 				for ( const [ key, value ] of Object.entries( this.settings.snippetAttributes.closerDataset ) ) {
 					closerElement.dataset[ key ] = value;
@@ -675,10 +723,10 @@ const DialogicInternal = class
 			/** @type {HTMLElement} */
 			const confirmNoInner = document.createElement( this.settings.resultSnippetElements.confirmNoInner );
 
-			Object.assign( confirmYes, this.settings.snippetAttributes.confirmYes );
-			Object.assign( confirmNo, this.settings.snippetAttributes.confirmNo );
-			Object.assign( confirmYesInner, this.settings.snippetAttributes.confirmYesInner );
-			Object.assign( confirmNoInner, this.settings.snippetAttributes.confirmNoInner );
+			confirmYes.setMultipleAttributes( this.settings.snippetAttributes.confirmYes );
+			confirmNo.setMultipleAttributes( this.settings.snippetAttributes.confirmNo );
+			confirmYesInner.setMultipleAttributes( this.settings.snippetAttributes.confirmYesInner );
+			confirmNoInner.setMultipleAttributes( this.settings.snippetAttributes.confirmNoInner );
 			confirmYesInner.appendChild( document.createTextNode( this.settings.texts.confirmYes ) );
 			confirmNoInner.appendChild( document.createTextNode( this.settings.texts.confirmNo ) );
 			confirmYes.appendChild( confirmYesInner );
@@ -698,6 +746,12 @@ const DialogicInternal = class
 			actionsWrapperElement.appendChild( confirmNo );
 			innerWrapperElement.appendChild( actionsWrapperElement );
 		}
+		// @todo : …
+		// <p hidden> layout.schemaVersion <a href="https://schema.org/version/7.0/" itemprop="schemaVersion">7.0</a></p>
+		// <meta itemprop="accessMode" content="textual visual">
+		// <meta itemprop="accessibilityAPI" content="ARIA">
+		// <meta itemprop="accessibilityControl" content="fullKeyboardControl fullMouseControl fullTouchControl">
+		// <meta itemprop="creativeWorkStatus" content="Published" > a přepínat podle toho jestli je nebo není popup zobrazen Draft / Published / Obsolete
 		this.rootElement.appendChild( dialogElement );
 		return true;
 	}
