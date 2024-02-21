@@ -589,12 +589,17 @@
 
 	<section class="two-examples">
 		<div>
-			Dialogic, zpráva s <code>tag</code>em se nezobrazí znovu dokud se neobnoví stránka:
+			<strong>Dialogic</strong>, dialog s <code>tag</code>em se nezobrazí znovu dokud se neobnoví stránka. V případě opakovaného volání se stejným tagem se nezobrazí 2. dialog, jen se u prvního změní obsah. Stejně jako v případě <code>Notification</code> je výchozí hodnota <code>renotify</code> nastaven na <code>false</code>, tedy nedojde k žádnému efektu zobrazejí, jen tichému a nenápadnému zaměnění obsahu za nový.
 			<pre><code class="language-javascript">&lt;script&gt;
-	new Dialogic( 'popup s tagem', {
-		icon: 'img/crow.png',
+	new Dialogic( 'dialog s tagem', {
 		tag: 'some-id-text-or-number',
 	} );
+	setTimeout(function() {
+		new Dialogic( 'jiný dialog se stejným tagem', {
+			icon: 'img/crow.png',
+			tag: 'some-id-text-or-number',
+		} );
+	}, "3000");
 &lt;/script&gt;
 			</code></pre>
 			<script defer>
@@ -602,10 +607,15 @@
 					const button = document.createElement( 'button' );
 					button.textContent = 'Spustit kód';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
-						new Dialogic( 'popup s tagem', {
-							icon: 'img/crow.png',
+						new Dialogic( 'dialog s tagem', {
 							tag: 'some-id-text-or-number',
 						} );
+						setTimeout( function () {
+							new Dialogic( 'jiný dialog se stejným tagem', {
+								icon: 'img/crow.png',
+								tag: 'some-id-text-or-number',
+							} );
+						}, "3000" );
 					}, {
 						capture: false,
 						once: false,
@@ -618,20 +628,30 @@
 		<div>
 			<strong><a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/tag">Notification</a></strong>, pokud má zpráva <code>tag</code> (a volbu <code>renotify</code> nastavneou na <code>false</code>, což je výchozí nastavení) a je volána vícekrát chování záleží na notifikačním centur vašeho OS, pokud z něj zprávu nesmažete, podruhé se nezobrazí, ale přesto druhé volání může změnit obsah notifikace (pokud je volána znovu s jiným textovým obsahem, ale stejným <code>tag</code>em):
 			<pre><code class="language-javascript">&lt;script&gt;
-	new Notification( 'zpráva s tagem', {
-		icon: 'img/crow.png',
+	new Notification( 'notifikace s tagem', {
 		tag: 'some-id-text-or-number'
 	} );
+	setTimeout( function () {
+		new Notification( 'jiná notifikace se stejným tagem', {
+			icon: 'img/crow.png',
+			tag: 'some-id-text-or-number',
+		} );
+	}, "3000" );
 &lt;/script&gt;</code></pre>
 			<script defer>
 				( () => {
 					const button = document.createElement( 'button' );
 					button.textContent = 'Spustit kód';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
-						new Notification( 'zpráva s tagem', {
-							icon: 'img/crow.png',
+						new Notification( 'notifikace s tagem', {
 							tag: 'some-id-text-or-number',
 						} );
+						setTimeout( function () {
+							new Notification( 'jiná notifikace se stejným tagem', {
+								icon: 'img/crow.png',
+								tag: 'some-id-text-or-number',
+							} );
+						}, "3000" );
 					}, {
 						capture: false,
 						once: false,
@@ -646,20 +666,20 @@
 
 	<br>
 	<h3>Použití <code>tag</code>u a <code>renotify</code> současně /// @todo : dokončit</h3>
-	<p>V obou případech, zobrazím notifikaci/popup a ten následně překryji dalším o 3s později. Díky shodnému tagu se přepíše původní namísto zobrazení nové.</p>
+	<p>V obou případech, zobrazím notifikaci/dialog a ten následně překryji dalším o 3s později. Rozdíl oproti předchozímu příkladu je v použití <code>renotify: true</code> které zajistí opakované zobrazní i s efektem.</p>
 
 	<section class="two-examples">
 		<div>
 			Dialogic:
 			<pre><code class="language-javascript">&lt;script&gt;
-	new Dialogic( 'popup s tagem', {
+	new Dialogic( 'dialog s tagem', {
 		tag: 42,
-		renotify: true,
 	} );
 	setTimeout(function() {
-		new Dialogic( 'jiný popup se stejným tagem', {
+		new Dialogic( 'jiný dialog se stejným tagem', {
 			icon: 'img/crow.png',
 			tag: 42,
+			renotify: true,
 		} );
 	}, "3000");
 &lt;/script&gt;
@@ -669,100 +689,13 @@
 					const button = document.createElement( 'button' );
 					button.textContent = 'Spustit kód';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
-						new Dialogic( 'popup s tagem', {
+						new Dialogic( 'dialog s tagem', {
 							tag: 42,
-							renotify: true,
 						} );
 						setTimeout( function () {
-							new Dialogic( 'jiný popup se stejným tagem', {
+							new Dialogic( 'jiný dialog se stejným tagem a renotify', {
 								icon: 'img/crow.png',
 								tag: 42,
-							} );
-						}, "3000" );
-					}, {
-						capture: false,
-						once: false,
-						passive: true,
-					} );
-					document.currentScript.insertAdjacentElement( 'afterend', button );
-				} )();
-			</script>
-		</div>
-		<div>
-			<strong>Notification</strong>:
-			<pre><code class="language-javascript">&lt;script&gt;
-	new Notification( 'notifikace s tagem', {
-		tag: 42,
-		renotify: true,
-	} );
-	setTimeout( function () {
-		new Notification( 'jiná notifikace se stejným tagem', {
-			icon: 'img/crow.png',
-			tag: 42,
-		} );
-	}, "3000" );
-&lt;/script&gt;</code></pre>
-			<script defer>
-				( () => {
-					const button = document.createElement( 'button' );
-					button.textContent = 'Spustit kód';
-					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
-						new Notification( 'notifikace s tagem', {
-							tag: 42,
-							renotify: true,
-						} );
-						setTimeout( function () {
-							new Notification( 'jiná notifikace se stejným tagem', {
-								icon: 'img/crow.png',
-								tag: 42,
-								// renotify: true,
-							} );
-						}, "3000" );
-					}, {
-						capture: false,
-						once: false,
-						passive: true,
-					} );
-					document.currentScript.insertAdjacentElement( 'afterend', button );
-				} )();
-			</script>
-		</div>
-	</section>
-
-	<br>
-	<h3>Použití <code>tag</code>u a <code>renotify</code> 2x… tedy s efektem /// @todo : dokončit</h3>
-	<p>Obdobně jako v předchozím příkladě (jen s jiným <code>tag</code>em) ovšem změna je v použití <code>renotify: true</code> i u volání druhé notifikace/popupu. Oproti předchozímu příkladu je drobný rozdíl, v tom že druhá notifikace/popup se zobrazí s efektem nového zobrazení. <small>(také je zde vidět že ID se v obou případech nepřetypovává tedy že číslo 42 není to stejné jako řetězec '42')</small></p>
-
-	<section class="two-examples">
-		<div>
-			Dialogic:
-			<pre><code class="language-javascript">&lt;script&gt;
-	new Dialogic( 'popup s tagem', {
-		tag: '42',
-		renotify: true,
-	} );
-	setTimeout(function() {
-		new Dialogic( 'jiný popup se stejným tagem', {
-			icon: 'img/crow.png',
-			tag: '42',
-			renotify: true,
-		} );
-	}, "3000");
-&lt;/script&gt;
-					</code></pre>
-			<script defer>
-				( () => {
-					const button = document.createElement( 'button' );
-					button.textContent = 'Spustit kód';
-					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
-						new Dialogic( 'popup s tagem', {
-							tag: '42',
-							renotify: true,
-						} );
-						setTimeout( function () {
-							new Dialogic( 'jiný popup se stejným tagem', {
-								icon: 'img/crow.png',
-								tag: '42',
 								renotify: true,
 							} );
 						}, "3000" );
@@ -776,16 +709,15 @@
 			</script>
 		</div>
 		<div>
-			<strong>Notification</strong>:
+			<strong>Notification</strong> Díky efektu by se mohlo zdát že jsou to 2 nezávislé notifikace po sobě, ale v notifikačním centru zjistíte že je tam pouze jedna. A po případném opakovaném stisku tlačítka ke spuštění kódu se napřed nestane nic (protože stejný tag a 1. notifikace nemá renotify) a po 3s se notifikace zobrazí (protože 2. notifikace v pořadí už renotify má):
 			<pre><code class="language-javascript">&lt;script&gt;
-	new Notification( 'notifikace s tagem, a teď to přijde…', {
-		tag: '42',
-		renotify: true,
+	new Notification( 'notifikace s tagem', {
+		tag: 42,
 	} );
 	setTimeout( function () {
-		new Notification( 'jiná notifikace se stejným tagem, a efektem', {
+		new Notification( 'jiná notifikace se stejným tagem a renotify', {
 			icon: 'img/crow.png',
-			tag: '42',
+			tag: 42,
 			renotify: true,
 		} );
 	}, "3000" );
@@ -795,14 +727,13 @@
 					const button = document.createElement( 'button' );
 					button.textContent = 'Spustit kód';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
-						new Notification( 'notifikace s tagem, a teď to přijde…', {
-							tag: '42',
-							renotify: true,
+						new Notification( 'notifikace s tagem', {
+							tag: 42,
 						} );
 						setTimeout( function () {
-							new Notification( 'jiná notifikace se stejným tagem, a efektem', {
+							new Notification( 'jiná notifikace se stejným tagem a renotify', {
 								icon: 'img/crow.png',
-								tag: '42',
+								tag: 42,
 								renotify: true,
 							} );
 						}, "3000" );

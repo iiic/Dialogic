@@ -508,6 +508,14 @@ const DialogicInternal = class
 		if ( this.vibrate ) {
 			navigator.vibrate( this.vibrate );
 		}
+
+		/** @type {HTMLMetaElement|null} */
+		const creativeWorkStatus = this.dialogElement.querySelector( '[itemprop=creativeWorkStatus]' );
+
+		if ( creativeWorkStatus ) {
+			creativeWorkStatus.content = 'Published';
+		}
+
 		this.dialogElement.dispatchEvent( new Event( 'show' ) );
 		this.dialogElement.show();
 	}
@@ -520,6 +528,14 @@ const DialogicInternal = class
 		if ( this.onclose ) {
 			this.onclose();
 		}
+
+		/** @type {HTMLMetaElement|null} */
+		const creativeWorkStatus = this.dialogElement.querySelector( '[itemprop=creativeWorkStatus]' );
+
+		if ( creativeWorkStatus ) {
+			creativeWorkStatus.content = 'Obsolete';
+		}
+
 		Dialogic.removeDialogFromList( this );
 		this.dialogElement.close();
 	}
@@ -627,8 +643,16 @@ const DialogicInternal = class
 			dialogElement.dir = this.dir;
 		}
 		if ( this.lang ) {
+
+			/** @type {HTMLMetaElement} */
+			const metaElement = document.createElement( 'meta' );
+
+			metaElement.setMultipleAttributes( {
+				itemprop: 'inLanguage',
+				content: this.lang,
+			} );
+			dialogElement.appendChild( metaElement );
 			dialogElement.lang = this.lang;
-			// @todo : itemprop="inLanguage" nejlépe pomocí <meta itemprop="inLanguage" content="cs">
 		}
 		dialogElement.addEventListener( 'click', this.eventListeners.click.focusOnPopup.bind( this ), {
 			capture: false,
@@ -746,12 +770,50 @@ const DialogicInternal = class
 			actionsWrapperElement.appendChild( confirmNo );
 			innerWrapperElement.appendChild( actionsWrapperElement );
 		}
-		// @todo : …
-		// <p hidden> layout.schemaVersion <a href="https://schema.org/version/7.0/" itemprop="schemaVersion">7.0</a></p>
-		// <meta itemprop="accessMode" content="textual visual">
-		// <meta itemprop="accessibilityAPI" content="ARIA">
-		// <meta itemprop="accessibilityControl" content="fullKeyboardControl fullMouseControl fullTouchControl">
-		// <meta itemprop="creativeWorkStatus" content="Published" > a přepínat podle toho jestli je nebo není popup zobrazen Draft / Published / Obsolete
+
+		/** @type {HTMLAnchorElement} */
+		const schemaVersion = document.createElement( 'a' );
+
+		/** @type {HTMLMetaElement} */
+		const accessMode = document.createElement( 'meta' );
+
+		/** @type {HTMLMetaElement} */
+		const accessibilityAPI = document.createElement( 'meta' );
+
+		/** @type {HTMLMetaElement} */
+		const accessibilityControl = document.createElement( 'meta' );
+
+		/** @type {HTMLMetaElement} */
+		const creativeWorkStatus = document.createElement( 'meta' );
+
+		schemaVersion.setMultipleAttributes( {
+			href: 'https://schema.org/version/26.0',
+			itemprop: 'schemaVersion',
+			hidden: true,
+		} );
+		schemaVersion.appendChild( document.createTextNode( '26.0' ) );
+		accessMode.setMultipleAttributes( {
+			itemprop: 'accessMode',
+			content: 'textual visual',
+		} );
+		accessibilityAPI.setMultipleAttributes( {
+			itemprop: 'accessibilityAPI',
+			content: 'ARIA',
+		} );
+		accessibilityControl.setMultipleAttributes( {
+			itemprop: 'accessibilityControl',
+			content: 'fullKeyboardControl fullMouseControl fullTouchControl',
+		} );
+		creativeWorkStatus.setMultipleAttributes( {
+			itemprop: 'creativeWorkStatus',
+			content: 'Draft',
+		} );
+
+		dialogElement.appendChild( schemaVersion );
+		dialogElement.appendChild( accessMode );
+		dialogElement.appendChild( accessibilityAPI );
+		dialogElement.appendChild( accessibilityControl );
+		dialogElement.appendChild( creativeWorkStatus );
 		this.rootElement.appendChild( dialogElement );
 		return true;
 	}
