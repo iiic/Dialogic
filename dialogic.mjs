@@ -22,7 +22,9 @@ const DialogicInternal = class
 		resultSnippetElements: {
 			dialog: 'dialog',
 			innerWrapper: 'div',
+			image: 'img',
 			title: 'h3',
+			icon: 'img',
 			description: 'p',
 			closer: 'button',
 			actionsWrapper: 'div',
@@ -32,7 +34,13 @@ const DialogicInternal = class
 			confirmNoInner: 'data',
 			timePublished: 'time',
 			timeUpdated: 'time',
-			timeExpires: 'time'
+			timeExpires: 'time',
+			lang: 'meta',
+			schemaVersion: 'a',
+			accessMode: 'meta',
+			accessibilityAPI: 'meta',
+			accessibilityControl: 'meta',
+			creativeWorkStatus: 'meta'
 		},
 		snippetIdPrefixes: {
 			dialog: 'dialogic-',
@@ -107,11 +115,37 @@ const DialogicInternal = class
 				class: 'p-rsvp',
 				value: 'no',
 			},
+			lang: {
+				itemprop: 'inLanguage'
+			},
+			schemaVersion: {
+				href: 'https://schema.org/version/26.0',
+				itemprop: 'schemaVersion',
+				hidden: true
+			},
+			accessMode: {
+				itemprop: 'accessMode',
+				content: 'textual visual',
+			},
+			accessibilityAPI: {
+				itemprop: 'accessibilityAPI',
+				content: 'ARIA',
+			},
+			accessibilityControl: {
+				itemprop: 'accessibilityControl',
+				content: 'fullKeyboardControl fullMouseControl fullTouchControl',
+			},
+			creativeWorkStatus: {
+				itemprop: 'creativeWorkStatus',
+				content: 'Draft',
+			}
 		},
 		texts: {
 			closerTextContent: 'x',
 			confirmYes: 'yes',
 			confirmNo: 'no',
+			iconAlt: 'icon',
+			imageAlt: 'image',
 			dividerBetweenButtons: ' ',
 			timestampCreatedTitle: 'created at',
 			timestampUpdatedTitle: 'updated at',
@@ -598,27 +632,98 @@ const DialogicInternal = class
 		}
 	}
 
+	addAttributesToElements ( /** @type {Object} */ elements = {} )
+	{
+
+		/** @type {Array} */
+		const elementNames = Object.keys( elements );
+
+		elementNames.forEach( ( /** @type {String} */ elementName ) =>
+		{
+
+			/** @type {Object|undefined} */
+			const attributes = this.settings.snippetAttributes[ elementName ];
+
+			/** @type {HTMLElement|null} */
+			const element = elements[ elementName ]
+
+			if ( element && attributes ) {
+				element.setMultipleAttributes( attributes );
+			}
+		} );
+		return elements;
+	}
+
+	createAllElements ()
+	{
+
+		/** @type {Object} */
+		const elements = {};
+
+		/** @type {Array} */
+		const elementNames = Object.keys( this.settings.resultSnippetElements );
+
+		elementNames.forEach( ( /** @type {String} */ elementName ) =>
+		{
+			if ( this.hasOwnProperty( elementName ) ) {
+				elements[ elementName ] = this[ elementName ] ? document.createElement( this.settings.resultSnippetElements[ elementName ] ) : null;
+			} else {
+				elements[ elementName ] = document.createElement( this.settings.resultSnippetElements[ elementName ] );
+			}
+		} );
+		return elements;
+	}
+
+	createDomStructureFrom ( /** @type {Object} */ elements = {} )
+	{
+		if ( elements.image ) {
+			elements.innerWrapper.appendChild( elements.image );
+		}
+		elements.title.appendChild( document.createTextNode( this.title ) );
+		if ( this.body ) {
+			elements.description.appendChild( document.createTextNode( this.body ) );
+		} else if ( this.htmlBody ) {
+			elements.description.insertAdjacentHTML( 'beforeend', this.htmlBody );
+		}
+		elements.schemaVersion.appendChild( document.createTextNode( '26.0' ) );
+		elements.dialog.appendChild( elements.innerWrapper );
+		if ( this.icon ) {
+			elements.innerWrapper.appendChild( elements.icon );
+		}
+		elements.innerWrapper.appendChild( elements.title );
+		elements.innerWrapper.appendChild( elements.description );
+		if ( elements.timeElement ) {
+			elements.innerWrapper.appendChild( elements.timeElement );
+		}
+		if ( this.type === Dialogic.CONFIRM ) {
+			elements.innerWrapper.appendChild( elements.actionsWrapper );
+		}
+		if ( elements.lang ) {
+			elements.dialog.appendChild( elements.lang );
+		}
+		elements.dialog.appendChild( elements.schemaVersion );
+		elements.dialog.appendChild( elements.accessMode );
+		elements.dialog.appendChild( elements.accessibilityAPI );
+		elements.dialog.appendChild( elements.accessibilityControl );
+		elements.dialog.appendChild( elements.creativeWorkStatus );
+		this.rootElement.appendChild( elements.dialog );
+	}
+
 	createDialogSnippet ()
 	{
 
 		/** @type {HTMLDialogElement} */
-		const dialogElement = this.dialogElement;
+		const dialog = this.dialogElement;
 
-		if ( dialogElement.open ) {
+		if ( dialog.open ) {
 			return false;
 		}
 
-		/** @type {HTMLElement} */
-		const innerWrapperElement = document.createElement( this.settings.resultSnippetElements.innerWrapper );
+		/** @type {Object} */
+		let elements = this.createAllElements();
 
-		/** @type {HTMLHeadingElement} */
-		const titleElement = document.createElement( this.settings.resultSnippetElements.title );
-
-		/** @type {HTMLElement} */
-		const descriptionElement = document.createElement( this.settings.resultSnippetElements.description );
-
-		/** @type {HTMLElement} */
-		const closerElement = document.createElement( this.settings.resultSnippetElements.closer );
+		elements.dialog = dialog;
+		elements = this.addAttributesToElements( elements );
 
 		/** @type {String} */
 		const dialogId = this.settings.snippetIdPrefixes.dialog + this.timestamp + '-' + ( this.title ).hashCode();
@@ -629,59 +734,39 @@ const DialogicInternal = class
 		/** @type {String} */
 		const descriptionElementId = this.settings.snippetIdPrefixes.description + this.timestamp + '-' + ( this.title ).hashCode();
 
-		/** @type {HTMLImageElement|null} */
-		const iconElement = this.icon ? document.createElement( 'img' ) : null;
-
-		dialogElement.setMultipleAttributes( {
-			...{
-				id: dialogId,
-				'aria-labelledby': titleElementId,
-				'aria-describedby': descriptionElementId,
-			}, ...this.settings.snippetAttributes.dialog
+		elements.dialog.setMultipleAttributes( {
+			id: dialogId,
+			'aria-labelledby': titleElementId,
+			'aria-describedby': descriptionElementId,
 		} );
 		if ( this.dir !== 'auto' ) {
-			dialogElement.dir = this.dir;
+			elements.dialog.dir = this.dir;
 		}
-		if ( this.lang ) {
-
-			/** @type {HTMLMetaElement} */
-			const metaElement = document.createElement( 'meta' );
-
-			metaElement.setMultipleAttributes( {
-				itemprop: 'inLanguage',
-				content: this.lang,
-			} );
-			dialogElement.appendChild( metaElement );
-			dialogElement.lang = this.lang;
-		}
-		dialogElement.addEventListener( 'click', this.eventListeners.click.focusOnPopup.bind( this ), {
+		elements.dialog.addEventListener( 'click', this.eventListeners.click.focusOnPopup.bind( this ), {
 			capture: false,
 			once: false,
 			passive: true,
 		} );
 		if ( this.type === Dialogic.CONFIRM ) {
-			dialogElement.classList.add( 'confirm' );
+			elements.dialog.classList.add( 'confirm' );
 		} else {
-			dialogElement.classList.add( 'alert' );
+			elements.dialog.classList.add( 'alert' );
 		}
-		innerWrapperElement.setMultipleAttributes( this.settings.snippetAttributes.innerWrapper );
-		if ( iconElement ) {
-			iconElement.setMultipleAttributes( { ...{ src: this.icon }, ...this.settings.snippetAttributes.icon } );
+		if ( this.image ) {
+			Object.assign( elements.image, {
+				src: this.image,
+				alt: this.settings.texts.imageAlt
+			} );
 		}
-		titleElement.appendChild( document.createTextNode( this.title ) );
-		titleElement.setMultipleAttributes( { ...{ id: titleElementId }, ...this.settings.snippetAttributes.title } );
-		if ( this.body ) {
-			descriptionElement.appendChild( document.createTextNode( this.body ) );
-		} else if ( this.htmlBody ) {
-			descriptionElement.insertAdjacentHTML( 'beforeend', this.htmlBody );
+		if ( this.icon ) {
+			Object.assign( elements.icon, {
+				src: this.icon,
+				alt: this.settings.texts.iconAlt
+			} );
 		}
-		descriptionElement.setMultipleAttributes( { ...{ id: descriptionElementId }, ...this.settings.snippetAttributes.description } );
-		dialogElement.appendChild( innerWrapperElement );
-		if ( iconElement ) {
-			innerWrapperElement.appendChild( iconElement );
-		}
-		innerWrapperElement.appendChild( titleElement );
-		innerWrapperElement.appendChild( descriptionElement );
+		elements.title.id = titleElementId;
+		elements.description.id = descriptionElementId;
+
 		if ( this.timestamp ) {
 
 			/** @type {Number} */
@@ -690,131 +775,71 @@ const DialogicInternal = class
 			if ( timeDiff > this.settings.showTimeIfDiff ) {
 
 				/** @type {HTMLTimeElement} */
-				const timeElement = document.createElement( this.settings.snippetAttributes.timePublished );
+				elements.timeElement = document.createElement( this.settings.snippetAttributes.timePublished );
 
 				/** @type {String} */
 				const timeElementTextContent = ( timeDiff > ( 60 * 12 ) ) ? new Date( this.timestamp ).toLocaleString() : new Date( this.timestamp ).toLocaleTimeString();
 
-				timeElement.setMultipleAttributes( {
+				elements.timeElement.setMultipleAttributes( {
 					...{
 						title: this.settings.texts.timestampCreatedTitle,
 						dateTime: new Date( this.timestamp ).toISOString(),
 					}, ...this.settings.snippetAttributes.timePublished
 				} );
-				timeElement.appendChild( document.createTextNode( timeElementTextContent ) );
-				innerWrapperElement.appendChild( timeElement );
+				elements.timeElement.appendChild( document.createTextNode( timeElementTextContent ) );
 			}
 		}
 		if ( this.type === Dialogic.ALERT ) {
-			innerWrapperElement.addEventListener( 'click', this.click.bind( this ), {
+			elements.innerWrapper.addEventListener( 'click', this.click.bind( this ), {
 				capture: false,
 				once: false,
 				passive: true,
 			} );
-			closerElement.appendChild( document.createTextNode( this.settings.texts.closerTextContent ) );
-			closerElement.setMultipleAttributes( this.settings.snippetAttributes.closer );
+			elements.closer.appendChild( document.createTextNode( this.settings.texts.closerTextContent ) );
 			if ( this.settings.snippetAttributes.closerDataset && this.settings.snippetAttributes.closerDataset.length ) {
 				for ( const [ key, value ] of Object.entries( this.settings.snippetAttributes.closerDataset ) ) {
-					closerElement.dataset[ key ] = value;
+					elements.closer.dataset[ key ] = value;
 				}
 			} else {
-				closerElement.addEventListener( 'click', this.close.bind( this ), {
+				elements.closer.addEventListener( 'click', this.close.bind( this ), {
 					capture: false,
 					once: true,
 					passive: true,
 				} );
 			}
-			closerElement.addEventListener( 'click', this.eventListeners.click.preventClickOnClose, {
+			elements.closer.addEventListener( 'click', this.eventListeners.click.preventClickOnClose, {
 				capture: false,
 				once: false,
 				passive: false,
 			} );
-			dialogElement.appendChild( closerElement );
+			elements.dialog.appendChild( elements.closer );
 		} else if ( this.type === Dialogic.CONFIRM ) {
-
-			/** @type {HTMLElement} */
-			const actionsWrapperElement = document.createElement( this.settings.resultSnippetElements.actionsWrapper );
-
-			/** @type {HTMLButtonElement} */
-			const confirmYes = document.createElement( this.settings.resultSnippetElements.confirmYes );
-
-			/** @type {HTMLElement} */
-			const confirmYesInner = document.createElement( this.settings.resultSnippetElements.confirmYesInner );
-
-			/** @type {HTMLButtonElement} */
-			const confirmNo = document.createElement( this.settings.resultSnippetElements.confirmNo );
-
-			/** @type {HTMLElement} */
-			const confirmNoInner = document.createElement( this.settings.resultSnippetElements.confirmNoInner );
-
-			confirmYes.setMultipleAttributes( this.settings.snippetAttributes.confirmYes );
-			confirmNo.setMultipleAttributes( this.settings.snippetAttributes.confirmNo );
-			confirmYesInner.setMultipleAttributes( this.settings.snippetAttributes.confirmYesInner );
-			confirmNoInner.setMultipleAttributes( this.settings.snippetAttributes.confirmNoInner );
-			confirmYesInner.appendChild( document.createTextNode( this.settings.texts.confirmYes ) );
-			confirmNoInner.appendChild( document.createTextNode( this.settings.texts.confirmNo ) );
-			confirmYes.appendChild( confirmYesInner );
-			confirmNo.appendChild( confirmNoInner );
-			confirmYes.addEventListener( 'click', this.eventListeners.click.confirmYes.bind( this ), {
+			elements.confirmYesInner.appendChild( document.createTextNode( this.settings.texts.confirmYes ) );
+			elements.confirmNoInner.appendChild( document.createTextNode( this.settings.texts.confirmNo ) );
+			elements.confirmYes.appendChild( elements.confirmYesInner );
+			elements.confirmNo.appendChild( elements.confirmNoInner );
+			elements.confirmYes.addEventListener( 'click', this.eventListeners.click.confirmYes.bind( this ), {
 				capture: false,
 				once: true,
 				passive: true,
 			} );
-			confirmNo.addEventListener( 'click', this.eventListeners.click.confirmNo.bind( this ), {
+			elements.confirmNo.addEventListener( 'click', this.eventListeners.click.confirmNo.bind( this ), {
 				capture: false,
 				once: true,
 				passive: true,
 			} );
-			actionsWrapperElement.appendChild( confirmYes );
-			actionsWrapperElement.appendChild( document.createTextNode( this.settings.texts.dividerBetweenButtons ) );
-			actionsWrapperElement.appendChild( confirmNo );
-			innerWrapperElement.appendChild( actionsWrapperElement );
+			elements.actionsWrapper.appendChild( elements.confirmYes );
+			elements.actionsWrapper.appendChild( document.createTextNode( this.settings.texts.dividerBetweenButtons ) );
+			elements.actionsWrapper.appendChild( elements.confirmNo );
+		}
+		if ( this.lang ) {
+			Object.assign( elements.lang, {
+				content: this.lang
+			} );
+			elements.dialog.lang = this.lang;
 		}
 
-		/** @type {HTMLAnchorElement} */
-		const schemaVersion = document.createElement( 'a' );
-
-		/** @type {HTMLMetaElement} */
-		const accessMode = document.createElement( 'meta' );
-
-		/** @type {HTMLMetaElement} */
-		const accessibilityAPI = document.createElement( 'meta' );
-
-		/** @type {HTMLMetaElement} */
-		const accessibilityControl = document.createElement( 'meta' );
-
-		/** @type {HTMLMetaElement} */
-		const creativeWorkStatus = document.createElement( 'meta' );
-
-		schemaVersion.setMultipleAttributes( {
-			href: 'https://schema.org/version/26.0',
-			itemprop: 'schemaVersion',
-			hidden: true,
-		} );
-		schemaVersion.appendChild( document.createTextNode( '26.0' ) );
-		accessMode.setMultipleAttributes( {
-			itemprop: 'accessMode',
-			content: 'textual visual',
-		} );
-		accessibilityAPI.setMultipleAttributes( {
-			itemprop: 'accessibilityAPI',
-			content: 'ARIA',
-		} );
-		accessibilityControl.setMultipleAttributes( {
-			itemprop: 'accessibilityControl',
-			content: 'fullKeyboardControl fullMouseControl fullTouchControl',
-		} );
-		creativeWorkStatus.setMultipleAttributes( {
-			itemprop: 'creativeWorkStatus',
-			content: 'Draft',
-		} );
-
-		dialogElement.appendChild( schemaVersion );
-		dialogElement.appendChild( accessMode );
-		dialogElement.appendChild( accessibilityAPI );
-		dialogElement.appendChild( accessibilityControl );
-		dialogElement.appendChild( creativeWorkStatus );
-		this.rootElement.appendChild( dialogElement );
+		this.createDomStructureFrom( elements );
 		return true;
 	}
 
