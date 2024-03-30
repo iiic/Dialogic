@@ -216,7 +216,9 @@
 		<div>
 			Dialogic:
 			<pre><code class="language-javascript">&lt;script&gt;
-	new Dialogic( 'nadpis', {body: 'delší obsah který lépe popisuje o co vlastně jde'} );
+	new Dialogic( 'nadpis', {
+		body: 'delší obsah který lépe popisuje o co vlastně jde'
+	} );
 &lt;/script&gt;
 </code></pre>
 			<script defer>
@@ -224,7 +226,9 @@
 					const button = document.createElement( 'button' );
 					button.textContent = 'Spustit kód';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
-						new Dialogic( 'nadpis', { body: 'delší obsah který lépe popisuje o co vlastně jde' } );
+						new Dialogic( 'nadpis', {
+							body: 'delší obsah který lépe popisuje o co vlastně jde'
+						} );
 					}, {
 						capture: false,
 						once: false,
@@ -237,14 +241,18 @@
 		<div>
 			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/body">Notification</a>:
 			<pre><code class="language-javascript">&lt;script&gt;
-	new Notification( 'nadpis', {body: 'delší obsah který lépe popisuje o co vlastně jde'} );
+	new Notification( 'nadpis', {
+		body: 'delší obsah který lépe popisuje o co vlastně jde'
+	} );
 &lt;/script&gt;</code></pre>
 			<script defer>
 				( () => {
 					const button = document.createElement( 'button' );
 					button.textContent = 'Spustit kód';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
-						new Notification( 'nadpis', { body: 'delší obsah který lépe popisuje o co vlastně jde' } );
+						new Notification( 'nadpis', {
+							body: 'delší obsah který lépe popisuje o co vlastně jde'
+						} );
 					}, {
 						capture: false,
 						once: false,

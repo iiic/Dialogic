@@ -1,3 +1,4 @@
+/// @todo : díky tagům budu asi muset mírně upravit logiku. U položky budu muset vést vlastnost (asi ideálně #private) jestli byl či nebyl dialog zobrazen. Protože ty s tagem nemažu, ale ani je nemám znova zobrazovat, pokud už zobrazeny byly (leda by šlo o renotify).
 import { importWithIntegrity } from '/modules/importWithIntegrity.mjs';
 
 const DialogicInternal = class
@@ -205,6 +206,9 @@ const DialogicInternal = class
 
 	/** @type {Number|null} */
 	#runningTimeout = null;
+
+	/** @type {Boolean} */
+	#shown = false; // vymyslet jestli shown, nebo displayed.
 
 	/** @type {Function|null} */
 	onclick = null;
@@ -510,7 +514,7 @@ const DialogicInternal = class
 		}
 	}
 
-	show ()
+	show () /// … asi něco tu… s tagem
 	{
 		if ( this.onshow ) {
 			this.onshow();
@@ -570,7 +574,9 @@ const DialogicInternal = class
 			creativeWorkStatus.content = 'Obsolete';
 		}
 
-		Dialogic.removeDialogFromList( this );
+		if ( !this.tag ) {
+			Dialogic.removeDialogFromList( this );
+		}
 		this.dialogElement.close();
 	}
 
@@ -775,7 +781,7 @@ const DialogicInternal = class
 			if ( timeDiff > this.settings.showTimeIfDiff ) {
 
 				/** @type {HTMLTimeElement} */
-				elements.timeElement = document.createElement( this.settings.snippetAttributes.timePublished );
+				elements.timeElement = document.createElement( this.settings.resultSnippetElements.timePublished );
 
 				/** @type {String} */
 				const timeElementTextContent = ( timeDiff > ( 60 * 12 ) ) ? new Date( this.timestamp ).toLocaleString() : new Date( this.timestamp ).toLocaleTimeString();
