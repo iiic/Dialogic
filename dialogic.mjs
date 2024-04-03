@@ -1,4 +1,3 @@
-/// @todo : díky tagům budu asi muset mírně upravit logiku. U položky budu muset vést vlastnost (asi ideálně #private) jestli byl či nebyl dialog zobrazen. Protože ty s tagem nemažu, ale ani je nemám znova zobrazovat, pokud už zobrazeny byly (leda by šlo o renotify).
 import { importWithIntegrity } from '/modules/importWithIntegrity.mjs';
 
 const DialogicInternal = class
@@ -208,7 +207,7 @@ const DialogicInternal = class
 	#runningTimeout = null;
 
 	/** @type {Boolean} */
-	#shown = false; // vymyslet jestli shown, nebo displayed.
+	#displayed = false;
 
 	/** @type {Function|null} */
 	onclick = null;
@@ -417,6 +416,7 @@ const DialogicInternal = class
 
 	static async showDialogsFromQueue ( /** @type {Number} */ showDialogWaitingBeforeShow = 5 )
 	{
+		console.log( 'zobrazit následující dialog z fronty … tady v tomhle je nějaký bug, zobrazit s tagem, správně se blokne, ale každý další dialog to blokuje také' );
 		return new Promise( function ( /** @type {Function} */ resolve )
 		{
 			setTimeout( function ()
@@ -436,8 +436,13 @@ const DialogicInternal = class
 					/** @type {Array} */
 					const reversedList = Dialogic.list.reverse();
 
-					if ( reversedList.length ) {
-						reversedList[ 0 ].show();
+					/** @type {Number} */
+					const reversedListLength = reversedList.length;
+
+					for ( let i = 0; i < reversedListLength; i++ ) {
+						if ( !reversedList[ i ].#displayed ) {
+							reversedList[ i ].show();
+						}
 					}
 				}
 				resolve();
@@ -556,6 +561,7 @@ const DialogicInternal = class
 
 		this.dialogElement.dispatchEvent( new Event( 'show' ) );
 		this.dialogElement.show();
+		this.#displayed = true;
 	}
 
 	close ()
@@ -715,13 +721,38 @@ const DialogicInternal = class
 		this.rootElement.appendChild( elements.dialog );
 	}
 
+	shouldBeDisplayed ( /** @type {HTMLDialogElement} */ dialog )
+	{
+		if ( dialog.open || this.#displayed ) {
+			return false;
+		}
+		if ( this.renotify ) {
+			return true;
+		}
+
+		/** @const {Number} */
+		const listLength = Dialogic.list.length;
+
+		for ( let i = 0; i < listLength; i++ ) {
+			if (
+				this.tag
+				&& Dialogic.list[ i ].tag === this.tag
+				&& Dialogic.list[ i ].#displayed
+			) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	createDialogSnippet ()
 	{
 
 		/** @type {HTMLDialogElement} */
 		const dialog = this.dialogElement;
 
-		if ( dialog.open ) {
+		if ( !this.shouldBeDisplayed( dialog ) ) {
+			console.log( 'this.should NOT BeDisplayed' );
 			return false;
 		}
 
