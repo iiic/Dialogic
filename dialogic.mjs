@@ -7,13 +7,28 @@ const DialogicInternal = class
 	static list = [];
 	static getList ()
 	{
+		console.debug( '%c DialogicInternal %c (static) getList %c DialogicInternal.list: ',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			DialogicInternal.list
+		);
+
 		return DialogicInternal.list;
 	}
 	static setList ( /** @type {Dialogic} */ listItem = Dialogic.prototype )
 	{
+		console.groupCollapsed( '%c DialogicInternal %c (static) setList',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			arguments
+		);
+
 		if ( listItem.constructor.name === 'Dialogic' ) {
 			DialogicInternal.list.push( listItem );
 		}
+
+		console.groupEnd();
 	}
 
 	/** @type {Object} */
@@ -171,43 +186,83 @@ const DialogicInternal = class
 	}
 	setSettings ( /** @type {Object} */ newSettings = {} )
 	{
+		console.groupCollapsed( '%c DialogicInternal %c setSettings %c newSettings:',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			newSettings
+		);
+
 		this.#settings = DialogicInternal.#deepAssign( this.#settings, newSettings );
+
+		console.groupEnd();
 	}
 
 	/** @type {HTMLElement|null} */
 	#dialogElement;
 	getDialogElement ()
 	{
+		console.debug( '%c DialogicInternal %c getSettings %c this.#dialogElement:',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			this.#dialogElement
+		);
+
 		return this.#dialogElement;
 	}
 	setDialogElement ( /** @type {HTMLElement} */ dialogElement = HTMLDialogElement.prototype )
 	{
+		console.groupCollapsed( '%c DialogicInternal %c setDialogElement %c dialogElement:',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			dialogElement
+		);
+
 		if ( dialogElement && 'nodeType' in dialogElement && dialogElement.nodeType === Node.ELEMENT_NODE ) {
 			this.#dialogElement = dialogElement;
 		} else {
 			throw new Error( 'Not a valid HTMLElement' );
 		}
+
+		console.groupEnd();
 	}
 
 	/** @type {String} */
 	#dir = 'auto';
 	getDir ()
 	{
+		console.debug( '%c DialogicInternal %c getDir %c this.#dir: ' + this.#dir,
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+		);
+
 		return this.#dir;
 	}
 	setDir ( /** @type {String} */ dir = 'auto' )
 	{
+		console.groupCollapsed( '%c DialogicInternal %c setDir %c dir:',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			dir
+		);
+
 		if ( ![ 'auto', 'ltr', 'rtl' ].includes( dir ) ) {
 			throw new Error( 'Dir value is invalid' );
 		}
 		this.#dir = dir;
+
+		console.groupEnd();
 	}
 
 	/** @type {Number|null} */
 	#runningTimeout = null;
 
 	/** @type {Boolean} */
-	#displayed = false;
+	displayed = false;
 
 	/** @type {Function|null} */
 	onclick = null;
@@ -223,6 +278,12 @@ const DialogicInternal = class
 
 	constructor ( /** @type {String} */ title = '', /** @type {Object} */ options = {}, settingsElementId = 'dialogic-settings' )
 	{
+		console.groupCollapsed( '%c DialogicInternal %c constructor',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			arguments
+		);
+
 		if ( arguments.length === 0 ) {
 			throw new TypeError( 'Failed to construct \'Dialogic\': 1 argument required, but only 0 present.' );
 		}
@@ -243,26 +304,53 @@ const DialogicInternal = class
 					click: {
 						preventClickOnClose: function ( /** @type {PointerEvent} */ event )
 						{
+							console.debug( '%c DialogicInternal %c preventClickOnClose %c event:',
+								Dialogic.CONSOLE.CLASS_NAME,
+								Dialogic.CONSOLE.METHOD_NAME,
+								Dialogic.CONSOLE.INTEREST_PARAMETER,
+								event
+							);
+
 							event.stopPropagation();
 						},
 						confirmYes: function ( /** @type {PointerEvent} event */ )
 						{
+
+							console.groupCollapsed( '%c DialogicInternal %c confirmYes',
+								Dialogic.CONSOLE.CLASS_NAME,
+								Dialogic.CONSOLE.METHOD_NAME
+							);
+
 							if ( this.#runningTimeout ) {
 								clearTimeout( this.#runningTimeout );
 							}
 							this.click();
 							Dialogic.removeDialogFromList( this );
 							this.dialogElement.close(); // close popup without close() event on Dialogic
+
+							console.groupEnd();
 						},
 						confirmNo: function ( /** @type {PointerEvent} event */ )
 						{
+							console.groupCollapsed( '%c DialogicInternal %c confirmNo',
+								Dialogic.CONSOLE.CLASS_NAME,
+								Dialogic.CONSOLE.METHOD_NAME
+							);
+
 							if ( this.#runningTimeout ) {
 								clearTimeout( this.#runningTimeout );
 							}
 							this.close();
+
+							console.groupEnd();
 						},
 						focusOnPopup: function ( /** @type {PointerEvent} */ event )
 						{
+							console.groupCollapsed( '%c DialogicInternal %c focusOnPopup',
+								Dialogic.CONSOLE.CLASS_NAME,
+								Dialogic.CONSOLE.METHOD_NAME
+							);
+
 							if ( event.target === this.dialogElement ) {
 
 								/** @type {HTMLElement} */
@@ -272,16 +360,32 @@ const DialogicInternal = class
 								innerWrapperElement.focus(); // { focusVisible: true } option currently not working
 								innerWrapperElement.contentEditable = 'false';
 							}
+
+							console.groupEnd();
 						},
 					},
 					close: {
 						showNextDialog: function ( /** @type {Event} event */ )
 						{
+							console.groupCollapsed( '%c DialogicInternal %c showNextDialog',
+								Dialogic.CONSOLE.CLASS_NAME,
+								Dialogic.CONSOLE.METHOD_NAME
+							);
+
 							Dialogic.showDialogsFromQueue( this.settings.showDialogWaitingBeforeShow );
+
+							console.groupEnd();
 						},
 						removeDialogElement: function ( /** @type {Event} event */ )
 						{
+							console.groupCollapsed( '%c DialogicInternal %c removeDialogElement',
+								Dialogic.CONSOLE.CLASS_NAME,
+								Dialogic.CONSOLE.METHOD_NAME
+							);
+
 							this.rootElement.removeChild( this.dialogElement );
+
+							console.groupEnd();
 						},
 					}
 				},
@@ -312,27 +416,63 @@ const DialogicInternal = class
 		this.dialogElement = document.createElement( this.settings.resultSnippetElements.dialog );
 
 		Dialogic.list = this;
+
+		console.groupEnd();
 	}
 
 	static emptySetter () { }
 
 	static getMaxActions ()
 	{
+		console.debug( '%c DialogicInternal %c (static) getMaxActions',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
+
 		return 2;
 	}
 
 	static getALERT ()
 	{
+		console.debug( '%c DialogicInternal %c (static) getALERT',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
+
 		return 0;
 	}
 
 	static getCONFIRM ()
 	{
+		console.debug( '%c DialogicInternal %c (static) getCONFIRM',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
+
 		return 1;
+	}
+
+	static getCONSOLE ()
+	{
+		return {
+			DEFAULT_TEXT: 'color: white',
+			CLASS_NAME: 'color: gray',
+			METHOD_NAME: 'font-weight: normal; color: green',
+			INTEREST_PARAMETER: 'font-weight: normal; font-size: x-small; color: teal',
+			EVENT_TEXT: 'color: orange',
+			WARNING: 'color: red',
+		};
 	}
 
 	static #deepAssign ( /** @type {Array} */ ...args )
 	{
+		console.groupCollapsed( '%c DialogicInternal %c (static) #deepAssign %c args:',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			args
+		);
+
 		let currentLevel = {};
 		args.forEach( ( /** @type {Object} */ source ) =>
 		{
@@ -348,11 +488,20 @@ const DialogicInternal = class
 				} );
 			}
 		} );
+
+		console.groupEnd();
+
 		return currentLevel;
 	}
 
 	static addLinksIntoHead ( /** @type {Object} */ attributesObject = {}, /** @type {String} */ rel = 'preload', /** @type {Set|null} */ excludeSet = null )
 	{
+		console.groupCollapsed( '%c DialogicInternal %c (static) addLinksIntoHead',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			arguments
+		);
+
 		attributesObject.forEach( function ( /** @type {Object} */ resource = {} )
 		{
 
@@ -379,10 +528,17 @@ const DialogicInternal = class
 				document.head.appendChild( link );
 			}
 		} );
+
+		console.groupEnd();
 	}
 
 	static addCSSStyleSheets ( /** @type {Array} */ CSSStyleSheets = [], /** @type {String} */ rel = 'stylesheet' )
 	{
+		console.groupCollapsed( '%c DialogicInternal %c (static) addCSSStyleSheets',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			arguments
+		);
 
 		/** @type {Set} */
 		const existingStyleSheets = new Set();
@@ -395,10 +551,17 @@ const DialogicInternal = class
 		} );
 
 		DialogicInternal.addLinksIntoHead( CSSStyleSheets, rel, existingStyleSheets );
+
+		console.groupEnd();
 	}
 
 	static preloadResources ( /** @type {Array} */ resources = [], /** @type {String} */ rel = 'preload' )
 	{
+		console.groupCollapsed( '%c DialogicInternal %c (static) preloadResources',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			arguments
+		);
 
 		/** @type {NodeList} */
 		const alreadyPreloaded = document.querySelectorAll( 'link[rel=preload][href]' );
@@ -412,15 +575,30 @@ const DialogicInternal = class
 		} );
 
 		DialogicInternal.addLinksIntoHead( resources, rel, preloadedHrefList );
+
+		console.groupEnd();
 	}
 
 	static async showDialogsFromQueue ( /** @type {Number} */ showDialogWaitingBeforeShow = 5 )
 	{
-		console.log( 'zobrazit následující dialog z fronty … tady v tomhle je nějaký bug, zobrazit s tagem, správně se blokne, ale každý další dialog to blokuje také' );
+		console.debug( '%c DialogicInternal %c (static async) showDialogsFromQueue %c showDialogWaitingBeforeShow:',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			showDialogWaitingBeforeShow
+		);
+
+		// console.log( 'zobrazit následující dialog z fronty … tady v tomhle je nějaký bug, zobrazit s tagem, správně se blokne, ale každý další dialog to blokuje také' ); /// @todo
 		return new Promise( function ( /** @type {Function} */ resolve )
 		{
 			setTimeout( function ()
 			{
+
+				console.groupCollapsed( '%c DialogicInternal %c inner setTimeout inside promise %c (inside showDialogsFromQueue)',
+					Dialogic.CONSOLE.CLASS_NAME,
+					Dialogic.CONSOLE.DEFAULT_TEXT,
+					Dialogic.CONSOLE.METHOD_NAME
+				);
 
 				/** @type {Boolean} */
 				let isSomeDialogShown = false;
@@ -429,9 +607,20 @@ const DialogicInternal = class
 				{
 					if ( dialog.dialogElement.open ) {
 						isSomeDialogShown = true;
+						console.debug( ' %c DialogicInternal %c actually shown dialog %c dialog:',
+							Dialogic.CONSOLE.CLASS_NAME,
+							Dialogic.CONSOLE.DEFAULT_TEXT,
+							Dialogic.CONSOLE.INTEREST_PARAMETER,
+							dialog
+						);
 					}
 				} );
 				if ( !isSomeDialogShown ) {
+
+					console.debug( ' %c DialogicInternal %c no dialog is actually shown',
+						Dialogic.CONSOLE.CLASS_NAME,
+						Dialogic.CONSOLE.DEFAULT_TEXT,
+					);
 
 					/** @type {Array} */
 					const reversedList = Dialogic.list.reverse();
@@ -439,12 +628,22 @@ const DialogicInternal = class
 					/** @type {Number} */
 					const reversedListLength = reversedList.length;
 
+					console.debug( ' %c DialogicInternal %c number of dialogs in list: %c reversedListLength:',
+						Dialogic.CONSOLE.CLASS_NAME,
+						Dialogic.CONSOLE.DEFAULT_TEXT,
+						Dialogic.CONSOLE.INTEREST_PARAMETER,
+						reversedListLength
+					);
+
 					for ( let i = 0; i < reversedListLength; i++ ) {
-						if ( !reversedList[ i ].#displayed ) {
-							reversedList[ i ].show();
+						if ( Dialogic.shouldBeDisplayed( reversedList[ i ] ) ) {
+							reversedList[ i ].show(); /// @todo : nějaký bug, přehrává se zvuk i když se neukáže dialog
 						}
 					}
 				}
+
+				console.groupEnd();
+
 				resolve();
 			}, showDialogWaitingBeforeShow );
 		} );
@@ -452,6 +651,13 @@ const DialogicInternal = class
 
 	static async loadExternalFunctions ( /** @type {String} */ modulesImportPath = '' )
 	{
+		console.debug( '%c DialogicInternal %c (static async) loadExternalFunctions %c modulesImportPath:',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			modulesImportPath
+		);
+
 		return Promise.all( [
 			{
 				name: 'hashCode',
@@ -481,6 +687,12 @@ const DialogicInternal = class
 
 	static getAbsoluteUrl ( /** @type {String} */ urlString = '' )
 	{
+		console.debug( '%c DialogicInternal %c (static) getAbsoluteUrl %c urlString:',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			urlString
+		);
 
 		/** @type {URL} */
 		let url;
@@ -495,16 +707,29 @@ const DialogicInternal = class
 
 	static removeDialogFromList ( /** @type {Dialogic} */ dialogic = Dialogic.prototype )
 	{
+		console.groupCollapsed( '%c DialogicInternal %c (static) removeDialogFromList %c dialogic',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			dialogic
+		);
+
 		/** @type {Number} */
 		const index = Dialogic.list.indexOf( dialogic );
 
 		if ( index > -1 ) {
 			Dialogic.list.splice( index, 1 );
 		}
+
+		console.groupEnd();
 	}
 
 	getRootElement ()
 	{
+		console.debug( '%c DialogicInternal %c getRootElement',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
 
 		/** @type {HTMLElement|null} */
 		const foundRootElement = this.settings.rootElementId ? document.getElementById( this.settings.rootElementId ) : null;
@@ -514,13 +739,25 @@ const DialogicInternal = class
 
 	click ()
 	{
+		console.groupCollapsed( '%c DialogicInternal %c click',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
+
 		if ( this.onclick ) {
 			this.onclick();
 		}
+
+		console.groupEnd();
 	}
 
-	show () /// … asi něco tu… s tagem
+	show ()
 	{
+		console.groupCollapsed( '%c DialogicInternal %c show',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
+
 		if ( this.onshow ) {
 			this.onshow();
 		}
@@ -559,13 +796,20 @@ const DialogicInternal = class
 			creativeWorkStatus.content = 'Published';
 		}
 
+		this.displayed = true;
 		this.dialogElement.dispatchEvent( new Event( 'show' ) );
 		this.dialogElement.show();
-		this.#displayed = true;
+
+		console.groupEnd();
 	}
 
 	close ()
 	{
+		console.groupCollapsed( '%c DialogicInternal %c close',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
+
 		if ( this.#runningTimeout ) {
 			clearTimeout( this.#runningTimeout );
 		}
@@ -584,14 +828,23 @@ const DialogicInternal = class
 			Dialogic.removeDialogFromList( this );
 		}
 		this.dialogElement.close();
+
+		console.groupEnd();
 	}
 
 	error ()
 	{
+		console.groupCollapsed( '%c DialogicInternal %c error',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
+
 		if ( this.onerror ) {
 			this.onerror();
 		}
 		this.dialogElement.dispatchEvent( new Event( 'error' ) );
+
+		console.groupEnd();
 	}
 
 	addEventListener (
@@ -601,15 +854,28 @@ const DialogicInternal = class
 		/** @type {Boolean} */ useCapture = false
 	)
 	{
+		console.groupCollapsed( '%c DialogicInternal %c addEventListener',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			arguments
+		);
+
 		if ( options && Object.keys( options ).length !== 0 ) {
 			this.dialogElement.addEventListener( type, listener, options, useCapture );
 		} else {
 			this.dialogElement.addEventListener( type, listener, useCapture );
 		}
+
+		console.groupEnd();
 	}
 
 	async appendRequireInteractionListener ()
 	{
+		console.debug( '%c DialogicInternal %c (async) appendRequireInteractionListener',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
+
 		return new Promise( ( /** @type {Function} */ resolve ) =>
 		{
 			if ( this.requireInteraction ) {
@@ -626,15 +892,27 @@ const DialogicInternal = class
 
 	appendShowNextDialogAfterCloseListener ()
 	{
+		console.groupCollapsed( '%c DialogicInternal %c appendShowNextDialogAfterCloseListener',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
+
 		this.addEventListener( 'close', this.eventListeners.close.showNextDialog.bind( this ), {
 			capture: false,
 			once: true,
 			passive: true,
 		} );
+
+		console.groupEnd();
 	}
 
 	appendRemoveDialogElementOnCloseListener ()
 	{
+		console.groupCollapsed( '%c DialogicInternal %c appendRemoveDialogElementOnCloseListener',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
+
 		if ( this.settings.autoRemoveDialogElementOnClose ) {
 			this.addEventListener( 'close', this.eventListeners.close.removeDialogElement.bind( this ), {
 				capture: false,
@@ -642,10 +920,18 @@ const DialogicInternal = class
 				passive: true,
 			} );
 		}
+
+		console.groupEnd();
 	}
 
 	addAttributesToElements ( /** @type {Object} */ elements = {} )
 	{
+		console.groupCollapsed( '%c DialogicInternal %c appendRemoveDialogElementOnCloseListener %c elements:',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			elements
+		);
 
 		/** @type {Array} */
 		const elementNames = Object.keys( elements );
@@ -663,11 +949,18 @@ const DialogicInternal = class
 				element.setMultipleAttributes( attributes );
 			}
 		} );
+
+		console.groupEnd();
+
 		return elements;
 	}
 
 	createAllElements ()
 	{
+		console.groupCollapsed( '%c DialogicInternal %c createAllElements',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
 
 		/** @type {Object} */
 		const elements = {};
@@ -683,11 +976,22 @@ const DialogicInternal = class
 				elements[ elementName ] = document.createElement( this.settings.resultSnippetElements[ elementName ] );
 			}
 		} );
+
+		console.debug( { elements } );
+		console.groupEnd();
+
 		return elements;
 	}
 
 	createDomStructureFrom ( /** @type {Object} */ elements = {} )
 	{
+		console.groupCollapsed( '%c DialogicInternal %c createDomStructureFrom %c elements:',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			elements
+		);
+
 		if ( elements.image ) {
 			elements.innerWrapper.appendChild( elements.image );
 		}
@@ -719,14 +1023,23 @@ const DialogicInternal = class
 		elements.dialog.appendChild( elements.accessibilityControl );
 		elements.dialog.appendChild( elements.creativeWorkStatus );
 		this.rootElement.appendChild( elements.dialog );
+
+		console.groupEnd();
 	}
 
-	shouldBeDisplayed ( /** @type {HTMLDialogElement} */ dialog )
+	static shouldBeDisplayed ( /** @type {HTMLDialogElement} */ dialog ) /// @todo : přesunout na jinou pozici… někde mezi ostatní static
 	{
-		if ( dialog.open || this.#displayed ) {
+		console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c dialog:',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			dialog
+		);
+
+		if ( dialog.open || dialog.displayed ) {
 			return false;
 		}
-		if ( this.renotify ) {
+		if ( dialog.renotify ) {
 			return true;
 		}
 
@@ -735,9 +1048,9 @@ const DialogicInternal = class
 
 		for ( let i = 0; i < listLength; i++ ) {
 			if (
-				this.tag
-				&& Dialogic.list[ i ].tag === this.tag
-				&& Dialogic.list[ i ].#displayed
+				dialog.tag
+				&& Dialogic.list[ i ].tag === dialog.tag
+				&& Dialogic.list[ i ].displayed
 			) {
 				return false;
 			}
@@ -745,14 +1058,57 @@ const DialogicInternal = class
 		return true;
 	}
 
+	// shouldBeDisplayed ( /** @type {HTMLDialogElement} */ dialog )
+	// {
+	// 	console.debug( '%c DialogicInternal %c shouldBeDisplayed %c dialog:',
+	// 		Dialogic.CONSOLE.CLASS_NAME,
+	// 		Dialogic.CONSOLE.METHOD_NAME,
+	// 		Dialogic.CONSOLE.INTEREST_PARAMETER,
+	// 		dialog
+	// 	);
+
+	// 	if ( dialog.open || this.#displayed ) {
+	// 		return false;
+	// 	}
+	// 	if ( this.renotify ) {
+	// 		return true;
+	// 	}
+
+	// 	/** @const {Number} */
+	// 	const listLength = Dialogic.list.length;
+
+	// 	for ( let i = 0; i < listLength; i++ ) {
+	// 		if (
+	// 			this.tag
+	// 			&& Dialogic.list[ i ].tag === this.tag
+	// 			&& Dialogic.list[ i ].#displayed
+	// 		) {
+	// 			return false;
+	// 		}
+	// 	}
+	// 	return true;
+	// }
+
 	createDialogSnippet ()
 	{
+		console.groupCollapsed( '%c DialogicInternal %c createDialogSnippet',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
 
 		/** @type {HTMLDialogElement} */
 		const dialog = this.dialogElement;
 
-		if ( !this.shouldBeDisplayed( dialog ) ) {
-			console.log( 'this.should NOT BeDisplayed' );
+		if ( !Dialogic.shouldBeDisplayed( dialog ) ) {
+
+			console.debug( '%c DialogicInternal %c dialog should NOT be displayed %c dialog:',
+				Dialogic.CONSOLE.CLASS_NAME,
+				Dialogic.CONSOLE.DEFAULT_TEXT,
+				Dialogic.CONSOLE.INTEREST_PARAMETER,
+				dialog
+			);
+			console.groupEnd();
+
 			return false;
 		}
 
@@ -875,13 +1231,20 @@ const DialogicInternal = class
 			} );
 			elements.dialog.lang = this.lang;
 		}
-
 		this.createDomStructureFrom( elements );
+
+		console.groupEnd();
+
 		return true;
 	}
 
 	checkRequirements ()
 	{
+		console.debug( '%c DialogicInternal %c checkRequirements',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
+
 		if ( !this.settings ) {
 			this.error();
 			throw new Error( 'Settings object is missing' );
@@ -967,6 +1330,13 @@ const DialogicInternal = class
 	createProperties ( /** @type {Object} */ sections = {} )
 	{
 
+		console.groupCollapsed( '%c DialogicInternal %c createProperties (dynamic) %c sections:',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			sections
+		);
+
 		/** @type {Array} */
 		const groupDescriptors = Object.keys( sections );
 
@@ -1037,10 +1407,18 @@ const DialogicInternal = class
 				}
 			} );
 		} );
+
+		console.groupEnd();
+
 	}
 
 	async run ()
 	{
+		console.groupCollapsed( '%c DialogicInternal %c (async) run',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
+
 		this.checkRequirements();
 		await Dialogic.loadExternalFunctions( this.settings.modulesImportPath );
 		Dialogic.preloadResources( this.settings.preloadFiles );
@@ -1051,6 +1429,8 @@ const DialogicInternal = class
 			this.appendShowNextDialogAfterCloseListener();
 		}
 		Dialogic.showDialogsFromQueue( this.settings.showDialogWaitingBeforeShow );
+
+		console.groupEnd();
 	}
 }
 
@@ -1058,6 +1438,13 @@ export class Dialogic extends DialogicInternal
 {
 	constructor ( /** @type {String} */ title = '', /** @type {Object} */ options = {}, settingsElementId = 'dialogic-settings' )
 	{
+		console.groupCollapsed( '%c Dialogic %c constructor %c arguments:',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			arguments
+		);
+
 		super( ...arguments );
 		this.createProperties( {
 			noneAll: [
@@ -1095,8 +1482,14 @@ export class Dialogic extends DialogicInternal
 			},
 		} );
 		if ( this.settings.autoRun ) {
+			console.debug( '%c DialogicInternal %c autoRun',
+				Dialogic.CONSOLE.CLASS_NAME,
+				Dialogic.CONSOLE.METHOD_NAME
+			);
 			this.run();
 		}
+
+		console.groupEnd();
 	}
 }
 
@@ -1109,6 +1502,7 @@ DialogicInternal.createProperties( {
 		'showDialogsFromQueue',
 		'addCSSStyleSheets',
 		'preloadResources',
+		'CONSOLE',
 		'ALERT',
 		'CONFIRM',
 	]
