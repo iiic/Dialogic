@@ -202,7 +202,7 @@ const DialogicInternal = class
 	#dialogElement;
 	getDialogElement ()
 	{
-		console.debug( '%c DialogicInternal %c getSettings %c this.#dialogElement:',
+		console.debug( '%c DialogicInternal %c getDialogElement %c this.#dialogElement:',
 			Dialogic.CONSOLE.CLASS_NAME,
 			Dialogic.CONSOLE.METHOD_NAME,
 			Dialogic.CONSOLE.INTEREST_PARAMETER,
@@ -600,45 +600,36 @@ const DialogicInternal = class
 					Dialogic.CONSOLE.METHOD_NAME
 				);
 
-				/** @type {Boolean} */
-				let isSomeDialogShown = false;
+				/** @type {Array} */
+				const reversedList = Dialogic.list.reverse();
 
-				Dialogic.list.forEach( ( /** @type {Dialogic} */ dialog ) =>
-				{
-					if ( dialog.dialogElement.open ) {
-						isSomeDialogShown = true;
-						console.debug( ' %c DialogicInternal %c actually shown dialog %c dialog:',
+				/** @type {Number} */
+				const reversedListLength = reversedList.length;
+
+				console.debug( ' %c DialogicInternal %c number of dialogs in list: %c reversedListLength:',
+					Dialogic.CONSOLE.CLASS_NAME,
+					Dialogic.CONSOLE.DEFAULT_TEXT,
+					Dialogic.CONSOLE.INTEREST_PARAMETER,
+					reversedListLength
+				);
+
+				for ( let i = 0; i < reversedListLength; i++ ) {
+					if ( Dialogic.shouldBeDisplayed( reversedList[ i ] ) ) {
+						console.debug( ' %c DialogicInternal %c found dialog to be displayed: %c reversedList[ i ]:',
 							Dialogic.CONSOLE.CLASS_NAME,
 							Dialogic.CONSOLE.DEFAULT_TEXT,
 							Dialogic.CONSOLE.INTEREST_PARAMETER,
-							dialog
+							reversedList[ i ]
 						);
-					}
-				} );
-				if ( !isSomeDialogShown ) {
-
-					console.debug( ' %c DialogicInternal %c no dialog is actually shown',
-						Dialogic.CONSOLE.CLASS_NAME,
-						Dialogic.CONSOLE.DEFAULT_TEXT,
-					);
-
-					/** @type {Array} */
-					const reversedList = Dialogic.list.reverse();
-
-					/** @type {Number} */
-					const reversedListLength = reversedList.length;
-
-					console.debug( ' %c DialogicInternal %c number of dialogs in list: %c reversedListLength:',
-						Dialogic.CONSOLE.CLASS_NAME,
-						Dialogic.CONSOLE.DEFAULT_TEXT,
-						Dialogic.CONSOLE.INTEREST_PARAMETER,
-						reversedListLength
-					);
-
-					for ( let i = 0; i < reversedListLength; i++ ) {
-						if ( Dialogic.shouldBeDisplayed( reversedList[ i ] ) ) {
-							reversedList[ i ].show(); /// @todo : nějaký bug, přehrává se zvuk i když se neukáže dialog
-						}
+						reversedList[ i ].show(); /// @todo : nějaký bug, přehrává se zvuk i když se neukáže dialog
+						break;
+					} else {
+						console.debug( ' %c DialogicInternal %c dialog in list, but NOT to be displayed now %c reversedList[ i ]:',
+							Dialogic.CONSOLE.CLASS_NAME,
+							Dialogic.CONSOLE.DEFAULT_TEXT,
+							Dialogic.CONSOLE.INTEREST_PARAMETER,
+							reversedList[ i ]
+						);
 					}
 				}
 
@@ -737,6 +728,41 @@ const DialogicInternal = class
 		return foundRootElement ? foundRootElement : document.body;
 	}
 
+	playAudio ()
+	{
+		console.groupCollapsed( '%c DialogicInternal %c playAudio',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME
+		);
+
+		if ( !this.silent && this.settings.dialogShowAudio ) {
+			if ( DialogicInternal.dialogShowAudio ) { // audio already played, reset timer and play again
+
+				/** @type {HTMLAudioElement} */
+				const audio = DialogicInternal.dialogShowAudio;
+
+				audio.pause();
+				audio.currentTime = 0;
+				audio.play();
+			} else { // load new audio
+
+				/** @type {URL} */
+				const url = DialogicInternal.getAbsoluteUrl( this.settings.dialogShowAudio );
+
+				/** @type {HTMLAudioElement} */
+				const audio = new Audio( url.href );
+
+				audio.addEventListener( 'canplaythrough', ( /** @type {Event} event */ ) =>
+				{
+					audio.play();
+				} );
+				DialogicInternal.dialogShowAudio = audio;
+			}
+		}
+
+		console.groupEnd();
+	}
+
 	click ()
 	{
 		console.groupCollapsed( '%c DialogicInternal %c click',
@@ -753,38 +779,17 @@ const DialogicInternal = class
 
 	show ()
 	{
-		console.groupCollapsed( '%c DialogicInternal %c show',
+		console.groupCollapsed( '%c DialogicInternal %c show %c this:',
 			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			this
 		);
 
 		if ( this.onshow ) {
 			this.onshow();
 		}
-		if ( !this.silent && this.settings.dialogShowAudio ) {
-			if ( DialogicInternal.dialogShowAudio ) {
-
-				/** @type {HTMLAudioElement} */
-				const audio = DialogicInternal.dialogShowAudio;
-
-				audio.pause();
-				audio.currentTime = 0;
-				audio.play();
-			} else {
-
-				/** @type {URL} */
-				const url = DialogicInternal.getAbsoluteUrl( this.settings.dialogShowAudio );
-
-				/** @type {HTMLAudioElement} */
-				const audio = new Audio( url.href );
-
-				audio.addEventListener( 'canplaythrough', ( /** @type {Event} event */ ) =>
-				{
-					audio.play();
-				} );
-				DialogicInternal.dialogShowAudio = audio;
-			}
-		}
+		this.playAudio();
 		if ( this.vibrate ) {
 			navigator.vibrate( this.vibrate );
 		}
@@ -1029,17 +1034,38 @@ const DialogicInternal = class
 
 	static shouldBeDisplayed ( /** @type {HTMLDialogElement} */ dialog ) /// @todo : přesunout na jinou pozici… někde mezi ostatní static
 	{
-		console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c dialog:',
+		console.groupCollapsed( '%c DialogicInternal %c (static) shouldBeDisplayed %c dialog:',
 			Dialogic.CONSOLE.CLASS_NAME,
 			Dialogic.CONSOLE.METHOD_NAME,
 			Dialogic.CONSOLE.INTEREST_PARAMETER,
 			dialog
 		);
 
-		if ( dialog.open || dialog.displayed ) {
+		if ( dialog.open ) {
+			console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO, this dialog is opened right now',
+				Dialogic.CONSOLE.CLASS_NAME,
+				Dialogic.CONSOLE.METHOD_NAME,
+				Dialogic.CONSOLE.DEFAULT_TEXT
+			);
+			console.groupEnd();
+			return false;
+		}
+		if ( dialog.displayed ) {
+			console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO, this dialog was already displayed',
+				Dialogic.CONSOLE.CLASS_NAME,
+				Dialogic.CONSOLE.METHOD_NAME,
+				Dialogic.CONSOLE.DEFAULT_TEXT
+			);
+			console.groupEnd();
 			return false;
 		}
 		if ( dialog.renotify ) {
+			console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c YES, this dialog have renotify property',
+				Dialogic.CONSOLE.CLASS_NAME,
+				Dialogic.CONSOLE.METHOD_NAME,
+				Dialogic.CONSOLE.DEFAULT_TEXT
+			);
+			console.groupEnd();
 			return true;
 		}
 
@@ -1047,47 +1073,38 @@ const DialogicInternal = class
 		const listLength = Dialogic.list.length;
 
 		for ( let i = 0; i < listLength; i++ ) {
+			if ( Dialogic.list[ i ].dialogElement.open ) {
+				console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO, some another dialog is displayed right now',
+					Dialogic.CONSOLE.CLASS_NAME,
+					Dialogic.CONSOLE.METHOD_NAME,
+					Dialogic.CONSOLE.DEFAULT_TEXT
+				);
+				console.groupEnd();
+				return false;
+			}
 			if (
 				dialog.tag
 				&& Dialogic.list[ i ].tag === dialog.tag
 				&& Dialogic.list[ i ].displayed
 			) {
+				console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO',
+					Dialogic.CONSOLE.CLASS_NAME,
+					Dialogic.CONSOLE.METHOD_NAME,
+					Dialogic.CONSOLE.DEFAULT_TEXT
+				);
+				console.groupEnd();
 				return false;
 			}
 		}
+
+		console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c YES',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.DEFAULT_TEXT
+		);
+		console.groupEnd();
 		return true;
 	}
-
-	// shouldBeDisplayed ( /** @type {HTMLDialogElement} */ dialog )
-	// {
-	// 	console.debug( '%c DialogicInternal %c shouldBeDisplayed %c dialog:',
-	// 		Dialogic.CONSOLE.CLASS_NAME,
-	// 		Dialogic.CONSOLE.METHOD_NAME,
-	// 		Dialogic.CONSOLE.INTEREST_PARAMETER,
-	// 		dialog
-	// 	);
-
-	// 	if ( dialog.open || this.#displayed ) {
-	// 		return false;
-	// 	}
-	// 	if ( this.renotify ) {
-	// 		return true;
-	// 	}
-
-	// 	/** @const {Number} */
-	// 	const listLength = Dialogic.list.length;
-
-	// 	for ( let i = 0; i < listLength; i++ ) {
-	// 		if (
-	// 			this.tag
-	// 			&& Dialogic.list[ i ].tag === this.tag
-	// 			&& Dialogic.list[ i ].#displayed
-	// 		) {
-	// 			return false;
-	// 		}
-	// 	}
-	// 	return true;
-	// }
 
 	createDialogSnippet ()
 	{
