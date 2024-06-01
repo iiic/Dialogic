@@ -67,6 +67,9 @@
 			<a href="#inicializace">Inicializace</a>
 		</li>
 		<li>
+			<a href="#rozdily-a-vychozi-nastaveni">Rozdíly a výchozí nastavení</a>
+		</li>
+		<li>
 			<a href="#zakladni-priklad">Základní příklad</a>
 		</li>
 		<li>
@@ -98,6 +101,53 @@
 					button.textContent = 'Požádat o práva k zobrazování notifikací';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} event */ ) {
 						Notification.requestPermission();
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+	</section>
+
+	<br>
+	<h3 id="rozdily-a-vychozi-nastaveni">Rozdíly a výchozí nastavení</h3>
+	<p>Dialog není notifikace a pro lepší použití je zaneseno několik málo rozdílů. Například se dialogy automaticky neskrývají (pokud to není explicitně povoleno). Tedy odpovídalo by to nastavení notitikace pomocí parametru <code>requireInteraction: true</code>.</p>
+
+	<section class="two-examples">
+		<div>
+			Dialogic:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Dialogic( 'nadpis' );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Dialogic( 'nadpis' );
+					}, {
+						capture: false,
+						once: false,
+						passive: true,
+					} );
+					document.currentScript.insertAdjacentElement( 'afterend', button );
+				} )();
+			</script>
+		</div>
+		<div>
+			<a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/title">Notification</a>:
+			<pre><code class="language-javascript">&lt;script&gt;
+	new Notification( 'nadpis', { requireInteraction: true } );
+&lt;/script&gt;</code></pre>
+			<script defer>
+				( () => {
+					const button = document.createElement( 'button' );
+					button.textContent = 'Spustit kód';
+					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
+						new Notification( 'nadpis', { requireInteraction: true } );
 					}, {
 						capture: false,
 						once: false,
@@ -593,7 +643,7 @@
 	</section>
 
 	<br>
-	<h3>Využití tagu, k zobrazení oznámení/popup pouze 1x /// @todo : dokončit</h3>
+	<h3>Využití tagu, k zobrazení oznámení/popup pouze 1x /// @todo : dokončit, schází tu ono přepsání starého obsahu novým</h3>
 
 	<section class="two-examples">
 		<div>
@@ -632,6 +682,7 @@
 					document.currentScript.insertAdjacentElement( 'afterend', button );
 				} )();
 			</script>
+			<small>(Opakované volání <code>Dialogic</code> už dialog znovu <strong>nikdy</strong> nezobrazí, protože zde není notifikační centrum, které by umožňovalo vyřadit popup ze zobrazených jako u notifikace.)</small>
 		</div>
 		<div>
 			<strong><a href="https://developer.mozilla.org/en-US/docs/Web/API/Notification/tag">Notification</a></strong>, pokud má zpráva <code>tag</code> (a volbu <code>renotify</code> nastavneou na <code>false</code>, což je výchozí nastavení) a je volána vícekrát chování záleží na notifikačním centur vašeho OS, pokud z něj zprávu nesmažete, podruhé se nezobrazí, ale přesto druhé volání může změnit obsah notifikace (pokud je volána znovu s jiným textovým obsahem, ale stejným <code>tag</code>em):
@@ -668,12 +719,12 @@
 					document.currentScript.insertAdjacentElement( 'afterend', button );
 				} )();
 			</script>
-			<small>(opakované volání <code>Notification</code> vám zprávu znovu nezobrazí, doukd ji neodstraníte z notifikačního centra)</small>
+			<small>(Opakované volání <code>Notification</code> vám zprávu znovu nezobrazí, <strong>dokud</strong> ji neodstraníte z notifikačního centra. Existuje tedy možnost zobrazit notifikaci znovu.)</small>
 		</div>
 	</section>
 
 	<br>
-	<h3>Použití <code>tag</code>u a <code>renotify</code> současně /// @todo : dokončit</h3>
+	<h3>Použití <code>tag</code>u a <code>renotify</code> současně /// @todo : dokončit, schází tu ono přepsání starého obsahu notifikace novým obsahem</h3>
 	<p>V obou případech, zobrazím notifikaci/dialog a ten následně překryji dalším o 3s později. Rozdíl oproti předchozímu příkladu je v použití <code>renotify: true</code> které zajistí opakované zobrazní i s efektem.</p>
 
 	<section class="two-examples">
@@ -755,6 +806,24 @@
 			</script>
 		</div>
 	</section>
+
+	<br>
+	<h3>Shrnutí použití tagu a renotify</h3>
+	<p>Na pochopení to může být trošku složitější, proto popisuji ještě tady v bodech. V obou případech zcela stejné chování, pro popis notifikace i dialogu používám souhrnné označení "zpráva".</p>
+	<ul>
+		<li><strong>má (stejný) <code>tag</code>, NEmá <code>renotify</code>:</strong>
+			<ul>
+				<li><strong>zpráva je zatím stále zobrazená</strong>, tedy uživatel notifikaci/dialog zatím neskryl, ani se neskryl automaticky po uplynutí nějakého času: Nová zpráva přepíše obsah té původní, bez (zvukového či grafického) efektu zobrazení nové zprávy.</li>
+				<li><strong>zpráva už byla skrytá</strong>, v tom případě se nová zpráva už nezobrazí. V případě Dialogic už nikdy (leda by mezitím došlo k obnovení stránky), v případě Notification se může zobrazit leda tak, že předchozí notifikace se stejným tagem už byla smazána z notifikačního centra.</li>
+			</ul>
+		</li>
+		<li><strong>má (stejný) <code>tag</code>, a má <code>renotify: true</code>:</strong>
+			<ul>
+				<li><strong>zpráva je zatím stále zobrazená</strong>, druhá zpráva přepíše obsah první zprávy s efekty nového zobrazení (zvukový i grafický). V případě Notification se notifikace v notifikačním centru zobrazí jako 1, ne jako dvě. To je rozdíl oproti poslání 2 nezávislých notifikací.</li>
+				<li><strong>zpráva už byla skrytá</strong>, v tom případě se nová zpráva zobrazí znovu podobně jako by byla nezávislá (s rozdílným tagem). V případě notifikace přepíše starší notifikaci se stejným tagem v notifikačním centru.</li>
+			</ul>
+		</li>
+	</ul>
 
 	<br>
 	<h3>Automatické skrývání oznámení… možnosti</h3>

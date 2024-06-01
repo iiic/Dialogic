@@ -1,3 +1,4 @@
+// @ts-ignore
 import { importWithIntegrity } from '/modules/importWithIntegrity.mjs';
 
 const DialogicInternal = class
@@ -5,6 +6,8 @@ const DialogicInternal = class
 
 	/** @type {Array} */
 	static list = [];
+
+	/** @returns {Array} */
 	static getList ()
 	{
 		console.debug( '%c DialogicInternal %c (static) getList %c DialogicInternal.list: ',
@@ -16,7 +19,7 @@ const DialogicInternal = class
 
 		return DialogicInternal.list;
 	}
-	static setList ( /** @type {Dialogic} */ listItem = Dialogic.prototype )
+	static setList ( /** @type {Dialogic.prototype} */ listItem )
 	{
 		console.groupCollapsed( '%c DialogicInternal %c (static) setList',
 			Dialogic.CONSOLE.CLASS_NAME,
@@ -180,6 +183,8 @@ const DialogicInternal = class
 		showDialogWaitingBeforeShow: 5, // in ms
 		autoRun: true,
 	};
+
+	/** @returns {Object} */
 	getSettings ()
 	{
 		return this.#settings;
@@ -200,6 +205,8 @@ const DialogicInternal = class
 
 	/** @type {HTMLElement|null} */
 	#dialogElement;
+
+	/** @returns {HTMLElement|null} */
 	getDialogElement ()
 	{
 		console.debug( '%c DialogicInternal %c getDialogElement %c this.#dialogElement:',
@@ -231,6 +238,8 @@ const DialogicInternal = class
 
 	/** @type {String} */
 	#dir = 'auto';
+
+	/** @returns {String} */
 	getDir ()
 	{
 		console.debug( '%c DialogicInternal %c getDir %c this.#dir: ' + this.#dir,
@@ -276,7 +285,7 @@ const DialogicInternal = class
 	/** @type {Function|null} */
 	onshow = null;
 
-	constructor ( /** @type {String} */ title = '', /** @type {Object} */ options = {}, settingsElementId = 'dialogic-settings' )
+	constructor ( /** @type {String} */ title, /** @type {Object} */ options = {}, settingsElementId = 'dialogic-settings' )
 	{
 		console.groupCollapsed( '%c DialogicInternal %c constructor',
 			Dialogic.CONSOLE.CLASS_NAME,
@@ -325,6 +334,7 @@ const DialogicInternal = class
 								clearTimeout( this.#runningTimeout );
 							}
 							this.click();
+							// @ts-ignore
 							Dialogic.removeDialogFromList( this );
 							this.dialogElement.close(); // close popup without close() event on Dialogic
 
@@ -422,6 +432,7 @@ const DialogicInternal = class
 
 	static emptySetter () { }
 
+	/** @returns {Number} */
 	static getMaxActions ()
 	{
 		console.debug( '%c DialogicInternal %c (static) getMaxActions',
@@ -432,6 +443,7 @@ const DialogicInternal = class
 		return 2;
 	}
 
+	/** @returns {Number} */
 	static getALERT ()
 	{
 		console.debug( '%c DialogicInternal %c (static) getALERT',
@@ -442,6 +454,7 @@ const DialogicInternal = class
 		return 0;
 	}
 
+	/** @returns {Number} */
 	static getCONFIRM ()
 	{
 		console.debug( '%c DialogicInternal %c (static) getCONFIRM',
@@ -452,6 +465,10 @@ const DialogicInternal = class
 		return 1;
 	}
 
+	/**
+	 * @property {Object}
+	 * @name Dialogic#CONSOLE
+	 */
 	static getCONSOLE ()
 	{
 		return {
@@ -588,7 +605,6 @@ const DialogicInternal = class
 			showDialogWaitingBeforeShow
 		);
 
-		// console.log( 'zobrazit následující dialog z fronty … tady v tomhle je nějaký bug, zobrazit s tagem, správně se blokne, ale každý další dialog to blokuje také' ); /// @todo
 		return new Promise( function ( /** @type {Function} */ resolve )
 		{
 			setTimeout( function ()
@@ -621,7 +637,7 @@ const DialogicInternal = class
 							Dialogic.CONSOLE.INTEREST_PARAMETER,
 							reversedList[ i ]
 						);
-						reversedList[ i ].show(); /// @todo : nějaký bug, přehrává se zvuk i když se neukáže dialog
+						reversedList[ i ].show();
 						break;
 					} else {
 						console.debug( ' %c DialogicInternal %c dialog in list, but NOT to be displayed now %c reversedList[ i ]:',
@@ -641,7 +657,7 @@ const DialogicInternal = class
 	}
 
 	static async loadExternalFunctions ( /** @type {String} */ modulesImportPath = '' )
-	{
+	{ /// @todo : tahle funkce to do document.head vrátí vícekrát, měla by se dělat kontrola a pokud už to v head je, tak element znovu nevytvářet, jen nevím jestli tu opravu mít spíše tady nebo v importWithIntegrity(), zkontrolovat obě možnosti
 		console.debug( '%c DialogicInternal %c (static async) loadExternalFunctions %c modulesImportPath:',
 			Dialogic.CONSOLE.CLASS_NAME,
 			Dialogic.CONSOLE.METHOD_NAME,
@@ -662,21 +678,21 @@ const DialogicInternal = class
 				path: modulesImportPath + '/element/setMultipleAttributes.mjs',
 				integrity: 'sha256-Lza0Ffmr4xZiHN/nbYoCri8nbuE+HRI6GMNaORCLEQo='
 			},
-		].map( async ( /** @type {Object} */ assignment ) =>
+		].map( async ( { name, appendInto, path, integrity } ) =>
 		{
-			if ( !assignment.appendInto.hasOwnProperty( assignment.name ) ) {
+			if ( !appendInto.hasOwnProperty( name ) ) {
 				return importWithIntegrity(
-					assignment.path,
-					assignment.integrity
-				).then( ( /** @type {Module} */ module ) =>
+					path,
+					integrity
+				).then( ( /** @type {module} */ module ) =>
 				{
-					return new module.append( assignment.appendInto );
+					return new module.append( appendInto );
 				} );
 			}
 		} ) );
 	}
 
-	static getAbsoluteUrl ( /** @type {String} */ urlString = '' )
+	static getAbsoluteUrl ( /** @type {String} */ urlString )
 	{
 		console.debug( '%c DialogicInternal %c (static) getAbsoluteUrl %c urlString:',
 			Dialogic.CONSOLE.CLASS_NAME,
@@ -696,7 +712,7 @@ const DialogicInternal = class
 		return url;
 	}
 
-	static removeDialogFromList ( /** @type {Dialogic} */ dialogic = Dialogic.prototype )
+	static removeDialogFromList ( /** @type {Dialogic.prototype} */ dialogic )
 	{
 		console.groupCollapsed( '%c DialogicInternal %c (static) removeDialogFromList %c dialogic',
 			Dialogic.CONSOLE.CLASS_NAME,
@@ -713,6 +729,80 @@ const DialogicInternal = class
 		}
 
 		console.groupEnd();
+	}
+
+	static shouldBeDisplayed ( /** @type {HTMLDialogElement} */ dialog )
+	{
+		console.groupCollapsed( '%c DialogicInternal %c (static) shouldBeDisplayed %c dialog:',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.INTEREST_PARAMETER,
+			dialog
+		);
+
+		if ( dialog.open ) {
+			console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO, this dialog is opened right now',
+				Dialogic.CONSOLE.CLASS_NAME,
+				Dialogic.CONSOLE.METHOD_NAME,
+				Dialogic.CONSOLE.DEFAULT_TEXT
+			);
+			console.groupEnd();
+			return false;
+		}
+		if ( dialog.displayed ) {
+			console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO, this dialog was already displayed',
+				Dialogic.CONSOLE.CLASS_NAME,
+				Dialogic.CONSOLE.METHOD_NAME,
+				Dialogic.CONSOLE.DEFAULT_TEXT
+			);
+			console.groupEnd();
+			return false;
+		}
+		if ( dialog.renotify ) {
+			console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c YES, this dialog have renotify property',
+				Dialogic.CONSOLE.CLASS_NAME,
+				Dialogic.CONSOLE.METHOD_NAME,
+				Dialogic.CONSOLE.DEFAULT_TEXT
+			);
+			console.groupEnd();
+			return true;
+		}
+
+		/** @const {Number} */
+		const listLength = Dialogic.list.length;
+
+		for ( let i = 0; i < listLength; i++ ) {
+			if ( Dialogic.list[ i ].dialogElement.open ) {
+				console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO, some another dialog is displayed right now',
+					Dialogic.CONSOLE.CLASS_NAME,
+					Dialogic.CONSOLE.METHOD_NAME,
+					Dialogic.CONSOLE.DEFAULT_TEXT
+				);
+				console.groupEnd();
+				return false;
+			}
+			if (
+				dialog.tag
+				&& Dialogic.list[ i ].tag === dialog.tag
+				&& Dialogic.list[ i ].displayed
+			) {
+				console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO',
+					Dialogic.CONSOLE.CLASS_NAME,
+					Dialogic.CONSOLE.METHOD_NAME,
+					Dialogic.CONSOLE.DEFAULT_TEXT
+				);
+				console.groupEnd();
+				return false;
+			}
+		}
+
+		console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c YES',
+			Dialogic.CONSOLE.CLASS_NAME,
+			Dialogic.CONSOLE.METHOD_NAME,
+			Dialogic.CONSOLE.DEFAULT_TEXT
+		);
+		console.groupEnd();
+		return true;
 	}
 
 	getRootElement ()
@@ -853,8 +943,8 @@ const DialogicInternal = class
 	}
 
 	addEventListener (
-		/** @type {String} */ type = '',
-		/** @type {Function} */ listener = Function,
+		/** @type {String} */ type,
+		/** @type {Function} */ listener,
 		/** @type {Object} */ options = {},
 		/** @type {Boolean} */ useCapture = false
 	)
@@ -866,7 +956,7 @@ const DialogicInternal = class
 		);
 
 		if ( options && Object.keys( options ).length !== 0 ) {
-			this.dialogElement.addEventListener( type, listener, options, useCapture );
+			this.dialogElement.addEventListener( type, listener, options );
 		} else {
 			this.dialogElement.addEventListener( type, listener, useCapture );
 		}
@@ -874,6 +964,7 @@ const DialogicInternal = class
 		console.groupEnd();
 	}
 
+	/** @returns {Promise} */
 	async appendRequireInteractionListener ()
 	{
 		console.debug( '%c DialogicInternal %c (async) appendRequireInteractionListener',
@@ -931,7 +1022,7 @@ const DialogicInternal = class
 
 	addAttributesToElements ( /** @type {Object} */ elements = {} )
 	{
-		console.groupCollapsed( '%c DialogicInternal %c appendRemoveDialogElementOnCloseListener %c elements:',
+		console.groupCollapsed( '%c DialogicInternal %c addAttributesToElements %c elements:',
 			Dialogic.CONSOLE.CLASS_NAME,
 			Dialogic.CONSOLE.METHOD_NAME,
 			Dialogic.CONSOLE.INTEREST_PARAMETER,
@@ -1030,80 +1121,6 @@ const DialogicInternal = class
 		this.rootElement.appendChild( elements.dialog );
 
 		console.groupEnd();
-	}
-
-	static shouldBeDisplayed ( /** @type {HTMLDialogElement} */ dialog ) /// @todo : přesunout na jinou pozici… někde mezi ostatní static
-	{
-		console.groupCollapsed( '%c DialogicInternal %c (static) shouldBeDisplayed %c dialog:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			dialog
-		);
-
-		if ( dialog.open ) {
-			console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO, this dialog is opened right now',
-				Dialogic.CONSOLE.CLASS_NAME,
-				Dialogic.CONSOLE.METHOD_NAME,
-				Dialogic.CONSOLE.DEFAULT_TEXT
-			);
-			console.groupEnd();
-			return false;
-		}
-		if ( dialog.displayed ) {
-			console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO, this dialog was already displayed',
-				Dialogic.CONSOLE.CLASS_NAME,
-				Dialogic.CONSOLE.METHOD_NAME,
-				Dialogic.CONSOLE.DEFAULT_TEXT
-			);
-			console.groupEnd();
-			return false;
-		}
-		if ( dialog.renotify ) {
-			console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c YES, this dialog have renotify property',
-				Dialogic.CONSOLE.CLASS_NAME,
-				Dialogic.CONSOLE.METHOD_NAME,
-				Dialogic.CONSOLE.DEFAULT_TEXT
-			);
-			console.groupEnd();
-			return true;
-		}
-
-		/** @const {Number} */
-		const listLength = Dialogic.list.length;
-
-		for ( let i = 0; i < listLength; i++ ) {
-			if ( Dialogic.list[ i ].dialogElement.open ) {
-				console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO, some another dialog is displayed right now',
-					Dialogic.CONSOLE.CLASS_NAME,
-					Dialogic.CONSOLE.METHOD_NAME,
-					Dialogic.CONSOLE.DEFAULT_TEXT
-				);
-				console.groupEnd();
-				return false;
-			}
-			if (
-				dialog.tag
-				&& Dialogic.list[ i ].tag === dialog.tag
-				&& Dialogic.list[ i ].displayed
-			) {
-				console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO',
-					Dialogic.CONSOLE.CLASS_NAME,
-					Dialogic.CONSOLE.METHOD_NAME,
-					Dialogic.CONSOLE.DEFAULT_TEXT
-				);
-				console.groupEnd();
-				return false;
-			}
-		}
-
-		console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c YES',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.DEFAULT_TEXT
-		);
-		console.groupEnd();
-		return true;
 	}
 
 	createDialogSnippet ()
@@ -1268,7 +1285,7 @@ const DialogicInternal = class
 		}
 	}
 
-	static createProperties ( /** @type {Object} */ sections = {} )
+	static createProperties ( /** @type {Object} */ sections )
 	{
 
 		/** @type {Array} */
@@ -1344,7 +1361,7 @@ const DialogicInternal = class
 		} );
 	}
 
-	createProperties ( /** @type {Object} */ sections = {} )
+	createProperties ( /** @type {Object} */ sections )
 	{
 
 		console.groupCollapsed( '%c DialogicInternal %c createProperties (dynamic) %c sections:',
@@ -1453,7 +1470,7 @@ const DialogicInternal = class
 
 export class Dialogic extends DialogicInternal
 {
-	constructor ( /** @type {String} */ title = '', /** @type {Object} */ options = {}, settingsElementId = 'dialogic-settings' )
+	constructor ( /** @type {String} */ title, /** @type {Object} */ options = {}, settingsElementId = 'dialogic-settings' )
 	{
 		console.groupCollapsed( '%c Dialogic %c constructor %c arguments:',
 			Dialogic.CONSOLE.CLASS_NAME,
