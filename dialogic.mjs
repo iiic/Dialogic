@@ -1,13 +1,24 @@
+/**
+ * @typedef { 'auto' | 'ltr' | 'rtl' } DirString
+ */
+
 // @ts-ignore
 import { importWithIntegrity } from '/modules/importWithIntegrity.mjs';
 
+/**
+ * @class
+ * @description internal class, not accessible from outside the script
+ */
 const DialogicInternal = class
 {
 
 	/** @type {Array} */
 	static list = [];
 
-	/** @returns {Array} */
+	/**
+	 * @returns {Array}
+	 * @ignore
+	 */
 	static getList ()
 	{
 		console.debug( '%c DialogicInternal %c (static) getList %c DialogicInternal.list: ',
@@ -19,6 +30,9 @@ const DialogicInternal = class
 
 		return DialogicInternal.list;
 	}
+	/**
+	 * @ignore
+	 */
 	static setList ( /** @type {Dialogic.prototype} */ listItem )
 	{
 		console.groupCollapsed( '%c DialogicInternal %c (static) setList',
@@ -34,7 +48,10 @@ const DialogicInternal = class
 		console.groupEnd();
 	}
 
-	/** @type {Object} */
+	/**
+	 * @type {Object}
+	 * @ignore
+	 */
 	#settings = {
 		rootElementId: 'dialogic-canvas',
 		resultSnippetElements: {
@@ -184,11 +201,15 @@ const DialogicInternal = class
 		autoRun: true,
 	};
 
-	/** @returns {Object} */
+	/**
+	 * @returns {Object}
+	 * @ignore
+	 */
 	getSettings ()
 	{
 		return this.#settings;
 	}
+	/** @ignore */
 	setSettings ( /** @type {Object} */ newSettings = {} )
 	{
 		console.groupCollapsed( '%c DialogicInternal %c setSettings %c newSettings:',
@@ -203,10 +224,16 @@ const DialogicInternal = class
 		console.groupEnd();
 	}
 
-	/** @type {HTMLElement|null} */
+	/**
+	 * @type {HTMLElement|null}
+	 * @ignore
+	 */
 	#dialogElement;
 
-	/** @returns {HTMLElement|null} */
+	/**
+	 * @returns {HTMLElement|null}
+	 * @ignore
+	 */
 	getDialogElement ()
 	{
 		console.debug( '%c DialogicInternal %c getDialogElement %c this.#dialogElement:',
@@ -218,6 +245,7 @@ const DialogicInternal = class
 
 		return this.#dialogElement;
 	}
+	/** @ignore */
 	setDialogElement ( /** @type {HTMLElement} */ dialogElement = HTMLDialogElement.prototype )
 	{
 		console.groupCollapsed( '%c DialogicInternal %c setDialogElement %c dialogElement:',
@@ -236,10 +264,16 @@ const DialogicInternal = class
 		console.groupEnd();
 	}
 
-	/** @type {String} */
+	/**
+	 * @type {DirString}
+	 * @ignore
+	 */
 	#dir = 'auto';
 
-	/** @returns {String} */
+	/**
+	 * @returns {DirString}
+	 * @ignore
+	 */
 	getDir ()
 	{
 		console.debug( '%c DialogicInternal %c getDir %c this.#dir: ' + this.#dir,
@@ -250,7 +284,8 @@ const DialogicInternal = class
 
 		return this.#dir;
 	}
-	setDir ( /** @type {String} */ dir = 'auto' )
+	/** @ignore */
+	setDir ( /** @type {DirString} */ dir = 'auto' )
 	{
 		console.groupCollapsed( '%c DialogicInternal %c setDir %c dir:',
 			Dialogic.CONSOLE.CLASS_NAME,
@@ -267,22 +302,45 @@ const DialogicInternal = class
 		console.groupEnd();
 	}
 
-	/** @type {Number|null} */
+	/**
+	 * @description identifier of timeout for automatic dialog close
+	 * @type {Number|null}
+	 */
 	#runningTimeout = null;
 
-	/** @type {Boolean} */
+	/**
+	 * @description is / was this dialog already displayed
+	 * @type {Boolean}
+	 * @public
+	 */
 	displayed = false;
 
-	/** @type {Function|null} */
+	/**
+	 * @description function called when pointer event (like click) on dialog body
+	 * @type {Function|null}
+	 * @public
+	 */
 	onclick = null;
 
-	/** @type {Function|null} */
+	/**
+	 * @description function called on dialog close
+	 * @type {Function|null}
+	 * @public
+	 */
 	onclose = null;
 
-	/** @type {Function|null} */
+	/**
+	 * @description function called on error
+	 * @type {Function|null}
+	 * @public
+	 */
 	onerror = null;
 
-	/** @type {Function|null} */
+	/**
+	 * @description function called on dialog show
+	 * @type {Function|null}
+	 * @public
+	 */
 	onshow = null;
 
 	constructor ( /** @type {String} */ title, /** @type {Object} */ options = {}, settingsElementId = 'dialogic-settings' )
@@ -298,16 +356,51 @@ const DialogicInternal = class
 		}
 		this.createProperties( {
 			enumerable: [
+
+				/**
+				 * @property {HTMLElement|null} dialogElement
+				 * @name DialogicInternal#dialogElement
+				 * @default null
+				 * @readonly
+				 */
 				'dialogElement',
+
+				/**
+				 * @property {HTMLAudioElement|null} dialogShowAudio
+				 * @name DialogicInternal.dialogShowAudio
+				 * @default null
+				 * @readonly
+				 */
 				'dialogShowAudio',
+
 			],
 			'configurable enumerable':
 			{
+
+				/**
+				 * @property {Object} settings
+				 * @name DialogicInternal#settings
+				 * @readonly
+				 */
 				settings: {},
+
+				/**
+				 * @property {DirString} dir
+				 * @name DialogicInternal#dir
+				 * @default 'auto'
+				 * @readonly
+				 */
 				dir: 'auto',
+
 			}
 		} );
 		Object.defineProperties( this, {
+
+			/**
+			 * @property {Object} eventListeners
+			 * @name DialogicInternal#eventListeners
+			 * @readonly
+			 */
 			eventListeners: {
 				value: {
 					click: {
@@ -334,7 +427,6 @@ const DialogicInternal = class
 								clearTimeout( this.#runningTimeout );
 							}
 							this.click();
-							// @ts-ignore
 							Dialogic.removeDialogFromList( this );
 							this.dialogElement.close(); // close popup without close() event on Dialogic
 
@@ -403,6 +495,7 @@ const DialogicInternal = class
 				enumerable: false,
 				configurable: false,
 			},
+
 		} );
 
 		this.title = title;
@@ -430,9 +523,13 @@ const DialogicInternal = class
 		console.groupEnd();
 	}
 
+	/** @ignore */
 	static emptySetter () { }
 
-	/** @returns {Number} */
+	/**
+	 * @returns {Number}
+	 * @ignore
+	 */
 	static getMaxActions ()
 	{
 		console.debug( '%c DialogicInternal %c (static) getMaxActions',
@@ -443,7 +540,10 @@ const DialogicInternal = class
 		return 2;
 	}
 
-	/** @returns {Number} */
+	/**
+	 * @returns {Number}
+	 * @ignore
+	 */
 	static getALERT ()
 	{
 		console.debug( '%c DialogicInternal %c (static) getALERT',
@@ -454,7 +554,10 @@ const DialogicInternal = class
 		return 0;
 	}
 
-	/** @returns {Number} */
+	/**
+	 * @returns {Number}
+	 * @ignore
+	 */
 	static getCONFIRM ()
 	{
 		console.debug( '%c DialogicInternal %c (static) getCONFIRM',
@@ -466,8 +569,8 @@ const DialogicInternal = class
 	}
 
 	/**
-	 * @property {Object}
-	 * @name Dialogic#CONSOLE
+	 * @returns {Object}
+	 * @ignore
 	 */
 	static getCONSOLE ()
 	{
@@ -818,9 +921,9 @@ const DialogicInternal = class
 		return foundRootElement ? foundRootElement : document.body;
 	}
 
-	playAudio ()
+	#playAudio ()
 	{
-		console.groupCollapsed( '%c DialogicInternal %c playAudio',
+		console.groupCollapsed( '%c DialogicInternal %c #playAudio',
 			Dialogic.CONSOLE.CLASS_NAME,
 			Dialogic.CONSOLE.METHOD_NAME
 		);
@@ -879,7 +982,7 @@ const DialogicInternal = class
 		if ( this.onshow ) {
 			this.onshow();
 		}
-		this.playAudio();
+		this.#playAudio();
 		if ( this.vibrate ) {
 			navigator.vibrate( this.vibrate );
 		}
@@ -1468,6 +1571,11 @@ const DialogicInternal = class
 	}
 }
 
+/**
+ * @class
+ * @description accessible from Window object
+ * @extends DialogicInternal
+ */
 export class Dialogic extends DialogicInternal
 {
 	constructor ( /** @type {String} */ title, /** @type {Object} */ options = {}, settingsElementId = 'dialogic-settings' )
@@ -1482,37 +1590,224 @@ export class Dialogic extends DialogicInternal
 		super( ...arguments );
 		this.createProperties( {
 			noneAll: [
+
+				/**
+				 * @property {Function} rootElement
+				 * @name DialogicInternal#rootElement
+				 * @readonly
+				 */
 				'rootElement',
+
 			],
 			enumerable: [
+
+				/**
+				 * @property {Function} show
+				 * @name DialogicInternal#show
+				 * @readonly
+				 */
 				'show',
+
+				/**
+				 * @property {Function} close
+				 * @name DialogicInternal#close
+				 * @readonly
+				 */
 				'close',
+
+				/**
+				 * @property {Function} click
+				 * @name DialogicInternal#click
+				 * @readonly
+				 */
 				'click',
+
+				/**
+				 * @property {Function} error
+				 * @name DialogicInternal#error
+				 * @readonly
+				 */
 				'error',
+
+				/**
+				 * @property {Function} addEventListener
+				 * @name DialogicInternal#addEventListener
+				 * @readonly
+				 */
 				'addEventListener',
+
+				/**
+				 * @property {Function} appendRequireInteractionListener
+				 * @name DialogicInternal#appendRequireInteractionListener
+				 * @async
+				 * @readonly
+				 */
+				'appendRequireInteractionListener',
+
+				/**
+				 * @property {Function} appendRemoveDialogElementOnCloseListener
+				 * @name DialogicInternal#appendRemoveDialogElementOnCloseListener
+				 * @readonly
+				 */
 				'appendRemoveDialogElementOnCloseListener',
+
+				/**
+				 * @property {Function} appendShowNextDialogAfterCloseListener
+				 * @name DialogicInternal#appendShowNextDialogAfterCloseListener
+				 * @readonly
+				 */
 				'appendShowNextDialogAfterCloseListener',
+
+				/**
+				 * @property {Function} checkRequirements
+				 * @name DialogicInternal#checkRequirements
+				 * @readonly
+				 */
 				'checkRequirements',
+
+				/**
+				 * @property {Function} createDialogSnippet
+				 * @name DialogicInternal#createDialogSnippet
+				 * @returns {Boolean}
+				 * @readonly
+				 */
 				'createDialogSnippet',
+
+				/**
+				 * @property {Function} run
+				 * @name DialogicInternal#run
+				 * @readonly
+				 */
 				'run'
 			],
 			'configurable enumerable': {
+
+				/**
+				 * @property {String} title
+				 * @name DialogicInternal#title
+				 * @readonly
+				 */
 				title,
+
+				/**
+				 * @property {Array} actions
+				 * @name DialogicInternal#actions
+				 * @default []
+				 * @readonly
+				 */
 				actions: [],
+
+				/**
+				 * @property {String} badge
+				 * @name DialogicInternal#badge
+				 * @default ''
+				 * @readonly
+				 */
 				badge: '',
+
+				/**
+				 * @property {String} body
+				 * @name DialogicInternal#body
+				 * @default ''
+				 * @readonly
+				 */
 				body: '',
+
+				/**
+				 * @property {String} htmlBody
+				 * @name DialogicInternal#htmlBody
+				 * @default ''
+				 * @readonly
+				 */
 				htmlBody: '',
+
+				/**
+				 * @property {any} data
+				 * @name DialogicInternal#data
+				 * @default null
+				 * @readonly
+				 */
 				data: null,
-				icon: '', // will be displayed as 96x96 px by default
+
+				/**
+				 * @property {string} icon - will be displayed as 96x96 px by default
+				 * @name DialogicInternal#icon
+				 * @default ''
+				 * @readonly
+				 */
+				icon: '',
+
+				/**
+				 * @property {string|null} image
+				 * @name DialogicInternal#image
+				 * @default null
+				 * @readonly
+				 */
 				image: null,
+
+				/**
+				 * @property {string} lang
+				 * @name DialogicInternal#lang
+				 * @default ''
+				 * @readonly
+				 */
 				lang: '',
+
+				/**
+				 * @property {boolean} renotify
+				 * @name DialogicInternal#renotify
+				 * @default false
+				 * @readonly
+				 */
 				renotify: false,
+
+				/**
+				 * @property {boolean} requireInteraction
+				 * @name DialogicInternal#requireInteraction
+				 * @default true
+				 * @readonly
+				 */
 				requireInteraction: true,
+
+				/**
+				 * @property {boolean} silent
+				 * @name DialogicInternal#silent
+				 * @default false
+				 * @readonly
+				 */
 				silent: false,
+
+				/**
+				 * @property {any} tag
+				 * @name DialogicInternal#tag
+				 * @default ''
+				 * @readonly
+				 */
 				tag: '',
+
+				/**
+				 * @property {Number} timestamp
+				 * @name DialogicInternal#timestamp
+				 * @readonly
+				 */
 				timestamp: Date.now(),
+
+				/**
+				 * @property {Array} vibrate
+				 * @name DialogicInternal#vibrate
+				 * @default []
+				 * @readonly
+				 */
 				vibrate: [],
-				type: DialogicInternal.getALERT(),
+
+				/**
+				 * @property {Number} type
+				 * @name DialogicInternal#type
+				 * @default 0
+				 * @readonly
+				 */
+				type: DialogicInternal.getALERT(), /// @todo : nejde tu použít DialogicInternal.ALERT či Dialogic.ALERT ? Otestovat a případně nechat poznámku !
+
 			},
 		} );
 		if ( this.settings.autoRun ) {
@@ -1529,16 +1824,101 @@ export class Dialogic extends DialogicInternal
 
 DialogicInternal.createProperties( {
 	enumerable: [
+
+		/**
+		 * @property {Array} list
+		 * @name DialogicInternal.list
+		 * @default []
+		 * @readonly
+		 * @static
+		 */
 		'list',
+
+		/**
+		 * @property {Number} maxActions
+		 * @name DialogicInternal.maxActions
+		 * @default 2
+		 * @readonly
+		 * @static
+		 */
 		'maxActions',
+
+		/**
+		 * @property {Function} removeDialogFromList
+		 * @name DialogicInternal.removeDialogFromList
+		 * @readonly
+		 * @static
+		 */
 		'removeDialogFromList',
+
+		/**
+		 * @property {Function} loadExternalFunctions
+		 * @name DialogicInternal.loadExternalFunctions
+		 * @readonly
+		 * @static
+		 * @async
+		 */
 		'loadExternalFunctions',
+
+		/**
+		 * @property {Function} shouldBeDisplayed
+		 * @name DialogicInternal.shouldBeDisplayed
+		 * @readonly
+		 * @static
+		 */
+		'shouldBeDisplayed',
+
+		/**
+		 * @property {Function} showDialogsFromQueue
+		 * @name DialogicInternal.showDialogsFromQueue
+		 * @readonly
+		 * @static
+		 * @async
+		 */
 		'showDialogsFromQueue',
+
+		/**
+		 * @property {Function} addCSSStyleSheets
+		 * @name DialogicInternal.addCSSStyleSheets
+		 * @readonly
+		 * @static
+		 */
 		'addCSSStyleSheets',
+
+		/**
+		 * @property {Function} preloadResources
+		 * @name DialogicInternal.preloadResources
+		 * @readonly
+		 * @static
+		 */
 		'preloadResources',
+
+		/**
+		 * @constant {Object} CONSOLE
+		 * @name DialogicInternal.CONSOLE
+		 * @readonly
+		 * @static
+		 */
 		'CONSOLE',
+
+		/**
+		 * @constant {Number} ALERT
+		 * @name DialogicInternal.ALERT
+		 * @default 1
+		 * @readonly
+		 * @static
+		 */
 		'ALERT',
+
+		/**
+		 * @constant {Number} CONFIRM
+		 * @name Dialogic.CONFIRM
+		 * @default 0
+		 * @readonly
+		 * @static
+		 */
 		'CONFIRM',
+
 	]
 } );
 
