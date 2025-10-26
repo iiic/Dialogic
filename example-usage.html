@@ -4,7 +4,25 @@
 <head>
 	<meta charset="utf-8">
 	<title>Dialogic html example</title>
-	<link rel="preload" as="script" href="/modules/importWithIntegrity.mjs" integrity="sha256-cfOxrPKw+HRch/o1HAGTjzeo5g+8Ho2VW5Ki75Y6DII=" crossorigin="anonymous">
+	<script>
+		/**
+		 * @description This short script it's not necessary for Dialogic to work, it's only to set correct base path for loading modules when the html file is opened directly in browser (file://...).
+		 */
+
+		/** @type {String} */
+		const pathname = window.location.pathname;
+
+		/** @type {String} */
+		const dir = pathname.substring( 0, pathname.lastIndexOf( '/' ) );
+
+		if ( dir )
+		{
+			const base = document.createElement( 'base' );
+			base.href = dir + '/';
+			document.head.appendChild( base );
+		}
+	</script>
+	<link rel="preload" as="script" href="./modules/importWithIntegrity.mjs" data-integrity="sha256-cfOxrPKw+HRch/o1HAGTjzeo5g+8Ho2VW5Ki75Y6DII=" crossorigin="anonymous">
 	<!-- <audio src="/media/bell.mp3" preload="metadata" crossorigin="anonymous"></audio> -->
 	<!-- <link rel="stylesheet" href="/notific.css" crossorigin="anonymous" integrity="sha256-DErgeoS4SQg0UMgS8E4mhJbyqNPHbyooBGsPqlRQviw="> -->
 	<style>
@@ -36,6 +54,7 @@
 
 	</style>
 	<link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/styles/default.min.css">
+	<link rel="icon" type="image/x-icon" href="./favicon.ico">
 </head>
 
 <body>
@@ -58,7 +77,7 @@
 	</ul>
 
 	<div id="dialogic-root" hidden></div>
-	<script type="module" src="dialogic.mjs?v=0.1" crossorigin="anonymous" data-integrity="sha256-todo"></script>
+	<script type="module" src="./dialogic.mjs?v=0.1" crossorigin="anonymous" data-integrity="sha256-todo"></script>
 
 	<h2>Příklady:</h2>
 
@@ -461,6 +480,7 @@
 			</script>
 		</div>
 	</section>
+	<small>(ne všechny zařízení podporují vibrace, to co dokáže telefon není například u desktopu)</small>
 
 	<br>
 	<h3>S obrázkem, nadpisem a body</h3>

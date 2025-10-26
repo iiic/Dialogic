@@ -21,6 +21,7 @@ export function importWithIntegrity ( /** @type {String} */ path, /** @type {Str
 	element.integrity = integrity;
 	element.setAttribute( 'crossorigin', 'anonymous' );
 	document.head.appendChild( element );
+	console.log( document.head.children );
 	return new Promise( ( /** @type {Function} */ resolve ) =>
 	{
 		import( path ).then( ( /** @type {Module} */ module ) =>

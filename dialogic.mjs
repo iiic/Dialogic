@@ -3,7 +3,7 @@
  */
 
 // @ts-ignore
-import { importWithIntegrity } from '/modules/importWithIntegrity.mjs';
+import { importWithIntegrity } from './modules/importWithIntegrity.mjs';
 
 /**
  * @class
@@ -983,7 +983,7 @@ const DialogicInternal = class
 			this.onshow();
 		}
 		this.#playAudio();
-		if ( this.vibrate ) {
+		if ( 'vibrate' in navigator && this.vibrate ) {
 			navigator.vibrate( this.vibrate );
 		}
 
@@ -1388,6 +1388,16 @@ const DialogicInternal = class
 		}
 	}
 
+	updatePathByBase ()
+	{
+		/** @type {HTMLBaseElement} */
+		const possibleBaseElement = document.head.querySelector( 'base' );
+
+		if ( possibleBaseElement && possibleBaseElement.href ) {
+			this.settings.modulesImportPath = possibleBaseElement.href + this.settings.modulesImportPath;
+		}
+	}
+
 	static createProperties ( /** @type {Object} */ sections )
 	{
 
@@ -1557,6 +1567,7 @@ const DialogicInternal = class
 		);
 
 		this.checkRequirements();
+		this.updatePathByBase();
 		await Dialogic.loadExternalFunctions( this.settings.modulesImportPath );
 		Dialogic.preloadResources( this.settings.preloadFiles );
 		Dialogic.addCSSStyleSheets( this.settings.CSSStyleSheets );
@@ -1664,6 +1675,13 @@ export class Dialogic extends DialogicInternal
 				 * @readonly
 				 */
 				'checkRequirements',
+
+				/**
+				 * @property {Function} updatePathByBase
+				 * @name DialogicInternal#updatePathByBase
+				 * @readonly
+				 */
+				'updatePathByBase',
 
 				/**
 				 * @property {Function} createDialogSnippet
