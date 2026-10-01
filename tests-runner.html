@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>Browser tests runner (for those who don't like terminal commands)</title>
+	<script type="importmap">
+		{
+			"imports": {
+				"interpolate": "./modules/string/interpolate.mjs",
+				"contentTypeChecker": "./content-type-checker.js?v=0.2",
+				"consoleFilter": "./node_modules/console-filter-js/consoleFilter.mjs?v=1.0.0&settings={%22appendConsoleIntoBody%22:true}",
+				"dialogicSpec": "./dialogic.spec.mjs?v=0.2",
+				"hashCode": "./modules/string/hashCode.mjs"
+			},
+			"integrity": {
+				"./modules/string/interpolate.mjs": "sha256-Aitn7qM8Ml8BV4dtcQUksJfFzdU9NQ745axG1nK9y44=",
+				"./content-type-checker.js?v=0.2": "sha256-xM+TUyVYAty2bkG9LmlZM18VQnXi9+ijV7I3JtxPJxE=",
+				"./node_modules/console-filter-js/consoleFilter.mjs?v=1.0.0": "sha256-wKBRIpKc5Mls91VCZcaQP1Q4TuCPSpk52HrXblTngs4=",
+				"./dialogic.spec.mjs?v=0.2": "",
+				"./modules/string/hashCode.mjs": "sha256-AsQX9E5LzW2hAw0L7YCKrPXfmZ/bDwaIvlubLUH9C6w="
+			}
+		}
+	</script>
+	<script type="module">
+		import 'contentTypeChecker';
+		import 'consoleFilter';
+		import 'dialogicSpec';
+	</script>

@@ -28,7 +28,7 @@ dialog {
 	display: block;
 	padding: 0;
 	top: var(--dialog-shift-top);
-	/* top: 10%; @todo : opravit zarovnání velkého dialogu (třeba toho s obrázkem (image, ne icon)) na extra malých monitorech */
+	/* top: 10%; @todo : fix alignment of a large dialog (e.g. the one with an image (image, not icon)) on extra small screens */
 	visibility: hidden;
 	opacity: 0;
 	transition: opacity 0.5s;

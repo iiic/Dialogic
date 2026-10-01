@@ -1,4 +1,4 @@
-# bezpečnostní poznámky
+# Security notes
 
-tohle by mohl git zobrazit na vlastní záložce… snad
-Pokud to bude fungovat, vyplním nějaký reálný text
+Git might show this on its own tab… hopefully
+If it works, I'll fill in some real text

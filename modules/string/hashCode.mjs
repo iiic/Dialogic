@@ -18,7 +18,7 @@ export class append
 						hash = ( ( hash << 5 ) - hash ) + character;
 						hash = hash & hash; // Convert to 32bit integer
 					}
-					return Number( hash ).toString( 36 );
+					return Number( hash ).toString( 36 ).toLowerCase();
 				},
 
 				writable: false,

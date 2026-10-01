@@ -1,0 +1,25 @@
+html {
+	box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: inherit;
+}
+
+body {
+	background: var(--body-background);
+}
+
+.two-examples {
+	display: grid;
+	grid-template-columns: 50% 50%;
+	grid-auto-rows: 49%;
+	column-gap: 0.5em;
+	align-items: start;
+}
+
+.two-examples div {
+	border: 1px solid gainsboro;
+}

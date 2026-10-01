@@ -1,305 +1,172 @@
-/**
- * @typedef { 'auto' | 'ltr' | 'rtl' } DirString
- */
+"use strict";
 
-// @ts-ignore
-import { importWithIntegrity } from './modules/importWithIntegrity.mjs';
+//@ts-check
+
+import { append as HashCodeAppend } from './modules/string/hashCode.mjs';
 
 /**
  * @class
- * @description internal class, not accessible from outside the script
+ * @file dilogic.mjs
+ * @implements {Classes.DialogicInternal}
+ * @extends HTMLDialogElement
  */
-const DialogicInternal = class
+class DialogicInternal extends HTMLDialogElement
 {
 
-	/** @type {Array} */
-	static list = [];
+	/** @type {Array.<Dialogic.prototype>} */
+	static #list = [];
 
-	/**
-	 * @returns {Array}
-	 * @ignore
-	 */
-	static getList ()
+	/** @returns {Array.<Dialogic.prototype>} */
+	static get list ()
 	{
-		console.debug( '%c DialogicInternal %c (static) getList %c DialogicInternal.list: ',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			DialogicInternal.list
-		);
-
-		return DialogicInternal.list;
+		return DialogicInternal.#list;
 	}
-	/**
-	 * @ignore
-	 */
-	static setList ( /** @type {Dialogic.prototype} */ listItem )
-	{
-		console.groupCollapsed( '%c DialogicInternal %c (static) setList',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			arguments
-		);
 
-		if ( listItem.constructor.name === 'Dialogic' ) {
-			DialogicInternal.list.push( listItem );
+	static set list ( /** @type {Dialogic.prototype} */ listItem )
+	{
+		if ( listItem instanceof Dialogic ) {
+			DialogicInternal.#list.push( listItem );
 		}
-
-		console.groupEnd();
 	}
 
-	/**
-	 * @type {Object}
-	 * @ignore
-	 */
-	#settings = {
-		rootElementId: 'dialogic-canvas',
-		resultSnippetElements: {
-			dialog: 'dialog',
-			innerWrapper: 'div',
-			image: 'img',
-			title: 'h3',
-			icon: 'img',
-			description: 'p',
-			closer: 'button',
-			actionsWrapper: 'div',
-			confirmYes: 'button',
-			confirmNo: 'button',
-			confirmYesInner: 'data',
-			confirmNoInner: 'data',
-			timePublished: 'time',
-			timeUpdated: 'time',
-			timeExpires: 'time',
-			lang: 'meta',
-			schemaVersion: 'a',
-			accessMode: 'meta',
-			accessibilityAPI: 'meta',
-			accessibilityControl: 'meta',
-			creativeWorkStatus: 'meta'
-		},
-		snippetIdPrefixes: {
-			dialog: 'dialogic-',
-			title: 'dialogic-title-',
-			description: 'dialogic-description-',
-		},
-		snippetAttributes: {
-			dialog: {
-				open: false,
-				role: 'alertdialog',
-				itemscope: '',
-				itemtype: 'https://schema.org/SpecialAnnouncement',
-				class: 'h-entry',
-			},
-			innerWrapper: {
-				role: 'document',
-				tabindex: 0,
-				itemprop: 'text',
-				class: 'e-content',
-			},
-			icon: {
-				alt: 'Dialog icon',
-				decoding: 'sync',
-				crossorigin: 'anonymous',
-				fetchpriority: 'high',
-				width: 96, // html attribute… it means it's in px without unit
-				height: 96, // html attribute… it means it's in px without unit
-				loading: 'eager',
-				itemprop: 'thumbnail',
-				class: 'u-featured',
-			},
-			image: {
-				itemprop: 'image',
-			},
-			title: {
-				itemprop: 'headline name',
-				class: 'p-name',
-			},
-			description: {
-				itemprop: 'abstract',
-				class: 'p-summary',
-			},
-			timePublished: {
-				itemprop: 'datePosted',
-				class: 'dt-published',
-			},
-			timeUpdated: {
-				class: 'dt-updated',
-			},
-			timeExpires: {
-				itemprop: 'expires',
-			},
-			closer: {
-				class: 'closer',
-				title: 'close this popup',
-			},
-			closerDataset: { // data- prefix
-			},
-			confirmYes: {
-				class: 'confirm-yes',
-				title: 'answer Yes and close this popup'
-			},
-			confirmNo: {
-				class: 'confirm-no',
-				title: 'answer NO and close this popup'
-			},
-			confirmYesInner: {
-				class: 'p-rsvp',
-				value: 'yes',
-			},
-			confirmNoInner: {
-				class: 'p-rsvp',
-				value: 'no',
-			},
-			lang: {
-				itemprop: 'inLanguage'
-			},
-			schemaVersion: {
-				href: 'https://schema.org/version/26.0',
-				itemprop: 'schemaVersion',
-				hidden: true
-			},
-			accessMode: {
-				itemprop: 'accessMode',
-				content: 'textual visual',
-			},
-			accessibilityAPI: {
-				itemprop: 'accessibilityAPI',
-				content: 'ARIA',
-			},
-			accessibilityControl: {
-				itemprop: 'accessibilityControl',
-				content: 'fullKeyboardControl fullMouseControl fullTouchControl',
-			},
-			creativeWorkStatus: {
-				itemprop: 'creativeWorkStatus',
-				content: 'Draft',
-			}
-		},
-		texts: {
-			closerTextContent: 'x',
-			confirmYes: 'yes',
-			confirmNo: 'no',
-			iconAlt: 'icon',
-			imageAlt: 'image',
-			dividerBetweenButtons: ' ',
-			timestampCreatedTitle: 'created at',
-			timestampUpdatedTitle: 'updated at',
-		},
-		CSSStyleSheets: [
-			{ href: 'css/dialogic.css', title: 'CSS styles for Dialogic script' }
-		],
-		preloadFiles: [
-			{ as: 'style', href: 'css/dialogic.css', 'data-integrity': 'sha256-ymXTU3JziuuUCLcA28TR0Lw39jn5rgOAZuij69qWVrA=' },
-			{ as: 'audio', href: 'media/bell.mp3' },
-		],
-		dialogShowAudio: 'media/bell.mp3',
-		modulesImportPath: '/modules', // 'https://iiic.dev/js/modules',
-		autoRemoveDialogElementOnClose: true,
-		showTimeIfDiff: 30, // in s
-		autoCloseAfter: 6000, // in ms
-		showDialogWaitingBeforeShow: 5, // in ms
-		autoRun: true,
-	};
+	static showDialogsFromQueue ()
+	{
+		/** @type {Array.<Dialogic.prototype>} */
+		const reversedList = [ ...Dialogic.list ].reverse()
 
-	/**
-	 * @returns {Object}
-	 * @ignore
-	 */
-	getSettings ()
+		/** @type {Number} */
+		const reversedListLength = reversedList.length;
+
+		for ( let i = 0; i < reversedListLength; i++ ) {
+			if ( reversedList[ i ].#isPrepared && Dialogic.shouldBeDisplayed( reversedList[ i ] ) ) {
+				reversedList[ i ].show();
+				if ( !reversedList[ i ].requireInteraction ) {
+					break;
+				}
+			}
+		}
+	}
+
+	static addCSSStyleSheets ( /** @type {Array.<{href: string, title: string}>} */ CSSStyleSheets = [], /** @type {String} */ rel = 'stylesheet' )
+	{
+
+		/** @type {Set.<string>} */
+		const existingStyleSheets = new Set();
+
+		[ ...document.styleSheets ].forEach( ( css ) =>
+		{
+			if ( css.disabled === false && css.href ) {
+				existingStyleSheets.add( css.href );
+			}
+		} );
+
+		DialogicInternal.addLinksIntoHead( CSSStyleSheets, rel, existingStyleSheets );
+	}
+
+	static preloadResources ( /** @type {Array.<{as: String, href: String, integrity?: string}>} */ resources = [], /** @type {String} */ rel = 'preload' )
+	{
+
+		/** @type {NodeListOf<HTMLLinkElement>} */
+		const alreadyPreloaded = document.querySelectorAll( 'link[href]' );
+
+		/** @type {Set.<string>} */
+		const preloadedHrefList = new Set();
+
+		alreadyPreloaded.forEach( function ( link )
+		{
+			const href = link.getAttribute( 'href' );
+			if ( href ) {
+				const url = DialogicInternal.getAbsoluteUrl( href );
+				preloadedHrefList.add( url.href );
+			}
+		} );
+		DialogicInternal.addLinksIntoHead( resources, rel, preloadedHrefList );
+	}
+
+	static shouldBeDisplayed ( /** @type {Dialogic.prototype} */ dialog )
+	{
+		if ( dialog.dialogElement.open ) {
+			return false;
+		}
+		if ( dialog.displayed ) {
+			return false;
+		}
+		if ( dialog.requireInteraction ) {
+			return true;
+		}
+		const listLength = Dialogic.list.length;
+		for ( let i = 0; i < listLength; i++ ) {
+			if ( Dialogic.list[ i ].dialogElement.open ) {
+				return false;
+			}
+			if (
+				dialog.tag
+				&& Dialogic.list[ i ].tag === dialog.tag
+				&& Dialogic.list[ i ].displayed
+				&& Dialogic.list[ i ].dialogElement.open
+			) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	static removeDialogFromList ( /** @type {Dialogic.prototype} */ dialogic )
+	{
+		const index = Dialogic.list.indexOf( dialogic );
+		if ( index > -1 ) {
+			Dialogic.list.splice( index, 1 );
+		}
+	}
+
+	static closeDialogsWithSameTag ( /** @type {Dialogic.prototype} */ dialog )
+	{
+		if ( dialog.renotify ) {
+			return;
+		}
+		const listLength = Dialogic.list.length;
+		for ( let i = 0; i < listLength; i++ ) {
+			if (
+				Dialogic.list[ i ].tag === dialog.tag
+				&& Dialogic.list[ i ] !== dialog
+				&& Dialogic.list[ i ].dialogElement.open
+			) {
+				Dialogic.list[ i ].close();
+				dialog.#isSilentReplacement = true;
+			}
+		}
+	}
+
+	/** @type {Types.Settings} */
+	#settings = Dialogic.DEFAULT_SETTINGS;
+
+	/** @type {Classes.DialogicInternal['settings']} */
+	get settings ()
 	{
 		return this.#settings;
 	}
-	/** @ignore */
-	setSettings ( /** @type {Object} */ newSettings = {} )
+	set settings ( /** @type {Partial<Types.Settings>} */ newSettings )
 	{
-		console.groupCollapsed( '%c DialogicInternal %c setSettings %c newSettings:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			newSettings
-		);
-
-		this.#settings = DialogicInternal.#deepAssign( this.#settings, newSettings );
-
-		console.groupEnd();
+		this.#settings = /** @type {Types.Settings} */ ( DialogicInternal.#deepAssign( this.#settings, newSettings ) );
 	}
 
 	/**
-	 * @type {HTMLElement|null}
-	 * @ignore
+	 * @type {?HTMLDialogElement}
 	 */
-	#dialogElement;
+	#dialogElement = null;
 
-	/**
-	 * @returns {HTMLElement|null}
-	 * @ignore
-	 */
-	getDialogElement ()
+	/** @type {Classes.DialogicInternal['dialogElement']} */
+	get dialogElement ()
 	{
-		console.debug( '%c DialogicInternal %c getDialogElement %c this.#dialogElement:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			this.#dialogElement
-		);
-
-		return this.#dialogElement;
+		return this.#dialogElement ?? /** @type {HTMLDialogElement} */ ( /** @type {unknown} */ ( this ) );
 	}
-	/** @ignore */
-	setDialogElement ( /** @type {HTMLElement} */ dialogElement = HTMLDialogElement.prototype )
+	set dialogElement ( dialogElement )
 	{
-		console.groupCollapsed( '%c DialogicInternal %c setDialogElement %c dialogElement:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			dialogElement
-		);
-
-		if ( dialogElement && 'nodeType' in dialogElement && dialogElement.nodeType === Node.ELEMENT_NODE ) {
+		if ( dialogElement && dialogElement instanceof HTMLDialogElement ) {
 			this.#dialogElement = dialogElement;
 		} else {
 			throw new Error( 'Not a valid HTMLElement' );
 		}
-
-		console.groupEnd();
-	}
-
-	/**
-	 * @type {DirString}
-	 * @ignore
-	 */
-	#dir = 'auto';
-
-	/**
-	 * @returns {DirString}
-	 * @ignore
-	 */
-	getDir ()
-	{
-		console.debug( '%c DialogicInternal %c getDir %c this.#dir: ' + this.#dir,
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-		);
-
-		return this.#dir;
-	}
-	/** @ignore */
-	setDir ( /** @type {DirString} */ dir = 'auto' )
-	{
-		console.groupCollapsed( '%c DialogicInternal %c setDir %c dir:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			dir
-		);
-
-		if ( ![ 'auto', 'ltr', 'rtl' ].includes( dir ) ) {
-			throw new Error( 'Dir value is invalid' );
-		}
-		this.#dir = dir;
-
-		console.groupEnd();
 	}
 
 	/**
@@ -308,298 +175,407 @@ const DialogicInternal = class
 	 */
 	#runningTimeout = null;
 
+	/** @type {boolean} */
+	#isPrepared = false
+
+	/** @type {boolean} */
+	#isSilentReplacement = false
+
+	/** @type {Enums.PossibleTextDirections} */
+	#dir = Dialogic.POSSIBLE_TEXT_DIRECTIONS.AUTO;
+
+	set dir ( newDir )
+	{
+		if (
+			newDir === Dialogic.POSSIBLE_TEXT_DIRECTIONS.LTR
+			|| newDir === Dialogic.POSSIBLE_TEXT_DIRECTIONS.RTL
+			|| newDir === Dialogic.POSSIBLE_TEXT_DIRECTIONS.AUTO
+		) {
+			this.#dir = newDir;
+		} else {
+			console.warn( 'Invalid direction value. Use "ltr", "rtl", or "auto".' );
+		}
+	}
+	get dir ()
+	{
+		return this.#dir;
+	}
+
 	/**
 	 * @description is / was this dialog already displayed
 	 * @type {Boolean}
-	 * @public
 	 */
 	displayed = false;
 
 	/**
-	 * @description function called when pointer event (like click) on dialog body
-	 * @type {Function|null}
-	 * @public
-	 */
-	onclick = null;
-
-	/**
-	 * @description function called on dialog close
-	 * @type {Function|null}
-	 * @public
-	 */
-	onclose = null;
-
-	/**
-	 * @description function called on error
-	 * @type {Function|null}
-	 * @public
-	 */
-	onerror = null;
-
-	/**
 	 * @description function called on dialog show
-	 * @type {Function|null}
-	 * @public
+	 * @type {((event?: Event) => void) | null}
 	 */
 	onshow = null;
 
-	constructor ( /** @type {String} */ title, /** @type {Object} */ options = {}, settingsElementId = 'dialogic-settings' )
-	{
-		console.groupCollapsed( '%c DialogicInternal %c constructor',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			arguments
-		);
+	/** @type {Enums.DialogTypes} */
+	type = Dialogic.DIALOG_TYPES.ALERT;
 
+	/** @type {Array.<number>} */
+	vibrate = [];
+
+	timestamp = Date.now();
+
+	tag = '';
+
+	navigate = '';
+
+	silent = false;
+
+	requireInteraction = false;
+
+	renotify = false;
+
+	lang = '';
+
+	/** @type {string|null} */
+	image = null;
+
+	icon = '';
+
+	data = null;
+
+	htmlBody = '';
+
+	body = '';
+
+	badge = '';
+
+	/** @type {Array.<Dialogic.prototype>} */
+	actions = [];
+
+	title = '';
+
+	/** @type {HTMLAudioElement|null} */
+	dialogShowAudio = null;
+
+	eventListeners = {
+		click: {
+			preventClickOnClose: function ( /** @type {PointerEvent} */ event )
+			{
+				event.stopPropagation();
+			},
+			/** @this {Dialogic.prototype} */
+			confirmYes: function ( /** @type {PointerEvent} event */ event )
+			{
+				event.stopPropagation();
+				if ( this.#runningTimeout ) {
+					clearTimeout( this.#runningTimeout );
+				}
+				this.click();
+				Dialogic.removeDialogFromList( this );
+				HTMLDialogElement.prototype.close.call( this.dialogElement ); // native close, no Dialogic close event
+			},
+			/** @this {Dialogic.prototype} */
+			confirmNo: function ( /** @type {PointerEvent} event */ event )
+			{
+				event.stopPropagation();
+				if ( this.#runningTimeout ) {
+					clearTimeout( this.#runningTimeout );
+				}
+				this.close();
+			},
+			/** @this {Dialogic.prototype} */
+			actionClick: function ( /** @type {PointerEvent} event */ event )
+			{
+				event.stopPropagation();
+
+				const actionName = event.currentTarget instanceof Element
+					? event.currentTarget.getAttribute( 'data-action' ) ?? ''
+					: '';
+
+				this.dispatchEvent( new CustomEvent( 'actionclick', { detail: { action: actionName } } ) );
+				if ( this.#runningTimeout ) {
+					clearTimeout( this.#runningTimeout );
+				}
+				this.close();
+			},
+			/** @this {Dialogic.prototype} */
+			focusOnPopup: function ( /** @type {PointerEvent} */ event )
+			{
+				if ( event.target === this.dialogElement ) {
+
+					/** @type {Element|null} */
+					const innerWrapperElement = this.dialogElement.firstElementChild;
+
+					if ( innerWrapperElement && innerWrapperElement instanceof HTMLElement ) {
+						innerWrapperElement.contentEditable = 'true'; // string with true/false not Boolean
+						innerWrapperElement.focus(); // { focusVisible: true } option currently not working
+						innerWrapperElement.contentEditable = 'false';
+					}
+				}
+			},
+		},
+		close: {
+			/** @this {Dialogic.prototype} */
+			showNextDialog: function ( /** @type {Event} event */ )
+			{
+				Dialogic.showDialogsFromQueue();
+			},
+			/** @this {Dialogic.prototype} */
+			removeDialogElement: function ( /** @type {Event} event */ )
+			{
+				this.rootElement.removeChild( this.dialogElement );
+			},
+		}
+	};
+
+	constructor (
+		/** @type {String} */ title = '',
+		/** @type {{actions?: Array.<Dialogic.prototype>, badge?: string, body?: string, htmlBody?: string, data?: any, dir?: Enums.PossibleTextDirections, direction?: Enums.PossibleTextDirections, icon?: string, image?: string, lang?: string, navigate?: string, renotify?: boolean, requireInteraction?: boolean, silent?: boolean, tag?: string, timestamp?: number, vibrate?: number|Array.<number> }} */ options = {},
+		settingsElementId = 'dialogic-settings'
+	)
+	{
 		if ( arguments.length === 0 ) {
 			throw new TypeError( 'Failed to construct \'Dialogic\': 1 argument required, but only 0 present.' );
 		}
-		this.createProperties( {
-			enumerable: [
+		super();
 
-				/**
-				 * @property {HTMLElement|null} dialogElement
-				 * @name DialogicInternal#dialogElement
-				 * @default null
-				 * @readonly
-				 */
-				'dialogElement',
-
-				/**
-				 * @property {HTMLAudioElement|null} dialogShowAudio
-				 * @name DialogicInternal.dialogShowAudio
-				 * @default null
-				 * @readonly
-				 */
-				'dialogShowAudio',
-
-			],
-			'configurable enumerable':
-			{
-
-				/**
-				 * @property {Object} settings
-				 * @name DialogicInternal#settings
-				 * @readonly
-				 */
-				settings: {},
-
-				/**
-				 * @property {DirString} dir
-				 * @name DialogicInternal#dir
-				 * @default 'auto'
-				 * @readonly
-				 */
-				dir: 'auto',
-
+		if ( options ) {
+			for ( const key of Object.keys( options ) ) {
+				if ( key === 'dir' || key === 'direction' ) {
+					this.dir = /** @type {Enums.PossibleTextDirections} */ ( options[ key ] )
+				} else if ( [
+					'actions', 'badge', 'body', 'data', 'htmlBody', 'icon', 'image', 'lang', 'navigate',
+					'renotify', 'requireInteraction', 'silent', 'tag', 'timestamp', 'type', 'vibrate'
+				].includes( key ) ) {
+					const optionKey = /** @type {keyof Types.DialogOptions} */ ( key )
+					Reflect.set( this, key, options[ optionKey ] )
+				}
 			}
-		} );
+		}
+
 		Object.defineProperties( this, {
-
-			/**
-			 * @property {Object} eventListeners
-			 * @name DialogicInternal#eventListeners
-			 * @readonly
-			 */
-			eventListeners: {
-				value: {
-					click: {
-						preventClickOnClose: function ( /** @type {PointerEvent} */ event )
-						{
-							console.debug( '%c DialogicInternal %c preventClickOnClose %c event:',
-								Dialogic.CONSOLE.CLASS_NAME,
-								Dialogic.CONSOLE.METHOD_NAME,
-								Dialogic.CONSOLE.INTEREST_PARAMETER,
-								event
-							);
-
-							event.stopPropagation();
-						},
-						confirmYes: function ( /** @type {PointerEvent} event */ )
-						{
-
-							console.groupCollapsed( '%c DialogicInternal %c confirmYes',
-								Dialogic.CONSOLE.CLASS_NAME,
-								Dialogic.CONSOLE.METHOD_NAME
-							);
-
-							if ( this.#runningTimeout ) {
-								clearTimeout( this.#runningTimeout );
-							}
-							this.click();
-							Dialogic.removeDialogFromList( this );
-							this.dialogElement.close(); // close popup without close() event on Dialogic
-
-							console.groupEnd();
-						},
-						confirmNo: function ( /** @type {PointerEvent} event */ )
-						{
-							console.groupCollapsed( '%c DialogicInternal %c confirmNo',
-								Dialogic.CONSOLE.CLASS_NAME,
-								Dialogic.CONSOLE.METHOD_NAME
-							);
-
-							if ( this.#runningTimeout ) {
-								clearTimeout( this.#runningTimeout );
-							}
-							this.close();
-
-							console.groupEnd();
-						},
-						focusOnPopup: function ( /** @type {PointerEvent} */ event )
-						{
-							console.groupCollapsed( '%c DialogicInternal %c focusOnPopup',
-								Dialogic.CONSOLE.CLASS_NAME,
-								Dialogic.CONSOLE.METHOD_NAME
-							);
-
-							if ( event.target === this.dialogElement ) {
-
-								/** @type {HTMLElement} */
-								const innerWrapperElement = this.dialogElement.firstElementChild;
-
-								innerWrapperElement.contentEditable = 'true'; // string with true/false not Boolean
-								innerWrapperElement.focus(); // { focusVisible: true } option currently not working
-								innerWrapperElement.contentEditable = 'false';
-							}
-
-							console.groupEnd();
-						},
-					},
-					close: {
-						showNextDialog: function ( /** @type {Event} event */ )
-						{
-							console.groupCollapsed( '%c DialogicInternal %c showNextDialog',
-								Dialogic.CONSOLE.CLASS_NAME,
-								Dialogic.CONSOLE.METHOD_NAME
-							);
-
-							Dialogic.showDialogsFromQueue( this.settings.showDialogWaitingBeforeShow );
-
-							console.groupEnd();
-						},
-						removeDialogElement: function ( /** @type {Event} event */ )
-						{
-							console.groupCollapsed( '%c DialogicInternal %c removeDialogElement',
-								Dialogic.CONSOLE.CLASS_NAME,
-								Dialogic.CONSOLE.METHOD_NAME
-							);
-
-							this.rootElement.removeChild( this.dialogElement );
-
-							console.groupEnd();
-						},
-					}
-				},
+			type: {
+				value: this.type,
+				configurable: true,
+				enumerable: true,
 				writable: false,
-				enumerable: false,
-				configurable: false,
 			},
-
+			vibrate: {
+				value: this.vibrate,
+				configurable: true,
+				enumerable: true,
+				writable: false,
+			},
+			timestamp: {
+				value: this.timestamp,
+				configurable: true,
+				enumerable: true,
+				writable: false,
+			},
+			tag: {
+				value: this.tag,
+				configurable: true,
+				enumerable: true,
+				writable: false,
+			},
+			navigate: {
+				value: this.navigate,
+				configurable: true,
+				enumerable: true,
+				writable: false,
+			},
+			silent: {
+				value: this.silent,
+				configurable: true,
+				enumerable: true,
+				writable: false,
+			},
+			requireInteraction: {
+				value: this.requireInteraction,
+				configurable: true,
+				enumerable: true,
+				writable: true,
+			},
+			renotify: {
+				value: this.renotify,
+				configurable: true,
+				enumerable: true,
+				writable: false,
+			},
+			lang: {
+				value: this.lang,
+				configurable: true,
+				enumerable: true,
+				writable: false,
+			},
+			image: {
+				value: this.image,
+				configurable: true,
+				enumerable: true,
+				writable: false,
+			},
+			icon: {
+				value: this.icon,
+				configurable: true,
+				enumerable: true,
+				writable: true,
+			},
+			data: {
+				value: structuredClone( this.data ),
+				configurable: true,
+				enumerable: true,
+				writable: false,
+			},
+			htmlBody: {
+				value: this.htmlBody,
+				configurable: true,
+				enumerable: true,
+				writable: false,
+			},
+			body: {
+				value: this.body,
+				configurable: true,
+				enumerable: true,
+				writable: true,
+			},
+			badge: {
+				value: this.badge,
+				configurable: true,
+				enumerable: true,
+				writable: false,
+			},
+			actions: {
+				value: this.actions,
+				configurable: true,
+				enumerable: true,
+				writable: false,
+			},
+			title: {
+				value: this.title,
+				configurable: true,
+				enumerable: true,
+				writable: true,
+			},
+			run: {
+				value: this.run,
+				configurable: false,
+				enumerable: true,
+				writable: false
+			},
+			createDialogSnippet: {
+				value: this.createDialogSnippet,
+				configurable: false,
+				enumerable: true,
+				writable: false
+			},
+			updatePathByBase: {
+				value: this.updatePathByBase,
+				configurable: false,
+				enumerable: true,
+				writable: false
+			},
+			checkRequirements: {
+				value: this.checkRequirements,
+				configurable: false,
+				enumerable: true,
+				writable: false
+			},
+			appendShowNextDialogAfterCloseListener: {
+				value: this.appendShowNextDialogAfterCloseListener,
+				configurable: false,
+				enumerable: true,
+				writable: false
+			},
+			appendRemoveDialogElementOnCloseListener: {
+				value: this.appendRemoveDialogElementOnCloseListener,
+				configurable: false,
+				enumerable: true,
+				writable: false
+			},
+			appendRequireInteractionListener: {
+				value: this.appendRequireInteractionListener,
+				configurable: false,
+				enumerable: true,
+				writable: false
+			},
+			addEventListener: {
+				value: this.addEventListener,
+				configurable: false,
+				enumerable: true,
+				writable: false
+			},
+			error: {
+				value: this.error,
+				configurable: false,
+				enumerable: true,
+				writable: false
+			},
+			click: {
+				value: this.click,
+				configurable: false,
+				enumerable: true,
+				writable: false
+			},
+			close: {
+				value: this.close,
+				configurable: false,
+				enumerable: true,
+				writable: false
+			},
+			show: {
+				value: this.show,
+				configurable: false,
+				enumerable: true,
+				writable: false
+			},
+			dialogShowAudio: {
+				value: this.dialogShowAudio,
+				configurable: false,
+				enumerable: true,
+				writable: true,
+			},
+			eventListeners: {
+				value: this.eventListeners,
+				configurable: false,
+				enumerable: true,
+				writable: false,
+			}
 		} );
 
 		this.title = title;
 
-		/** @type {HTMLScriptElement | null} */
-		const settingsElement = document.getElementById( settingsElementId );
+		/** @type {URLSearchParams} */
+		const searchParams = new URL( import.meta.url ).searchParams;
 
-		this.settings = settingsElement ? JSON.parse( settingsElement.text ) : null;
-		if ( options ) {
-
-			/** @type {Array} */
-			const keys = Object.keys( options );
-
-			keys.forEach( ( /** @type {String} */ key ) =>
-			{
-				this[ key ] = options[ key ];
-			} );
+		if ( searchParams.has( Dialogic.SETTINGS_URL_PARAMETER ) ) {
+			const jsonInString = /** @type {String} */ ( searchParams.get( Dialogic.SETTINGS_URL_PARAMETER ) );
+			this.settings = JSON.parse( jsonInString );
 		}
 
-		/** @type {HTMLDialogElement} */
-		this.dialogElement = document.createElement( this.settings.resultSnippetElements.dialog );
+		/** @type {HTMLElement | null} */
+		const settingsElement = document.getElementById( settingsElementId );
 
+		if ( settingsElement && settingsElement instanceof HTMLScriptElement ) {
+			const jsonInElement = /** @type {HTMLScriptElement} */ ( settingsElement );
+			this.settings = JSON.parse( jsonInElement.text );
+		}
+
+		// no dialog element is created here, because this instance itself is the `dialogic-item` custom element
+		// inherited from native `dialog` element, so `this.dialogElement` returns `this`
 		Dialogic.list = this;
-
-		console.groupEnd();
 	}
 
-	/** @ignore */
-	static emptySetter () { }
-
-	/**
-	 * @returns {Number}
-	 * @ignore
-	 */
-	static getMaxActions ()
+	static #deepAssign ( /** @type {Array.<any>} */ ...customArgs )
 	{
-		console.debug( '%c DialogicInternal %c (static) getMaxActions',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
 
-		return 2;
-	}
-
-	/**
-	 * @returns {Number}
-	 * @ignore
-	 */
-	static getALERT ()
-	{
-		console.debug( '%c DialogicInternal %c (static) getALERT',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
-
-		return 0;
-	}
-
-	/**
-	 * @returns {Number}
-	 * @ignore
-	 */
-	static getCONFIRM ()
-	{
-		console.debug( '%c DialogicInternal %c (static) getCONFIRM',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
-
-		return 1;
-	}
-
-	/**
-	 * @returns {Object}
-	 * @ignore
-	 */
-	static getCONSOLE ()
-	{
-		return {
-			DEFAULT_TEXT: 'color: white',
-			CLASS_NAME: 'color: gray',
-			METHOD_NAME: 'font-weight: normal; color: green',
-			INTEREST_PARAMETER: 'font-weight: normal; font-size: x-small; color: teal',
-			EVENT_TEXT: 'color: orange',
-			WARNING: 'color: red',
-		};
-	}
-
-	static #deepAssign ( /** @type {Array} */ ...args )
-	{
-		console.groupCollapsed( '%c DialogicInternal %c (static) #deepAssign %c args:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			args
-		);
-
+		/** @type {Object<string, any>} */
 		let currentLevel = {};
-		args.forEach( ( /** @type {Object} */ source ) =>
+
+		loopThroughAllCustomArgs:
+		customArgs.forEach( ( /** @type {Object} */ source ) =>
 		{
 			if ( source instanceof Array ) {
 				currentLevel = source;
 			} else if ( source !== null ) {
-				Object.entries( source ).forEach( ( [ /** @type {String} */ key, value ] ) =>
+				loopThroughKeyValPairsObject:
+				Object.entries( source ).forEach( ( [ /** @type {String} */ key, /** @type {any} */ value ] ) =>
 				{
 					if ( value instanceof Object && key in currentLevel ) {
 						value = DialogicInternal.#deepAssign( currentLevel[ key ], value );
@@ -609,313 +585,124 @@ const DialogicInternal = class
 			}
 		} );
 
-		console.groupEnd();
-
 		return currentLevel;
 	}
 
-	static addLinksIntoHead ( /** @type {Object} */ attributesObject = {}, /** @type {String} */ rel = 'preload', /** @type {Set|null} */ excludeSet = null )
+	static addLinksIntoHead (
+		/** @type {Array.<{as?: string, href?: string, src?: string, url?: string, title?: string, integrity?: string, rel?: string, crossOrigin?: String, media?: String, type?: String}>|{as?: string, href?: string, src?: string, url?: string, title?: string, integrity?: string, rel?: string, crossOrigin?: String, media?: String, type?: String}} */ attributesObject = [],
+		/** @type {String} */ rel = 'preload',
+		/** @type {Set.<string>|null} */ excludeSet = null
+	)
 	{
-		console.groupCollapsed( '%c DialogicInternal %c (static) addLinksIntoHead',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			arguments
-		);
 
-		attributesObject.forEach( function ( /** @type {Object} */ resource = {} )
+		if ( !Array.isArray( attributesObject ) ) {
+			attributesObject = [ attributesObject ];
+		}
+
+		/** @type {Set.<string>} */
+		const disableSet = excludeSet instanceof Set ? excludeSet : new Set();
+
+		/** @type {Set.<string>} */
+		const seenResources = new Set();
+
+		attributesObject.forEach( function ( /** @type {{as?: string, href?: string, src?: string, url?: string, title?: string, integrity?: string, rel?: string, crossOrigin?: String, media?: String, type?: String}} */ resource = {} )
 		{
+
+			if ( !resource || typeof resource !== 'object' ) {
+				return;
+			}
+
+			/** @type {String|null} */
+			const href = resource.href ?? resource.src ?? resource.url ?? null;
+
+			if ( !href ) {
+				return;
+			}
 
 			/** @type {URL} */
-			const url = DialogicInternal.getAbsoluteUrl( resource[ 'href' ] );
+			const url = DialogicInternal.getAbsoluteUrl( href );
 
-			if ( url && !excludeSet.has( url.href ) ) {
-
-				/** @type {HTMLLinkElement} */
-				const link = document.createElement( 'link' );
-
-				/** @type {Array} */
-				const attributeNames = Object.keys( resource );
-
-				link.rel = rel;
-				link.crossOrigin = 'anonymous';
-				attributeNames.forEach( function ( /** @type {String} */ attributeName = '' )
-				{
-					if ( attributeName === 'href' ) {
-						resource[ attributeName ] = url.href;
-					}
-					link.setAttribute( attributeName, resource[ attributeName ] );
-				} );
-				document.head.appendChild( link );
+			if ( !url ) {
+				return;
 			}
-		} );
 
-		console.groupEnd();
-	}
+			const normalizedHref = url.href;
 
-	static addCSSStyleSheets ( /** @type {Array} */ CSSStyleSheets = [], /** @type {String} */ rel = 'stylesheet' )
-	{
-		console.groupCollapsed( '%c DialogicInternal %c (static) addCSSStyleSheets',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			arguments
-		);
-
-		/** @type {Set} */
-		const existingStyleSheets = new Set();
-
-		[ ...document.styleSheets ].forEach( ( /** @type {CSSStyleSheet} */ css ) =>
-		{
-			if ( css.disabled === false ) {
-				existingStyleSheets.add( css.href );
+			if ( disableSet.has( normalizedHref ) || seenResources.has( normalizedHref ) ) {
+				return;
 			}
-		} );
+			seenResources.add( normalizedHref );
 
-		DialogicInternal.addLinksIntoHead( CSSStyleSheets, rel, existingStyleSheets );
+			/** @type {HTMLLinkElement} */
+			const link = document.createElement( 'link' );
 
-		console.groupEnd();
-	}
+			const attributeNames = /** @type {Array.<'as'|'href'|'src'|'url'|'title'|'integrity'|'rel'|'crossOrigin'|'media'|'type'>} */ ( Object.keys( resource ) );
+			const linkRel = resource.rel ?? rel;
+			link.rel = linkRel;
+			if ( resource.as ) {
+				link.as = resource.as;
+			}
+			if ( resource.crossOrigin ) {
+				link.crossOrigin = resource.crossOrigin;
+			}
+			if ( resource.integrity ) {
+				link.integrity = resource.integrity;
+			}
+			if ( resource.media ) {
+				link.media = resource.media;
+			}
+			if ( resource.title ) {
+				link.title = resource.title;
+			}
+			if ( resource.type ) {
+				link.type = resource.type;
+			}
 
-	static preloadResources ( /** @type {Array} */ resources = [], /** @type {String} */ rel = 'preload' )
-	{
-		console.groupCollapsed( '%c DialogicInternal %c (static) preloadResources',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			arguments
-		);
-
-		/** @type {NodeList} */
-		const alreadyPreloaded = document.querySelectorAll( 'link[rel=preload][href]' );
-
-		/** @type {Set} */
-		const preloadedHrefList = new Set();
-
-		alreadyPreloaded.forEach( function ( /** @type {HTMLLinkElement} */ link )
-		{
-			preloadedHrefList.add( link.href );
-		} );
-
-		DialogicInternal.addLinksIntoHead( resources, rel, preloadedHrefList );
-
-		console.groupEnd();
-	}
-
-	static async showDialogsFromQueue ( /** @type {Number} */ showDialogWaitingBeforeShow = 5 )
-	{
-		console.debug( '%c DialogicInternal %c (static async) showDialogsFromQueue %c showDialogWaitingBeforeShow:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			showDialogWaitingBeforeShow
-		);
-
-		return new Promise( function ( /** @type {Function} */ resolve )
-		{
-			setTimeout( function ()
+			/** @type {Array.<'as'|'href'|'src'|'url'|'title'|'integrity'|'rel'|'crossOrigin'|'media'|'type'>} */
+			const validAttributeNames = attributeNames.filter( function ( /** @type {string} */ name )
 			{
+				return [ 'as', 'href', 'src', 'url', 'title', 'integrity', 'rel', 'crossOrigin', 'media', 'type' ].includes( name );
+			} );
 
-				console.groupCollapsed( '%c DialogicInternal %c inner setTimeout inside promise %c (inside showDialogsFromQueue)',
-					Dialogic.CONSOLE.CLASS_NAME,
-					Dialogic.CONSOLE.DEFAULT_TEXT,
-					Dialogic.CONSOLE.METHOD_NAME
-				);
-
-				/** @type {Array} */
-				const reversedList = Dialogic.list.reverse();
-
-				/** @type {Number} */
-				const reversedListLength = reversedList.length;
-
-				console.debug( ' %c DialogicInternal %c number of dialogs in list: %c reversedListLength:',
-					Dialogic.CONSOLE.CLASS_NAME,
-					Dialogic.CONSOLE.DEFAULT_TEXT,
-					Dialogic.CONSOLE.INTEREST_PARAMETER,
-					reversedListLength
-				);
-
-				for ( let i = 0; i < reversedListLength; i++ ) {
-					if ( Dialogic.shouldBeDisplayed( reversedList[ i ] ) ) {
-						console.debug( ' %c DialogicInternal %c found dialog to be displayed: %c reversedList[ i ]:',
-							Dialogic.CONSOLE.CLASS_NAME,
-							Dialogic.CONSOLE.DEFAULT_TEXT,
-							Dialogic.CONSOLE.INTEREST_PARAMETER,
-							reversedList[ i ]
-						);
-						reversedList[ i ].show();
-						break;
+			validAttributeNames.forEach( function ( /** @type {'as'|'href'|'src'|'url'|'title'|'integrity'|'rel'|'crossOrigin'|'media'|'type'} */ attributeName )
+			{
+				if ( resource[ attributeName ] ) {
+					if ( attributeName === 'href' || attributeName === 'src' || attributeName === 'url' ) {
+						link.href = normalizedHref;
+					} else if ( attributeName === 'rel' ) {
+						link.rel = resource[ attributeName ] ?? linkRel;
+					} else if ( attributeName === 'as' ) {
+						link.as = resource[ attributeName ];
+					} else if ( attributeName === 'crossOrigin' ) {
+						link.crossOrigin = resource[ attributeName ];
+					} else if ( attributeName === 'integrity' ) {
+						link.integrity = resource[ attributeName ];
+					} else if ( attributeName === 'media' ) {
+						link.media = resource[ attributeName ];
+					} else if ( attributeName === 'title' ) {
+						link.title = resource[ attributeName ];
+					} else if ( attributeName === 'type' ) {
+						link.type = resource[ attributeName ];
 					} else {
-						console.debug( ' %c DialogicInternal %c dialog in list, but NOT to be displayed now %c reversedList[ i ]:',
-							Dialogic.CONSOLE.CLASS_NAME,
-							Dialogic.CONSOLE.DEFAULT_TEXT,
-							Dialogic.CONSOLE.INTEREST_PARAMETER,
-							reversedList[ i ]
-						);
+						link.setAttribute( attributeName, resource[ attributeName ] );
 					}
 				}
-
-				console.groupEnd();
-
-				resolve();
-			}, showDialogWaitingBeforeShow );
+			} );
+			document.head.appendChild( link );
 		} );
 	}
 
-	static async loadExternalFunctions ( /** @type {String} */ modulesImportPath = '' )
-	{ /// @todo : tahle funkce to do document.head vrátí vícekrát, měla by se dělat kontrola a pokud už to v head je, tak element znovu nevytvářet, jen nevím jestli tu opravu mít spíše tady nebo v importWithIntegrity(), zkontrolovat obě možnosti
-		console.debug( '%c DialogicInternal %c (static async) loadExternalFunctions %c modulesImportPath:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			modulesImportPath
-		);
-
-		return Promise.all( [
-			{
-				name: 'hashCode',
-				appendInto: String,
-				path: modulesImportPath + '/string/hashCode.mjs',
-				integrity: 'sha256-4tiphaWWIybGhWVriVschX8Wtl7oOGP6fCt/tu7Jt0M='
-			},
-			{
-				name: 'setMultipleAttributes',
-				appendInto: Element,
-				path: modulesImportPath + '/element/setMultipleAttributes.mjs',
-				integrity: 'sha256-Lza0Ffmr4xZiHN/nbYoCri8nbuE+HRI6GMNaORCLEQo='
-			},
-		].map( async ( { name, appendInto, path, integrity } ) =>
-		{
-			if ( !appendInto.hasOwnProperty( name ) ) {
-				return importWithIntegrity(
-					path,
-					integrity
-				).then( ( /** @type {module} */ module ) =>
-				{
-					return new module.append( appendInto );
-				} );
-			}
-		} ) );
+	/** @returns {URL} */
+	static getAbsoluteUrl ( /** @type {string} */ urlString )
+	{
+		return new URL( urlString, document.baseURI )
 	}
 
-	static getAbsoluteUrl ( /** @type {String} */ urlString )
+	/** @return {HTMLElement|HTMLBodyElement}  */
+	get rootElement ()
 	{
-		console.debug( '%c DialogicInternal %c (static) getAbsoluteUrl %c urlString:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			urlString
-		);
 
-		/** @type {URL} */
-		let url;
-
-		if ( urlString.startsWith( 'https://', 0 ) || urlString.startsWith( 'http://', 0 ) ) {
-			url = new URL( urlString );
-		} else {
-			url = new URL( urlString, window.location.protocol + '//' + window.location.host );
-		}
-		return url;
-	}
-
-	static removeDialogFromList ( /** @type {Dialogic.prototype} */ dialogic )
-	{
-		console.groupCollapsed( '%c DialogicInternal %c (static) removeDialogFromList %c dialogic',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			dialogic
-		);
-
-		/** @type {Number} */
-		const index = Dialogic.list.indexOf( dialogic );
-
-		if ( index > -1 ) {
-			Dialogic.list.splice( index, 1 );
-		}
-
-		console.groupEnd();
-	}
-
-	static shouldBeDisplayed ( /** @type {HTMLDialogElement} */ dialog )
-	{
-		console.groupCollapsed( '%c DialogicInternal %c (static) shouldBeDisplayed %c dialog:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			dialog
-		);
-
-		if ( dialog.open ) {
-			console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO, this dialog is opened right now',
-				Dialogic.CONSOLE.CLASS_NAME,
-				Dialogic.CONSOLE.METHOD_NAME,
-				Dialogic.CONSOLE.DEFAULT_TEXT
-			);
-			console.groupEnd();
-			return false;
-		}
-		if ( dialog.displayed ) {
-			console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO, this dialog was already displayed',
-				Dialogic.CONSOLE.CLASS_NAME,
-				Dialogic.CONSOLE.METHOD_NAME,
-				Dialogic.CONSOLE.DEFAULT_TEXT
-			);
-			console.groupEnd();
-			return false;
-		}
-		if ( dialog.renotify ) {
-			console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c YES, this dialog have renotify property',
-				Dialogic.CONSOLE.CLASS_NAME,
-				Dialogic.CONSOLE.METHOD_NAME,
-				Dialogic.CONSOLE.DEFAULT_TEXT
-			);
-			console.groupEnd();
-			return true;
-		}
-
-		/** @const {Number} */
-		const listLength = Dialogic.list.length;
-
-		for ( let i = 0; i < listLength; i++ ) {
-			if ( Dialogic.list[ i ].dialogElement.open ) {
-				console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO, some another dialog is displayed right now',
-					Dialogic.CONSOLE.CLASS_NAME,
-					Dialogic.CONSOLE.METHOD_NAME,
-					Dialogic.CONSOLE.DEFAULT_TEXT
-				);
-				console.groupEnd();
-				return false;
-			}
-			if (
-				dialog.tag
-				&& Dialogic.list[ i ].tag === dialog.tag
-				&& Dialogic.list[ i ].displayed
-			) {
-				console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c NO',
-					Dialogic.CONSOLE.CLASS_NAME,
-					Dialogic.CONSOLE.METHOD_NAME,
-					Dialogic.CONSOLE.DEFAULT_TEXT
-				);
-				console.groupEnd();
-				return false;
-			}
-		}
-
-		console.debug( '%c DialogicInternal %c (static) shouldBeDisplayed %c YES',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.DEFAULT_TEXT
-		);
-		console.groupEnd();
-		return true;
-	}
-
-	getRootElement ()
-	{
-		console.debug( '%c DialogicInternal %c getRootElement',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
-
-		/** @type {HTMLElement|null} */
+		/** @type {?HTMLElement} */
 		const foundRootElement = this.settings.rootElementId ? document.getElementById( this.settings.rootElementId ) : null;
 
 		return foundRootElement ? foundRootElement : document.body;
@@ -923,20 +710,16 @@ const DialogicInternal = class
 
 	#playAudio ()
 	{
-		console.groupCollapsed( '%c DialogicInternal %c #playAudio',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
 
-		if ( !this.silent && this.settings.dialogShowAudio ) {
-			if ( DialogicInternal.dialogShowAudio ) { // audio already played, reset timer and play again
+		if ( !this.silent && !this.#isSilentReplacement && this.settings.dialogShowAudio ) {
+			if ( this.dialogShowAudio ) { // audio already played, reset timer and play again
 
 				/** @type {HTMLAudioElement} */
-				const audio = DialogicInternal.dialogShowAudio;
+				const audio = this.dialogShowAudio;
 
 				audio.pause();
 				audio.currentTime = 0;
-				audio.play();
+				audio.play().catch( err => console.log( "Blocked: Click on the page first!" ) );;
 			} else { // load new audio
 
 				/** @type {URL} */
@@ -947,38 +730,22 @@ const DialogicInternal = class
 
 				audio.addEventListener( 'canplaythrough', ( /** @type {Event} event */ ) =>
 				{
-					audio.play();
+					audio.play().catch( err => console.log( "Blocked: Click on the page first!" ) );;
 				} );
-				DialogicInternal.dialogShowAudio = audio;
+				this.dialogShowAudio = audio;
 			}
 		}
-
-		console.groupEnd();
 	}
 
 	click ()
 	{
-		console.groupCollapsed( '%c DialogicInternal %c click',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
-
 		if ( this.onclick ) {
-			this.onclick();
+			this.onclick( new PointerEvent( 'click' ) );
 		}
-
-		console.groupEnd();
 	}
 
 	show ()
 	{
-		console.groupCollapsed( '%c DialogicInternal %c show %c this:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			this
-		);
-
 		if ( this.onshow ) {
 			this.onshow();
 		}
@@ -987,7 +754,7 @@ const DialogicInternal = class
 			navigator.vibrate( this.vibrate );
 		}
 
-		/** @type {HTMLMetaElement|null} */
+		/** @type {HTMLMetaElement|null|undefined} */
 		const creativeWorkStatus = this.dialogElement.querySelector( '[itemprop=creativeWorkStatus]' );
 
 		if ( creativeWorkStatus ) {
@@ -996,23 +763,17 @@ const DialogicInternal = class
 
 		this.displayed = true;
 		this.dialogElement.dispatchEvent( new Event( 'show' ) );
-		this.dialogElement.show();
-
-		console.groupEnd();
+		HTMLDialogElement.prototype.show.call( this.dialogElement ); // native show(), not Dialogic one
+		this.appendRequireInteractionListener()
 	}
 
 	close ()
 	{
-		console.groupCollapsed( '%c DialogicInternal %c close',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
-
 		if ( this.#runningTimeout ) {
 			clearTimeout( this.#runningTimeout );
 		}
 		if ( this.onclose ) {
-			this.onclose();
+			this.onclose( new Event( 'close' ) );
 		}
 
 		/** @type {HTMLMetaElement|null} */
@@ -1025,56 +786,40 @@ const DialogicInternal = class
 		if ( !this.tag ) {
 			Dialogic.removeDialogFromList( this );
 		}
-		this.dialogElement.close();
-
-		console.groupEnd();
+		HTMLDialogElement.prototype.close.call( this.dialogElement ); // native close(), not Dialogic one
+		this.dialogElement.dispatchEvent( new Event( 'close' ) );
 	}
 
 	error ()
 	{
-		console.groupCollapsed( '%c DialogicInternal %c error',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
-
 		if ( this.onerror ) {
-			this.onerror();
+			this.onerror( new Event( 'error' ) );
 		}
 		this.dialogElement.dispatchEvent( new Event( 'error' ) );
-
-		console.groupEnd();
 	}
 
 	addEventListener (
 		/** @type {String} */ type,
-		/** @type {Function} */ listener,
-		/** @type {Object} */ options = {},
+		/** @type {EventListenerOrEventListenerObject} */ listener,
+		/** @type {Boolean|AddEventListenerOptions} */ options = {},
 		/** @type {Boolean} */ useCapture = false
 	)
 	{
-		console.groupCollapsed( '%c DialogicInternal %c addEventListener',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			arguments
-		);
+		/** @type {(type: string, listener: EventListenerOrEventListenerObject, options?: boolean|AddEventListenerOptions) => void} */
+		const nativeAddEventListener = EventTarget.prototype.addEventListener.bind( this.dialogElement );
 
-		if ( options && Object.keys( options ).length !== 0 ) {
-			this.dialogElement.addEventListener( type, listener, options );
+		if ( typeof options === 'boolean' ) {
+			nativeAddEventListener( type, listener, options );
+		} else if ( options && Object.keys( options ).length !== 0 ) {
+			nativeAddEventListener( type, listener, options );
 		} else {
-			this.dialogElement.addEventListener( type, listener, useCapture );
+			nativeAddEventListener( type, listener, useCapture );
 		}
-
-		console.groupEnd();
 	}
 
-	/** @returns {Promise} */
+	/** @returns {Promise<void>} */
 	async appendRequireInteractionListener ()
 	{
-		console.debug( '%c DialogicInternal %c (async) appendRequireInteractionListener',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
-
 		return new Promise( ( /** @type {Function} */ resolve ) =>
 		{
 			if ( this.requireInteraction ) {
@@ -1091,27 +836,15 @@ const DialogicInternal = class
 
 	appendShowNextDialogAfterCloseListener ()
 	{
-		console.groupCollapsed( '%c DialogicInternal %c appendShowNextDialogAfterCloseListener',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
-
 		this.addEventListener( 'close', this.eventListeners.close.showNextDialog.bind( this ), {
 			capture: false,
 			once: true,
 			passive: true,
 		} );
-
-		console.groupEnd();
 	}
 
 	appendRemoveDialogElementOnCloseListener ()
 	{
-		console.groupCollapsed( '%c DialogicInternal %c appendRemoveDialogElementOnCloseListener',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
-
 		if ( this.settings.autoRemoveDialogElementOnClose ) {
 			this.addEventListener( 'close', this.eventListeners.close.removeDialogElement.bind( this ), {
 				capture: false,
@@ -1119,78 +852,61 @@ const DialogicInternal = class
 				passive: true,
 			} );
 		}
-
-		console.groupEnd();
 	}
 
-	addAttributesToElements ( /** @type {Object} */ elements = {} )
+	addAttributesToElements ( /** @type { Object.< 'dialog' | 'innerWrapper' | 'image' | 'title' | 'icon' | 'description' | 'closer' | 'actionsWrapper' | 'confirmYes' | 'confirmNo' | 'confirmYesInner' | 'confirmNoInner' | 'timePublished' | 'timeUpdated' | 'timeExpires' | 'lang' | 'schemaVersion' | 'accessMode' | 'accessibilityAPI' | 'accessibilityControl' | 'creativeWorkStatus', HTMLElement >} */ elements )
 	{
-		console.groupCollapsed( '%c DialogicInternal %c addAttributesToElements %c elements:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			elements
-		);
-
-		/** @type {Array} */
-		const elementNames = Object.keys( elements );
-
-		elementNames.forEach( ( /** @type {String} */ elementName ) =>
+		const attributesObject = this.settings.snippetAttributes;
+		const elementNames = /** @type {Array.< 'dialog' | 'innerWrapper' | 'image' | 'title' | 'icon' | 'description' | 'closer' | 'actionsWrapper' | 'confirmYes' | 'confirmNo' | 'confirmYesInner' | 'confirmNoInner' | 'timePublished' | 'timeUpdated' | 'timeExpires' | 'lang' | 'schemaVersion' | 'accessMode' | 'accessibilityAPI' | 'accessibilityControl' | 'creativeWorkStatus' >} */ ( Object.keys( elements ) );
+		elementNames.forEach( ( elementName ) =>
 		{
 
-			/** @type {Object|undefined} */
-			const attributes = this.settings.snippetAttributes[ elementName ];
+			/** @type {Object.<string, any>|undefined} */
+			const attributes = attributesObject[ elementName ];
 
-			/** @type {HTMLElement|null} */
+			/** @type {?HTMLElement} */
 			const element = elements[ elementName ]
 
 			if ( element && attributes ) {
-				element.setMultipleAttributes( attributes );
+				for ( const [ key, value ] of Object.entries( attributes ) ) {
+					if ( typeof value === 'boolean' ) {
+						element[ key ] = value;
+					} else {
+						element.setAttribute( key, value );
+					}
+				}
 			}
 		} );
-
-		console.groupEnd();
 
 		return elements;
 	}
 
+	/**
+	 * @returns {Object.<'dialog' | 'innerWrapper'|'image'| 'title'|'icon' | 'description' | 'closer' | 'actionsWrapper'|'confirmYes' | 'confirmNo'| 'confirmYesInner'| 'confirmNoInner'| 'timePublished' | 'timeUpdated'|'timeExpires' | 'lang' | 'schemaVersion' | 'accessMode' | 'accessibilityAPI' | 'accessibilityControl' | 'creativeWorkStatus', HTMLElement>}
+	 */
 	createAllElements ()
 	{
-		console.groupCollapsed( '%c DialogicInternal %c createAllElements',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
 
-		/** @type {Object} */
+		/** @type {Object.<'dialog' | 'innerWrapper'|'image'| 'title'|'icon' | 'description' | 'closer' | 'actionsWrapper'|'confirmYes' | 'confirmNo'| 'confirmYesInner'| 'confirmNoInner'| 'timePublished' | 'timeUpdated'|'timeExpires' | 'lang' | 'schemaVersion' | 'accessMode' | 'accessibilityAPI' | 'accessibilityControl' | 'creativeWorkStatus', HTMLElement>} */
 		const elements = {};
 
-		/** @type {Array} */
-		const elementNames = Object.keys( this.settings.resultSnippetElements );
-
-		elementNames.forEach( ( /** @type {String} */ elementName ) =>
+		const elementNames = /** @type {Array.<'dialog' | 'innerWrapper' | 'image'| 'title' | 'icon' | 'description' | 'closer' | 'actionsWrapper' | 'confirmYes' | 'confirmNo'| 'confirmYesInner'| 'confirmNoInner'| 'timePublished' | 'timeUpdated'|'timeExpires' | 'lang' | 'schemaVersion' | 'accessMode' | 'accessibilityAPI' | 'accessibilityControl' | 'creativeWorkStatus'>} */ ( Object.keys( this.settings.resultSnippetElements ) );
+		elementNames.forEach( ( /** @type { 'dialog' | 'innerWrapper' | 'image'| 'title' | 'icon' | 'description' | 'closer' | 'actionsWrapper' | 'confirmYes' | 'confirmNo'| 'confirmYesInner'| 'confirmNoInner'| 'timePublished' | 'timeUpdated'|'timeExpires' | 'lang' | 'schemaVersion' | 'accessMode' | 'accessibilityAPI' | 'accessibilityControl' | 'creativeWorkStatus' } */ elementName ) =>
 		{
-			if ( this.hasOwnProperty( elementName ) ) {
-				elements[ elementName ] = this[ elementName ] ? document.createElement( this.settings.resultSnippetElements[ elementName ] ) : null;
+			if ( elementName === 'dialog' ) {
+				elements[ elementName ] = this.dialogElement; // instance itself, no new element needed
+			} else if ( elementName !== 'title' && Object.hasOwn( this, elementName ) ) {
+				elements[ elementName ] = /** @type {any} */ ( this )[ elementName ] ? document.createElement( this.settings.resultSnippetElements[ elementName ] ) : null;
 			} else {
 				elements[ elementName ] = document.createElement( this.settings.resultSnippetElements[ elementName ] );
 			}
 		} );
-
-		console.debug( { elements } );
-		console.groupEnd();
-
 		return elements;
 	}
 
-	createDomStructureFrom ( /** @type {Object} */ elements = {} )
+	/** @returns {void} */
+	createDomStructureFrom ( /** @type { Object.< 'dialog' | 'innerWrapper' | 'image' | 'title' | 'icon' | 'description' | 'closer' | 'actionsWrapper' | 'confirmYes' | 'confirmNo' | 'confirmYesInner' | 'confirmNoInner' | 'timePublished' | 'timeUpdated' | 'timeExpires' | 'lang' | 'schemaVersion' | 'accessMode' | 'accessibilityAPI' | 'accessibilityControl' | 'creativeWorkStatus', HTMLElement >} */ elements = {} )
 	{
-		console.groupCollapsed( '%c DialogicInternal %c createDomStructureFrom %c elements:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			elements
-		);
-
 		if ( elements.image ) {
 			elements.innerWrapper.appendChild( elements.image );
 		}
@@ -1205,12 +921,15 @@ const DialogicInternal = class
 		if ( this.icon ) {
 			elements.innerWrapper.appendChild( elements.icon );
 		}
+		if ( elements.badge ) {
+			elements.innerWrapper.appendChild( elements.badge );
+		}
 		elements.innerWrapper.appendChild( elements.title );
 		elements.innerWrapper.appendChild( elements.description );
 		if ( elements.timeElement ) {
 			elements.innerWrapper.appendChild( elements.timeElement );
 		}
-		if ( this.type === Dialogic.CONFIRM ) {
+		if ( this.type === Dialogic.DIALOG_TYPES.CONFIRM ) {
 			elements.innerWrapper.appendChild( elements.actionsWrapper );
 		}
 		if ( elements.lang ) {
@@ -1222,34 +941,19 @@ const DialogicInternal = class
 		elements.dialog.appendChild( elements.accessibilityControl );
 		elements.dialog.appendChild( elements.creativeWorkStatus );
 		this.rootElement.appendChild( elements.dialog );
-
-		console.groupEnd();
 	}
 
 	createDialogSnippet ()
 	{
-		console.groupCollapsed( '%c DialogicInternal %c createDialogSnippet',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
 
 		/** @type {HTMLDialogElement} */
 		const dialog = this.dialogElement;
 
-		if ( !Dialogic.shouldBeDisplayed( dialog ) ) {
-
-			console.debug( '%c DialogicInternal %c dialog should NOT be displayed %c dialog:',
-				Dialogic.CONSOLE.CLASS_NAME,
-				Dialogic.CONSOLE.DEFAULT_TEXT,
-				Dialogic.CONSOLE.INTEREST_PARAMETER,
-				dialog
-			);
-			console.groupEnd();
-
+		if ( this.#isPrepared ) {
 			return false;
 		}
 
-		/** @type {Object} */
+		/** @type { Object.< 'dialog' | 'innerWrapper' | 'image' | 'title' | 'icon' | 'description' | 'closer' | 'actionsWrapper' | 'confirmYes' | 'confirmNo' | 'confirmYesInner' | 'confirmNoInner' | 'timePublished' | 'timeUpdated' | 'timeExpires' | 'lang' | 'schemaVersion' | 'accessMode' | 'accessibilityAPI' | 'accessibilityControl' | 'creativeWorkStatus', HTMLElement >} */
 		let elements = this.createAllElements();
 
 		elements.dialog = dialog;
@@ -1264,23 +968,22 @@ const DialogicInternal = class
 		/** @type {String} */
 		const descriptionElementId = this.settings.snippetIdPrefixes.description + this.timestamp + '-' + ( this.title ).hashCode();
 
-		elements.dialog.setMultipleAttributes( {
-			id: dialogId,
-			'aria-labelledby': titleElementId,
-			'aria-describedby': descriptionElementId,
-		} );
+		elements.dialog.setAttribute( 'is', Dialogic.ELEMENT_NAME );
+		elements.dialog.setAttribute( 'id', dialogId );
+		elements.dialog.setAttribute( 'aria-labelledby', titleElementId );
+		elements.dialog.setAttribute( 'aria-describedby', descriptionElementId );
 		if ( this.dir !== 'auto' ) {
-			elements.dialog.dir = this.dir;
+			elements.dialog.setAttribute( 'dir', this.dir ); // dir getter / setter is overridden, so attribute must be set directly
 		}
 		elements.dialog.addEventListener( 'click', this.eventListeners.click.focusOnPopup.bind( this ), {
 			capture: false,
 			once: false,
 			passive: true,
 		} );
-		if ( this.type === Dialogic.CONFIRM ) {
-			elements.dialog.classList.add( 'confirm' );
-		} else {
+		if ( this.type === Dialogic.DIALOG_TYPES.ALERT ) {
 			elements.dialog.classList.add( 'alert' );
+		} else if ( this.type === Dialogic.DIALOG_TYPES.CONFIRM ) {
+			elements.dialog.classList.add( 'confirm' );
 		}
 		if ( this.image ) {
 			Object.assign( elements.image, {
@@ -1294,6 +997,13 @@ const DialogicInternal = class
 				alt: this.settings.texts.iconAlt
 			} );
 		}
+		if ( this.badge ) {
+			Object.assign( elements.badge, {
+				src: this.badge,
+				alt: this.settings.texts.iconAlt
+			} );
+		}
+
 		elements.title.id = titleElementId;
 		elements.description.id = descriptionElementId;
 
@@ -1310,23 +1020,28 @@ const DialogicInternal = class
 				/** @type {String} */
 				const timeElementTextContent = ( timeDiff > ( 60 * 12 ) ) ? new Date( this.timestamp ).toLocaleString() : new Date( this.timestamp ).toLocaleTimeString();
 
-				elements.timeElement.setMultipleAttributes( {
-					...{
-						title: this.settings.texts.timestampCreatedTitle,
-						dateTime: new Date( this.timestamp ).toISOString(),
-					}, ...this.settings.snippetAttributes.timePublished
-				} );
+				elements.timeElement.setAttribute( 'title', this.settings.texts.timestampCreatedTitle );
+				elements.timeElement.setAttribute( 'dateTime', new Date( this.timestamp ).toISOString() );
+				for ( const [ key, value ] of Object.entries( /** @type {Record<string, string>} */( this.settings.snippetAttributes.timePublished ) ) ) {
+					if ( typeof value === 'boolean' ) {
+						elements.timeElement[ key ] = value;
+					} else {
+						elements.timeElement.setAttribute( key, value );
+					}
+				}
 				elements.timeElement.appendChild( document.createTextNode( timeElementTextContent ) );
 			}
 		}
-		if ( this.type === Dialogic.ALERT ) {
+		if ( this.type === Dialogic.DIALOG_TYPES.ALERT ) {
 			elements.innerWrapper.addEventListener( 'click', this.click.bind( this ), {
 				capture: false,
 				once: false,
 				passive: true,
 			} );
 			elements.closer.appendChild( document.createTextNode( this.settings.texts.closerTextContent ) );
-			if ( this.settings.snippetAttributes.closerDataset && this.settings.snippetAttributes.closerDataset.length ) {
+			if (
+				this.settings.snippetAttributes.closerDataset
+				&& Object.keys( this.settings.snippetAttributes.closerDataset ).length ) {
 				for ( const [ key, value ] of Object.entries( this.settings.snippetAttributes.closerDataset ) ) {
 					elements.closer.dataset[ key ] = value;
 				}
@@ -1343,7 +1058,7 @@ const DialogicInternal = class
 				passive: false,
 			} );
 			elements.dialog.appendChild( elements.closer );
-		} else if ( this.type === Dialogic.CONFIRM ) {
+		} else if ( this.type === Dialogic.DIALOG_TYPES.CONFIRM ) {
 			elements.confirmYesInner.appendChild( document.createTextNode( this.settings.texts.confirmYes ) );
 			elements.confirmNoInner.appendChild( document.createTextNode( this.settings.texts.confirmNo ) );
 			elements.confirmYes.appendChild( elements.confirmYesInner );
@@ -1362,26 +1077,51 @@ const DialogicInternal = class
 			elements.actionsWrapper.appendChild( document.createTextNode( this.settings.texts.dividerBetweenButtons ) );
 			elements.actionsWrapper.appendChild( elements.confirmNo );
 		}
+
+		// Render custom action buttons
+		if ( this.actions.length > 0 ) {
+			elements.innerWrapper.appendChild( elements.actionsWrapper );
+			for ( const [ index, action ] of this.actions.entries() ) {
+				/** @type {HTMLButtonElement} */
+				const actionButton = document.createElement( 'button' );
+				actionButton.setAttribute( 'type', 'button' );
+				actionButton.setAttribute( 'data-action', String( action.action ) );
+				actionButton.setAttribute( 'title', action.title );
+				if ( action.icon ) {
+					/** @type {HTMLImageElement} */
+					const icon = document.createElement( 'img' );
+					icon.setAttribute( 'src', action.icon );
+					icon.setAttribute( 'alt', action.title );
+					icon.setAttribute( 'width', '24' );
+					icon.setAttribute( 'height', '24' );
+					actionButton.appendChild( icon );
+				}
+				actionButton.appendChild( document.createTextNode( action.title ) );
+				actionButton.addEventListener( 'click', this.eventListeners.click.actionClick.bind( this ), {
+					capture: false,
+					once: true,
+					passive: true,
+				} );
+				if ( index > 0 ) {
+					elements.actionsWrapper.appendChild( document.createTextNode( ' ' ) );
+				}
+				elements.actionsWrapper.appendChild( actionButton );
+			}
+		}
 		if ( this.lang ) {
 			Object.assign( elements.lang, {
 				content: this.lang
 			} );
-			elements.dialog.lang = this.lang;
+			elements.dialog.setAttribute( 'lang', this.lang ); // lang is own property of Dialogic, so attribute must be set directly
 		}
 		this.createDomStructureFrom( elements );
-
-		console.groupEnd();
+		this.#isPrepared = true
 
 		return true;
 	}
 
 	checkRequirements ()
 	{
-		console.debug( '%c DialogicInternal %c checkRequirements',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
-
 		if ( !this.settings ) {
 			this.error();
 			throw new Error( 'Settings object is missing' );
@@ -1390,559 +1130,327 @@ const DialogicInternal = class
 
 	updatePathByBase ()
 	{
-		/** @type {HTMLBaseElement} */
+		/** @type {HTMLBaseElement|null} */
 		const possibleBaseElement = document.head.querySelector( 'base' );
 
 		if ( possibleBaseElement && possibleBaseElement.href ) {
 			this.settings.modulesImportPath = possibleBaseElement.href + this.settings.modulesImportPath;
 		}
-	}
 
-	static createProperties ( /** @type {Object} */ sections )
-	{
-
-		/** @type {Array} */
-		const groupDescriptors = Object.keys( sections );
-
-		groupDescriptors.forEach( ( /** @type {String} */ joinedPositiveDescriptors ) =>
-		{
-
-			/** @type {Array} */
-			const descriptors = joinedPositiveDescriptors.split( ' ' );
-
-			/** @type {Object|Array} */
-			let allProperties = sections[ joinedPositiveDescriptors ];
-
-			if ( !( Symbol.iterator in Object( allProperties ) ) ) {
-
-				/** @type {Array} */
-				allProperties = Object.keys( allProperties );
-
-			}
-
-			allProperties.forEach( ( /** @type {String} */ property ) =>
-			{
-
-				/** @type {Object} */
-				const descriptor = {
-					configurable: descriptors.includes( 'configurable' ),
-					enumerable: descriptors.includes( 'enumerable' ),
-				};
-
-				/** @type {String} */
-				const capitalizedProperty = property.charAt( 0 ).toUpperCase() + property.slice( 1 );
-
-				/** @type {String} */
-				const getterName = 'get' + capitalizedProperty;
-
-				/** @type {String} */
-				const setterName = 'set' + capitalizedProperty;
-
-				/** @type {Boolean} */
-				const isStaticGetter = Boolean( DialogicInternal.hasOwnProperty( getterName ) );
-
-				/** @type {Boolean} */
-				const isStaticSetter = Boolean( DialogicInternal.hasOwnProperty( setterName ) );
-
-				/** @type {Boolean} */
-				const isStaticValue = Boolean( DialogicInternal.hasOwnProperty( property ) );
-
-				if ( isStaticGetter || isStaticSetter || isStaticValue ) { // existing static
-					if ( isStaticGetter && isStaticSetter ) {
-						descriptor.get = DialogicInternal[ getterName ];
-						descriptor.set = DialogicInternal[ setterName ];
-					} else if ( isStaticGetter ) {
-						descriptor.get = DialogicInternal[ getterName ];
-						descriptor.set = DialogicInternal.emptySetter;
-					} else if ( isStaticSetter ) {
-						descriptor.set = DialogicInternal[ setterName ];
-					} else if ( isStaticValue ) {
-						descriptor.value = DialogicInternal[ property ];
-						descriptor.writable = descriptors.includes( 'writable' );
-					}
-					Object.defineProperty( Dialogic, property, descriptor );
-				} else { // create new and set default
-
-					/** @type {any} */
-					const possibleValue = sections[ joinedPositiveDescriptors ][ property ];
-
-					descriptor.value = ( typeof possibleValue === 'undefined' ) ? null : possibleValue;
-					descriptor.writable = descriptors.includes( 'writable' );
-					Object.defineProperty( Dialogic, property, descriptor );
-				}
-			} );
-		} );
-	}
-
-	createProperties ( /** @type {Object} */ sections )
-	{
-
-		console.groupCollapsed( '%c DialogicInternal %c createProperties (dynamic) %c sections:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			sections
-		);
-
-		/** @type {Array} */
-		const groupDescriptors = Object.keys( sections );
-
-		groupDescriptors.forEach( ( /** @type {String} */ joinedPositiveDescriptors ) =>
-		{
-
-			/** @type {Array} */
-			const descriptors = joinedPositiveDescriptors.split( ' ' );
-
-			/** @type {Object|Array} */
-			let allProperties = sections[ joinedPositiveDescriptors ];
-
-			if ( !( Symbol.iterator in Object( allProperties ) ) ) {
-
-				/** @type {Array} */
-				allProperties = Object.keys( allProperties );
-
-			}
-			allProperties.forEach( ( /** @type {String} */ property ) =>
-			{
-
-				/** @type {Object} */
-				const descriptor = {
-					configurable: descriptors.includes( 'configurable' ),
-					enumerable: descriptors.includes( 'enumerable' ),
-				};
-
-				/** @type {String} */
-				const capitalizedProperty = property.charAt( 0 ).toUpperCase() + property.slice( 1 );
-
-				/** @type {String} */
-				const getterName = 'get' + capitalizedProperty;
-
-				/** @type {String} */
-				const setterName = 'set' + capitalizedProperty;
-
-				/** @type {Boolean} */
-				const isDynamicGetter = Boolean( this[ getterName ] );
-
-				/** @type {Boolean} */
-				const isDynamicSetter = Boolean( this[ setterName ] );
-
-				/** @type {Boolean} */
-				const isDynamicValue = Boolean( typeof this[ property ] !== 'undefined' );
-
-				if ( isDynamicGetter || isDynamicSetter || isDynamicValue ) { // existing dynamic
-					if ( isDynamicGetter && isDynamicSetter ) {
-						descriptor.get = this[ getterName ];
-						descriptor.set = this[ setterName ];
-					} else if ( isDynamicGetter ) {
-						descriptor.get = this[ getterName ];
-						descriptor.set = DialogicInternal.emptySetter;
-					} else if ( isDynamicSetter ) {
-						descriptor.set = this[ setterName ];
-					} else if ( isDynamicValue ) {
-						descriptor.value = this[ property ];
-						descriptor.writable = descriptors.includes( 'writable' );
-					}
-					Object.defineProperty( this, property, descriptor );
-				} else { // create new and set default
-
-					/** @type {any} */
-					const possibleValue = sections[ joinedPositiveDescriptors ][ property ];
-
-					descriptor.value = ( typeof possibleValue === 'undefined' ) ? null : possibleValue;
-					descriptor.writable = descriptors.includes( 'writable' );
-					Object.defineProperty( this, property, descriptor );
-				}
-			} );
-		} );
-
-		console.groupEnd();
 
 	}
 
-	async run ()
+	run ()
 	{
-		console.groupCollapsed( '%c DialogicInternal %c (async) run',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME
-		);
-
 		this.checkRequirements();
 		this.updatePathByBase();
-		await Dialogic.loadExternalFunctions( this.settings.modulesImportPath );
+
 		Dialogic.preloadResources( this.settings.preloadFiles );
 		Dialogic.addCSSStyleSheets( this.settings.CSSStyleSheets );
 		if ( this.createDialogSnippet() ) {
 			this.appendRemoveDialogElementOnCloseListener();
-			this.appendRequireInteractionListener();
 			this.appendShowNextDialogAfterCloseListener();
 		}
-		Dialogic.showDialogsFromQueue( this.settings.showDialogWaitingBeforeShow );
-
-		console.groupEnd();
+		Dialogic.showDialogsFromQueue();
 	}
 }
 
 /**
  * @class
- * @description accessible from Window object
  * @extends DialogicInternal
+ * @implements {Classes.Dialogic}
+ * @version 0.2
+ * @since Q4 2026
+ * @file dialogic.mjs
+ * @license CC-BY-SA-4.0
+ * @author ic<ic.czech+dialogic@gmail.com>
+ * @see {@link https://github.com/iiic/Dialogic|GitHub}
+ * @see {@link https://iiic.dev/dialogic#github|homepage}
+ * @returns {Function}
  */
 export class Dialogic extends DialogicInternal
 {
-	constructor ( /** @type {String} */ title, /** @type {Object} */ options = {}, settingsElementId = 'dialogic-settings' )
+
+	/** @type { Classes.Dialogic.DIALOG_TYPES } */
+	static get DIALOG_TYPES ()
 	{
-		console.groupCollapsed( '%c Dialogic %c constructor %c arguments:',
-			Dialogic.CONSOLE.CLASS_NAME,
-			Dialogic.CONSOLE.METHOD_NAME,
-			Dialogic.CONSOLE.INTEREST_PARAMETER,
-			arguments
-		);
+		return {
+			ALERT: /** @type {Enums.DialogTypes} */ ( 'alert' ),
+			CONFIRM: /** @type {Enums.DialogTypes} */ ( 'confirm' ),
+		};
+	}
 
-		super( ...arguments );
-		this.createProperties( {
-			noneAll: [
+	/** @type { Classes.Dialogic.POSSIBLE_TEXT_DIRECTIONS } */
+	static get POSSIBLE_TEXT_DIRECTIONS ()
+	{
+		return {
+			AUTO: /** @type {Enums.PossibleTextDirections} */ ( 'auto' ),
+			LTR: /** @type {Enums.PossibleTextDirections} */ ( 'ltr' ),
+			RTL: /** @type {Enums.PossibleTextDirections} */ ( 'rtl' )
+		};
+	}
 
-				/**
-				 * @property {Function} rootElement
-				 * @name DialogicInternal#rootElement
-				 * @readonly
-				 */
-				'rootElement',
+	/** @description name of custom element registered in customElements registry */
+	static get ELEMENT_NAME ()
+	{
+		return 'dialogic-item';
+	}
 
-			],
-			enumerable: [
+	/** @description name of native element, which is `dialogic-item` inherited from */
+	static get EXTENDS_ELEMENT_NAME ()
+	{
+		return 'dialog';
+	}
 
-				/**
-				 * @property {Function} show
-				 * @name DialogicInternal#show
-				 * @readonly
-				 */
-				'show',
+	static get maxActions ()
+	{
+		return 2;
+	}
 
-				/**
-				 * @property {Function} close
-				 * @name DialogicInternal#close
-				 * @readonly
-				 */
-				'close',
+	static get SETTINGS_URL_PARAMETER ()
+	{
+		return 'settings';
+	}
 
-				/**
-				 * @property {Function} click
-				 * @name DialogicInternal#click
-				 * @readonly
-				 */
-				'click',
-
-				/**
-				 * @property {Function} error
-				 * @name DialogicInternal#error
-				 * @readonly
-				 */
-				'error',
-
-				/**
-				 * @property {Function} addEventListener
-				 * @name DialogicInternal#addEventListener
-				 * @readonly
-				 */
-				'addEventListener',
-
-				/**
-				 * @property {Function} appendRequireInteractionListener
-				 * @name DialogicInternal#appendRequireInteractionListener
-				 * @async
-				 * @readonly
-				 */
-				'appendRequireInteractionListener',
-
-				/**
-				 * @property {Function} appendRemoveDialogElementOnCloseListener
-				 * @name DialogicInternal#appendRemoveDialogElementOnCloseListener
-				 * @readonly
-				 */
-				'appendRemoveDialogElementOnCloseListener',
-
-				/**
-				 * @property {Function} appendShowNextDialogAfterCloseListener
-				 * @name DialogicInternal#appendShowNextDialogAfterCloseListener
-				 * @readonly
-				 */
-				'appendShowNextDialogAfterCloseListener',
-
-				/**
-				 * @property {Function} checkRequirements
-				 * @name DialogicInternal#checkRequirements
-				 * @readonly
-				 */
-				'checkRequirements',
-
-				/**
-				 * @property {Function} updatePathByBase
-				 * @name DialogicInternal#updatePathByBase
-				 * @readonly
-				 */
-				'updatePathByBase',
-
-				/**
-				 * @property {Function} createDialogSnippet
-				 * @name DialogicInternal#createDialogSnippet
-				 * @returns {Boolean}
-				 * @readonly
-				 */
-				'createDialogSnippet',
-
-				/**
-				 * @property {Function} run
-				 * @name DialogicInternal#run
-				 * @readonly
-				 */
-				'run'
-			],
-			'configurable enumerable': {
-
-				/**
-				 * @property {String} title
-				 * @name DialogicInternal#title
-				 * @readonly
-				 */
-				title,
-
-				/**
-				 * @property {Array} actions
-				 * @name DialogicInternal#actions
-				 * @default []
-				 * @readonly
-				 */
-				actions: [],
-
-				/**
-				 * @property {String} badge
-				 * @name DialogicInternal#badge
-				 * @default ''
-				 * @readonly
-				 */
-				badge: '',
-
-				/**
-				 * @property {String} body
-				 * @name DialogicInternal#body
-				 * @default ''
-				 * @readonly
-				 */
-				body: '',
-
-				/**
-				 * @property {String} htmlBody
-				 * @name DialogicInternal#htmlBody
-				 * @default ''
-				 * @readonly
-				 */
-				htmlBody: '',
-
-				/**
-				 * @property {any} data
-				 * @name DialogicInternal#data
-				 * @default null
-				 * @readonly
-				 */
-				data: null,
-
-				/**
-				 * @property {string} icon - will be displayed as 96x96 px by default
-				 * @name DialogicInternal#icon
-				 * @default ''
-				 * @readonly
-				 */
-				icon: '',
-
-				/**
-				 * @property {string|null} image
-				 * @name DialogicInternal#image
-				 * @default null
-				 * @readonly
-				 */
-				image: null,
-
-				/**
-				 * @property {string} lang
-				 * @name DialogicInternal#lang
-				 * @default ''
-				 * @readonly
-				 */
-				lang: '',
-
-				/**
-				 * @property {boolean} renotify
-				 * @name DialogicInternal#renotify
-				 * @default false
-				 * @readonly
-				 */
-				renotify: false,
-
-				/**
-				 * @property {boolean} requireInteraction
-				 * @name DialogicInternal#requireInteraction
-				 * @default true
-				 * @readonly
-				 */
-				requireInteraction: true,
-
-				/**
-				 * @property {boolean} silent
-				 * @name DialogicInternal#silent
-				 * @default false
-				 * @readonly
-				 */
-				silent: false,
-
-				/**
-				 * @property {any} tag
-				 * @name DialogicInternal#tag
-				 * @default ''
-				 * @readonly
-				 */
-				tag: '',
-
-				/**
-				 * @property {Number} timestamp
-				 * @name DialogicInternal#timestamp
-				 * @readonly
-				 */
-				timestamp: Date.now(),
-
-				/**
-				 * @property {Array} vibrate
-				 * @name DialogicInternal#vibrate
-				 * @default []
-				 * @readonly
-				 */
-				vibrate: [],
-
-				/**
-				 * @property {Number} type
-				 * @name DialogicInternal#type
-				 * @default 0
-				 * @readonly
-				 */
-				type: DialogicInternal.getALERT(), /// @todo : nejde tu použít DialogicInternal.ALERT či Dialogic.ALERT ? Otestovat a případně nechat poznámku !
-
+	static {
+		Object.defineProperties( this, {
+			preloadResources: {
+				value: DialogicInternal.preloadResources,
+				configurable: false,
+				enumerable: true,
+				writable: false,
+			},
+			addCSSStyleSheets: {
+				value: DialogicInternal.addCSSStyleSheets,
+				configurable: false,
+				enumerable: true,
+				writable: false,
+			},
+			showDialogsFromQueue: {
+				value: DialogicInternal.showDialogsFromQueue,
+				configurable: false,
+				enumerable: true,
+				writable: false,
+			},
+			shouldBeDisplayed: {
+				value: DialogicInternal.shouldBeDisplayed,
+				configurable: false,
+				enumerable: true,
+				writable: false,
+			},
+			removeDialogFromList: {
+				value: DialogicInternal.removeDialogFromList,
+				configurable: false,
+				enumerable: true,
+				writable: false,
 			},
 		} );
+	}
+
+	constructor (
+		/** @type {String} */ title = '',
+		/** @type {{actions?: Array.<Dialogic.prototype>, badge?: string, body?: string, htmlBody?: string, data?: any, direction?: 'auto'|'ltr'|'rtl', icon?: string, image?: string, lang?: string, navigate?: string, renotify?: boolean, requireInteraction?: boolean, silent?: boolean, tag?: string, timestamp?: number, vibrate?: number|Array.<number> }} */ options = {},
+		settingsElementId = 'dialogic-settings'
+	)
+	{
+		super( ...arguments );
+		if ( this.tag ) {
+			Dialogic.closeDialogsWithSameTag( this );
+		}
 		if ( this.settings.autoRun ) {
-			console.debug( '%c DialogicInternal %c autoRun',
-				Dialogic.CONSOLE.CLASS_NAME,
-				Dialogic.CONSOLE.METHOD_NAME
-			);
 			this.run();
 		}
-
-		console.groupEnd();
 	}
+
 }
 
-DialogicInternal.createProperties( {
-	enumerable: [
+Object.defineProperty( Dialogic, 'DEFAULT_SETTINGS', {
+	get: function ()
+	{
 
-		/**
-		 * @property {Array} list
-		 * @name DialogicInternal.list
-		 * @default []
-		 * @readonly
-		 * @static
-		 */
-		'list',
+		// default assets are resolved against this module (not the page), so they also work from node_modules or CDN
+		/** @type {String} */
+		const cssUrl = new URL( './css/dialogic.css', import.meta.url ).href;
 
-		/**
-		 * @property {Number} maxActions
-		 * @name DialogicInternal.maxActions
-		 * @default 2
-		 * @readonly
-		 * @static
-		 */
-		'maxActions',
+		/** @type {String} */
+		const audioUrl = new URL( './media/bell.mp3', import.meta.url ).href;
 
-		/**
-		 * @property {Function} removeDialogFromList
-		 * @name DialogicInternal.removeDialogFromList
-		 * @readonly
-		 * @static
-		 */
-		'removeDialogFromList',
-
-		/**
-		 * @property {Function} loadExternalFunctions
-		 * @name DialogicInternal.loadExternalFunctions
-		 * @readonly
-		 * @static
-		 * @async
-		 */
-		'loadExternalFunctions',
-
-		/**
-		 * @property {Function} shouldBeDisplayed
-		 * @name DialogicInternal.shouldBeDisplayed
-		 * @readonly
-		 * @static
-		 */
-		'shouldBeDisplayed',
-
-		/**
-		 * @property {Function} showDialogsFromQueue
-		 * @name DialogicInternal.showDialogsFromQueue
-		 * @readonly
-		 * @static
-		 * @async
-		 */
-		'showDialogsFromQueue',
-
-		/**
-		 * @property {Function} addCSSStyleSheets
-		 * @name DialogicInternal.addCSSStyleSheets
-		 * @readonly
-		 * @static
-		 */
-		'addCSSStyleSheets',
-
-		/**
-		 * @property {Function} preloadResources
-		 * @name DialogicInternal.preloadResources
-		 * @readonly
-		 * @static
-		 */
-		'preloadResources',
-
-		/**
-		 * @constant {Object} CONSOLE
-		 * @name DialogicInternal.CONSOLE
-		 * @readonly
-		 * @static
-		 */
-		'CONSOLE',
-
-		/**
-		 * @constant {Number} ALERT
-		 * @name DialogicInternal.ALERT
-		 * @default 1
-		 * @readonly
-		 * @static
-		 */
-		'ALERT',
-
-		/**
-		 * @constant {Number} CONFIRM
-		 * @name Dialogic.CONFIRM
-		 * @default 0
-		 * @readonly
-		 * @static
-		 */
-		'CONFIRM',
-
-	]
-} );
-
-Object.defineProperty( window, 'Dialogic', {
-	value: Dialogic,
+		return {
+			rootElementId: 'dialogic-canvas',
+			resultSnippetElements: {
+				dialog: 'dialog',
+				innerWrapper: 'div',
+				image: 'img',
+				title: 'h3',
+				icon: 'img',
+				badge: 'img',
+				description: 'p',
+				closer: 'button',
+				actionsWrapper: 'div',
+				confirmYes: 'button',
+				confirmNo: 'button',
+				confirmYesInner: 'data',
+				confirmNoInner: 'data',
+				timePublished: 'time',
+				timeUpdated: 'time',
+				timeExpires: 'time',
+				lang: 'meta',
+				schemaVersion: 'a',
+				accessMode: 'meta',
+				accessibilityAPI: 'meta',
+				accessibilityControl: 'meta',
+				creativeWorkStatus: 'meta'
+			},
+			snippetIdPrefixes: {
+				dialog: 'dialogic-',
+				title: 'dialogic-title-',
+				description: 'dialogic-description-',
+			},
+			snippetAttributes: {
+				dialog: {
+					open: false,
+					role: 'alertdialog',
+					itemscope: '',
+					itemtype: 'https://schema.org/SpecialAnnouncement',
+					class: 'h-entry',
+				},
+				innerWrapper: {
+					role: 'document',
+					tabindex: 0,
+					itemprop: 'text',
+					class: 'e-content',
+				},
+				image: {
+					itemprop: 'image',
+				},
+				title: {
+					itemprop: 'headline name',
+					class: 'p-name',
+				},
+				icon: {
+					alt: 'Dialog icon',
+					decoding: 'sync',
+					crossorigin: 'anonymous',
+					fetchpriority: 'high',
+					width: 96,
+					height: 96,
+					loading: 'eager',
+					itemprop: 'thumbnail',
+					class: 'u-featured',
+				},
+				badge: {
+					alt: 'Badge image',
+					decoding: 'sync',
+					crossorigin: 'anonymous',
+					fetchpriority: 'high',
+					width: 96,
+					height: 96,
+					loading: 'eager',
+					itemprop: 'badge',
+					class: 'u-badge',
+				},
+				description: {
+					itemprop: 'abstract',
+					class: 'p-summary',
+				},
+				closer: {
+					class: 'closer',
+					title: 'close this popup',
+				},
+				actionsWrapper: {},
+				confirmYes: {
+					class: 'confirm-yes',
+					title: 'answer Yes and close this popup'
+				},
+				confirmNo: {
+					class: 'confirm-no',
+					title: 'answer NO and close this popup'
+				},
+				confirmYesInner: {
+					class: 'p-rsvp',
+					value: 'yes',
+				},
+				confirmNoInner: {
+					class: 'p-rsvp',
+					value: 'no',
+				},
+				timePublished: {
+					itemprop: 'datePosted',
+					class: 'dt-published',
+				},
+				timeUpdated: {
+					class: 'dt-updated',
+				},
+				timeExpires: {
+					itemprop: 'expires',
+				},
+				lang: {
+					itemprop: 'inLanguage'
+				},
+				closerDataset: {
+				},
+				schemaVersion: {
+					href: 'https://schema.org/version/26.0',
+					itemprop: 'schemaVersion',
+					hidden: true
+				},
+				accessMode: {
+					itemprop: 'accessMode',
+					content: 'textual visual',
+				},
+				accessibilityAPI: {
+					itemprop: 'accessibilityAPI',
+					content: 'ARIA',
+				},
+				accessibilityControl: {
+					itemprop: 'accessibilityControl',
+					content: 'fullKeyboardControl fullMouseControl fullTouchControl',
+				},
+				creativeWorkStatus: {
+					itemprop: 'creativeWorkStatus',
+					content: 'Draft',
+				}
+			},
+			texts: {
+				closerTextContent: 'x',
+				confirmYes: 'yes',
+				confirmNo: 'no',
+				iconAlt: 'icon',
+				imageAlt: 'image',
+				dividerBetweenButtons: ' ',
+				timestampCreatedTitle: 'created at',
+				timestampUpdatedTitle: 'updated at',
+			},
+			CSSStyleSheets: [
+				{ href: cssUrl, title: 'CSS styles for Dialogic script', crossOrigin: 'anonymous' }
+			],
+			preloadFiles: [
+				{ as: 'style', href: cssUrl, 'integrity': 'sha256-VGA63JNWZwNYYsGMRqljNyoQSrtoM8IXQolZAZaaSas=', crossOrigin: 'anonymous' },
+				{ as: 'audio', href: audioUrl },
+			],
+			dialogShowAudio: audioUrl,
+			modulesImportPath: './modules',
+			autoRemoveDialogElementOnClose: true,
+			showTimeIfDiff: 30,
+			autoCloseAfter: 6000, // in ms
+			autoRun: true,
+		};
+	},
 	configurable: false,
 	enumerable: true,
-	writable: false,
 } );
+
+if ( !customElements.get( Dialogic.ELEMENT_NAME ) ) {
+	customElements.define( Dialogic.ELEMENT_NAME, Dialogic, { extends: Dialogic.EXTENDS_ELEMENT_NAME } );
+}
+
+if ( !Object.hasOwn( window, 'Dialogic' ) ) {
+	Object.defineProperty( window, 'Dialogic', {
+		value: Dialogic,
+		configurable: false,
+		enumerable: true,
+		writable: false,
+	} );
+}
+
+new HashCodeAppend( String );
