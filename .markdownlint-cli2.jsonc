@@ -1,0 +1,10 @@
+// markdownlint configuration, run with `npm run lint:md`
+{
+	"config": {
+		"MD007": false, // nested lists are indented by tabs (.editorconfig)
+		"MD010": false, // tabs are the indentation of this project (.editorconfig)
+		"MD013": false // no limit of line length
+	},
+	"globs": [ "**/*.md" ],
+	"gitignore": true
+}

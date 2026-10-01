@@ -234,7 +234,7 @@ class ictest extends ictestInternal
 			}
 		}
 		let result = false;
-		if ( descriptor && ( 'writable' in descriptor ? descriptor.writable : descriptor.set != null ) ) {
+		if ( descriptor && ( 'writable' in descriptor ? descriptor.writable : descriptor.set !== undefined ) ) {
 			result = true
 		} else {
 			result = false;

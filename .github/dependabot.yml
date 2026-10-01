@@ -1,0 +1,23 @@
+# Weekly pull requests with updates of npm dev dependencies and GitHub Actions, CI checks every one of them
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7 # new versions must be published for a week (protection against compromised releases)
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types: [ minor, patch ]
+        exclude-patterns:
+          - console-filter-js # its hash in tests-runner.html must be updated too, so it gets a separate pull request
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: [ '*' ]

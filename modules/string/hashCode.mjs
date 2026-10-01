@@ -6,7 +6,7 @@ export class append
 		/** @type {String} */
 		const FUNCTION_NAME = 'hashCode';
 
-		if ( !s.prototype.hasOwnProperty( FUNCTION_NAME ) ) {
+		if ( !Object.hasOwn( s.prototype, FUNCTION_NAME ) ) {
 			Object.defineProperty( s.prototype, FUNCTION_NAME, {
 
 				/** @returns {String} */

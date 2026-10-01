@@ -1,0 +1,2 @@
+# LF line endings on every OS (as in .editorconfig), otherwise Subresource Integrity hashes of files differ on Windows
+* text=auto eol=lf

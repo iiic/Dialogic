@@ -26,3 +26,14 @@ insert_final_newline = unset
 [*.{markdown,md}]
 indent_style = tab
 indent_size = 8
+
+# License is a legal text copied verbatim, its indentation and line length must stay as they are
+[LICENSE]
+indent_style = unset
+indent_size = unset
+max_line_length = unset
+
+# YAML does not allow tabs for indentation
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2

@@ -32,9 +32,9 @@
 			},
 			"integrity": {
 				"./modules/string/interpolate.mjs": "sha256-Aitn7qM8Ml8BV4dtcQUksJfFzdU9NQ745axG1nK9y44=",
-				"./content-type-checker.js?v=0.2": "sha256-xM+TUyVYAty2bkG9LmlZM18VQnXi9+ijV7I3JtxPJxE=",
+				"./content-type-checker.js?v=0.2": "sha256-nEEg2Q3NO6oEITL1p1Te8AmkMmpqAYQ6xZ8AvVBphq8=",
 				"./dialogic.mjs?v=0.2": "",
-				"./modules/string/hashCode.mjs": "sha256-AsQX9E5LzW2hAw0L7YCKrPXfmZ/bDwaIvlubLUH9C6w="
+				"./modules/string/hashCode.mjs": "sha256-2pfp/hnYk7MShhQQclpjOv4TJGZRkwrIciSIbZFNJAE="
 			}
 		}
 	</script>
@@ -44,7 +44,7 @@
 	</script>
 	<!-- <audio src="./media/bell.mp3" preload="metadata" crossorigin="anonymous"></audio> -->
 	<!-- <link rel="preload" href="./css/dialogic.css" as="style" integrity="sha256-VGA63JNWZwNYYsGMRqljNyoQSrtoM8IXQolZAZaaSas=" crossorigin="anonymous"> -->
-	<link rel="stylesheet" href="./css/example.css" integrity="sha256-PpXHzzSP2Kc3U9k4gOobOgOh0VAuj80Q58mF4xf1K0k=" crossorigin="anonymous">
+	<link rel="stylesheet" href="./css/example.css" integrity="sha256-xSNtsBfHDpF6E2w+JrEAUmmjeeytpIWGL7yQcr8qi6I=" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/styles/default.min.css" integrity="sha256-+94KwJIdhsNWxBUy5zGciHojvRuP8ABgyrRHJJ8Dx88=" crossorigin="anonymous">
 	<link rel="icon" type="image/x-icon" href="./favicon.ico">
 </head>
@@ -379,7 +379,8 @@
 					button.textContent = 'Run code';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
 						new Dialogic( 'title', {
-							body: 'Longer content that better describes what it is actually about. Plus some more text, so it is long enough to show how the text wraps around the image. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Praesent id justo in neque elementum ultrices. Etiam bibendum elit eget erat. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. Donec ipsum massa, ullamcorper in, auctor et, scelerisque sed, est. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. In dapibus augue non sapien. Maecenas ipsum velit, consectetuer eu lobortis ut, dictum at dui. Sed elit dui, pellentesque a, faucibus vel, interdum nec, diam. Nulla turpis magna, cursus sit amet, suscipit a, interdum id, felis. Fusce consectetuer risus a nunc. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus.',
+							body: 'Longer content that better describes what it is actually about. Plus some more text, so it is long enough to show how the text wraps around the image. '
+								+ 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Praesent id justo in neque elementum ultrices. Etiam bibendum elit eget erat. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. Donec ipsum massa, ullamcorper in, auctor et, scelerisque sed, est. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. In dapibus augue non sapien. Maecenas ipsum velit, consectetuer eu lobortis ut, dictum at dui. Sed elit dui, pellentesque a, faucibus vel, interdum nec, diam. Nulla turpis magna, cursus sit amet, suscipit a, interdum id, felis. Fusce consectetuer risus a nunc. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus.',
 							icon: 'img/crow.png'
 						} );
 					}, {
@@ -493,7 +494,8 @@
 					button.textContent = 'Run code';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
 						new Dialogic( 'title', {
-							body: 'Longer content that better describes what it is actually about. Plus some more text, so it is long enough to show how the text wraps around the image. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Praesent id justo in neque elementum ultrices. Etiam bibendum elit eget erat. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. Donec ipsum massa, ullamcorper in, auctor et, scelerisque sed, est. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. In dapibus augue non sapien. Maecenas ipsum velit, consectetuer eu lobortis ut, dictum at dui. Sed elit dui, pellentesque a, faucibus vel, interdum nec, diam. Nulla turpis magna, cursus sit amet, suscipit a, interdum id, felis. Fusce consectetuer risus a nunc. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus.',
+							body: 'Longer content that better describes what it is actually about. Plus some more text, so it is long enough to show how the text wraps around the image. '
+								+ 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Praesent id justo in neque elementum ultrices. Etiam bibendum elit eget erat. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. Donec ipsum massa, ullamcorper in, auctor et, scelerisque sed, est. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. In dapibus augue non sapien. Maecenas ipsum velit, consectetuer eu lobortis ut, dictum at dui. Sed elit dui, pellentesque a, faucibus vel, interdum nec, diam. Nulla turpis magna, cursus sit amet, suscipit a, interdum id, felis. Fusce consectetuer risus a nunc. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus.',
 							image: 'img/crow.png'
 						} );
 					}, {
@@ -555,7 +557,8 @@
 					button.textContent = 'Run code';
 					button.addEventListener( 'click', function ( /** @type {PointerEvent} */ event ) {
 						new Dialogic( 'title', {
-							body: 'Longer content that better describes what it is actually about. Plus some more text, so it is long enough to show how the text wraps around the image. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Praesent id justo in neque elementum ultrices. Etiam bibendum elit eget erat. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. Donec ipsum massa, ullamcorper in, auctor et, scelerisque sed, est. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. In dapibus augue non sapien. Maecenas ipsum velit, consectetuer eu lobortis ut, dictum at dui. Sed elit dui, pellentesque a, faucibus vel, interdum nec, diam. Nulla turpis magna, cursus sit amet, suscipit a, interdum id, felis. Fusce consectetuer risus a nunc. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus.',
+							body: 'Longer content that better describes what it is actually about. Plus some more text, so it is long enough to show how the text wraps around the image. '
+								+ 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Praesent id justo in neque elementum ultrices. Etiam bibendum elit eget erat. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. Donec ipsum massa, ullamcorper in, auctor et, scelerisque sed, est. Etiam sapien elit, consequat eget, tristique non, venenatis quis, ante. In dapibus augue non sapien. Maecenas ipsum velit, consectetuer eu lobortis ut, dictum at dui. Sed elit dui, pellentesque a, faucibus vel, interdum nec, diam. Nulla turpis magna, cursus sit amet, suscipit a, interdum id, felis. Fusce consectetuer risus a nunc. Mauris suscipit, ligula sit amet pharetra semper, nibh ante cursus purus, vel sagittis velit mauris vel metus.',
 							icon: 'img/crow.png'
 						} );
 						new Dialogic( 'another title', {
@@ -920,15 +923,15 @@
 			Dialogic:
 			<pre><code class="language-javascript">&lt;script&gt;
 	let d = new Dialogic( 'title', { body: 'events are attached to this dialog… alerts' } );
-	d.addEventListener( 'click', () => { alert( 'event click' ); } );
-	d.addEventListener( 'close', () => { alert( 'event close' ); } );
-	d.addEventListener( 'error', () => { alert( 'event error' ); } );
-	d.addEventListener( 'show', () => { alert( 'event show' ); } );
+	d.addEventListener( 'click', () =&gt; { alert( 'event click' ); } );
+	d.addEventListener( 'close', () =&gt; { alert( 'event close' ); } );
+	d.addEventListener( 'error', () =&gt; { alert( 'event error' ); } );
+	d.addEventListener( 'show', () =&gt; { alert( 'event show' ); } );
 	// alternatively it can be written as (and it will work the same way):
-	// d.onclick = () => { alert( 'event click' ); };
-	// d.onclose = () => { alert( 'event close' ); };
-	// d.onerror = () => { alert( 'event error' ); };
-	// d.onshow = () => { alert( 'event show' ); };
+	// d.onclick = () =&gt; { alert( 'event click' ); };
+	// d.onclose = () =&gt; { alert( 'event close' ); };
+	// d.onerror = () =&gt; { alert( 'event error' ); };
+	// d.onshow = () =&gt; { alert( 'event show' ); };
 &lt;/script&gt;</code></pre>
 			<script defer>
 				( () => {
@@ -961,15 +964,15 @@
 		body: 'events are attached to this notification… alerts',
 		requireInteraction: true
 	} );
-	n.addEventListener( 'click', () => { alert( 'event click' ); } );
-	n.addEventListener( 'close', () => { alert( 'event close' ); } );
-	n.addEventListener( 'error', () => { alert( 'event error' ); } );
-	n.addEventListener( 'show', () => { alert( 'event show' ); } );
+	n.addEventListener( 'click', () =&gt; { alert( 'event click' ); } );
+	n.addEventListener( 'close', () =&gt; { alert( 'event close' ); } );
+	n.addEventListener( 'error', () =&gt; { alert( 'event error' ); } );
+	n.addEventListener( 'show', () =&gt; { alert( 'event show' ); } );
 	// alternatively it can be written as (and it will work the same way):
-	// n.onclick = () => { alert( 'event click' ); };
-	// n.onclose = () => { alert( 'event close' ); };
-	// n.onerror = () => { alert( 'event error' ); };
-	// n.onshow = () => { alert( 'event show' ); };
+	// n.onclick = () =&gt; { alert( 'event click' ); };
+	// n.onclose = () =&gt; { alert( 'event close' ); };
+	// n.onerror = () =&gt; { alert( 'event error' ); };
+	// n.onshow = () =&gt; { alert( 'event show' ); };
 &lt;/script&gt;</code></pre>
 			<script defer>
 				( () => {
@@ -1014,14 +1017,14 @@
 	let two = new Dialogic( 'two', {
 		body: 'and a shorter text'
 	} );
-	one.addEventListener( 'click', () => { alert( 'one click' ); } );
-	one.addEventListener( 'close', () => { alert( 'one close' ); } );
-	one.addEventListener( 'error', () => { alert( 'one error' ); } );
-	one.addEventListener( 'show', () => { alert( 'one show' ); } );
-	two.addEventListener( 'click', () => { alert( 'two click' ); } );
-	two.addEventListener( 'close', () => { alert( 'two close' ); } );
-	two.addEventListener( 'error', () => { alert( 'two error' ); } );
-	two.addEventListener( 'show', () => { alert( 'two show' ); } );
+	one.addEventListener( 'click', () =&gt; { alert( 'one click' ); } );
+	one.addEventListener( 'close', () =&gt; { alert( 'one close' ); } );
+	one.addEventListener( 'error', () =&gt; { alert( 'one error' ); } );
+	one.addEventListener( 'show', () =&gt; { alert( 'one show' ); } );
+	two.addEventListener( 'click', () =&gt; { alert( 'two click' ); } );
+	two.addEventListener( 'close', () =&gt; { alert( 'two close' ); } );
+	two.addEventListener( 'error', () =&gt; { alert( 'two error' ); } );
+	two.addEventListener( 'show', () =&gt; { alert( 'two show' ); } );
 	// similarly to the previous case, on-events can be used
 &lt;/script&gt;</code></pre>
 			<script defer>
@@ -1073,14 +1076,14 @@
 		body: 'and a shorter text',
 		requireInteraction: true
 	} );
-	one.addEventListener( 'click', () => { alert( 'one click' ); } );
-	one.addEventListener( 'close', () => { alert( 'one close' ); } );
-	one.addEventListener( 'error', () => { alert( 'one error' ); } );
-	one.addEventListener( 'show', () => { alert( 'one show' ); } );
-	two.addEventListener( 'click', () => { alert( 'two click' ); } );
-	two.addEventListener( 'close', () => { alert( 'two close' ); } );
-	two.addEventListener( 'error', () => { alert( 'two error' ); } );
-	two.addEventListener( 'show', () => { alert( 'two show' ); } );
+	one.addEventListener( 'click', () =&gt; { alert( 'one click' ); } );
+	one.addEventListener( 'close', () =&gt; { alert( 'one close' ); } );
+	one.addEventListener( 'error', () =&gt; { alert( 'one error' ); } );
+	one.addEventListener( 'show', () =&gt; { alert( 'one show' ); } );
+	two.addEventListener( 'click', () =&gt; { alert( 'two click' ); } );
+	two.addEventListener( 'close', () =&gt; { alert( 'two close' ); } );
+	two.addEventListener( 'error', () =&gt; { alert( 'two error' ); } );
+	two.addEventListener( 'show', () =&gt; { alert( 'two show' ); } );
 	// similarly to the previous case, on-events can be used
 &lt;/script&gt;</code></pre>
 			<script defer>
@@ -1135,8 +1138,8 @@
 		type: Dialogic.DIALOG_TYPES.CONFIRM, // this displays yes / no buttons
 		body: 'do you agree?'
 	} );
-	d.onclick = () => { alert( 'yes selected' ); };
-	d.onclose = () => { alert( 'no selected' ); };
+	d.onclick = () =&gt; { alert( 'yes selected' ); };
+	d.onclose = () =&gt; { alert( 'no selected' ); };
 &lt;/script&gt;</code></pre>
 			<script defer>
 				( () => {
@@ -1165,8 +1168,8 @@
 		body: 'do you agree?',
 		requireInteraction: true
 	} );
-	n.onclick = () => { alert( 'yes selected' ); };
-	n.onclose = () => { alert( 'no selected' ); };
+	n.onclick = () =&gt; { alert( 'yes selected' ); };
+	n.onclose = () =&gt; { alert( 'no selected' ); };
 &lt;/script&gt;</code></pre>
 			<script defer>
 				( () => {

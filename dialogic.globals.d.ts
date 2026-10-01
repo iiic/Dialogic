@@ -1,6 +1,6 @@
 type AttributeValue = string | number | boolean | null | undefined;
 type Base36String = string;
-  type DialogElementName = 'dialog' | 'innerWrapper' | 'image' | 'title' | 'icon' | 'badge' | 'description' | 'closer' | 'actionsWrapper' | 'confirmYes' | 'confirmNo' | 'confirmYesInner' | 'confirmNoInner' | 'timePublished' | 'timeUpdated' | 'timeExpires' | 'lang' | 'schemaVersion' | 'accessMode' | 'accessibilityAPI' | 'accessibilityControl' | 'creativeWorkStatus';
+type DialogElementName = 'dialog' | 'innerWrapper' | 'image' | 'title' | 'icon' | 'badge' | 'description' | 'closer' | 'actionsWrapper' | 'confirmYes' | 'confirmNo' | 'confirmYesInner' | 'confirmNoInner' | 'timePublished' | 'timeUpdated' | 'timeExpires' | 'lang' | 'schemaVersion' | 'accessMode' | 'accessibilityAPI' | 'accessibilityControl' | 'creativeWorkStatus';
 
 /**
  * @file dialogic.globals.d.ts
