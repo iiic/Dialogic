@@ -138,7 +138,7 @@ const ContentTypeCheckerInternal = class
 		/** @type {HTMLElement | null} */
 		const settingsElement = document.getElementById( settingsElementId );
 
-		if ( settingsElement && settingsElement.constructor.name === 'HTMLScriptElement' ) {
+		if ( settingsElement && settingsElement instanceof HTMLScriptElement ) {
 			const jsonInElement = /** @type {HTMLScriptElement} */ ( settingsElement );
 			this.settings = JSON.parse( jsonInElement.text );
 		}
@@ -331,10 +331,10 @@ const ContentTypeCheckerInternal = class
 			/** @type {String} */
 			let path = ''
 
-			if ( element.constructor.name === 'HTMLScriptElement' ) {
+			if ( element instanceof HTMLScriptElement ) {
 				const scriptElement = /** @type {HTMLScriptElement} */ ( element );
 				path = scriptElement.src;
-			} else if ( element.constructor.name === 'HTMLLinkElement' ) {
+			} else if ( element instanceof HTMLLinkElement ) {
 				const linkElement = /** @type {HTMLLinkElement} */ ( element );
 				path = linkElement.href;
 			}
@@ -420,7 +420,7 @@ const ContentTypeCheckerInternal = class
 			{ name: 'interpolate', appendInto: String },
 		].map( async ( { name, appendInto } ) =>
 		{
-			if ( !appendInto.hasOwnProperty( name ) ) {
+			if ( !Object.hasOwn( appendInto, name ) ) {
 				const { path, integrity } = resolveFromImportmap( /** @type {string} */ name );
 				const response = await fetch( path, { integrity } );
 				if ( !response.ok ) {

@@ -125,6 +125,31 @@ const { applySettings, clearSettings, group, groupClosed, it, assert, toThrow, b
 
 const JSON_SETTINGS_ID = 'dialogic-settings';
 
+/** @type {Record<string, string>} Subresource Integrity algorithm names and their Web Crypto names */
+const INTEGRITY_ALGORITHMS = {
+	sha256: 'SHA-256',
+	sha384: 'SHA-384',
+	sha512: 'SHA-512',
+}
+
+/** @returns {Promise<Uint8Array>} content of the file, `fetch()` doesn't support file: URLs in Node.js */
+async function readResource ( /** @type {string} */ href )
+{
+	if ( href.startsWith( 'file:' ) ) {
+		const { readFile } = await import( 'node:fs/promises' )
+		return readFile( new URL( href ) )
+	}
+	const response = await fetch( href )
+	return new Uint8Array( await response.arrayBuffer() )
+}
+
+/** @returns {Promise<string>} Subresource Integrity metadata of the content, e.g. sha256-… */
+async function computeIntegrity ( /** @type {string} */ algorithm, /** @type {Uint8Array} */ content )
+{
+	const digest = await crypto.subtle.digest( INTEGRITY_ALGORITHMS[ algorithm ], content )
+	return algorithm + '-' + btoa( String.fromCharCode( ...new Uint8Array( digest ) ) )
+}
+
 await group( 'Static tests', async () =>
 {
 
@@ -170,6 +195,17 @@ await group( 'Static tests', async () =>
 		assert( Dialogic.DEFAULT_SETTINGS.preloadFiles[ 0 ].href ).equal( moduleDirectory + 'css/dialogic.css' );
 		assert( Dialogic.DEFAULT_SETTINGS.dialogShowAudio ).equal( moduleDirectory + 'media/bell.mp3' );
 	} );
+
+	await it( 'Integrity hashes of default preloaded files should match the files', async () =>
+	{
+		for ( const resource of Dialogic.DEFAULT_SETTINGS.preloadFiles ) {
+			if ( resource.integrity ) {
+				const algorithm = resource.integrity.slice( 0, resource.integrity.indexOf( '-' ) )
+				const actualIntegrity = await computeIntegrity( algorithm, await readResource( resource.href ) )
+				assert( resource.integrity ).equal( actualIntegrity, 'Integrity of ' + resource.href + ' should be ' + actualIntegrity )
+			}
+		}
+	} )
 
 	await it( 'It\'s possible to add new static property, and new property should not be readonly', async () =>
 	{

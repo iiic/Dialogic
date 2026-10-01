@@ -56,11 +56,34 @@
 	},
 	"scripts": {
 		"test": "node --test dialogic.spec.mjs",
+		"test:coverage": "node --test --experimental-test-coverage --test-coverage-include=dialogic.mjs --test-coverage-include=\"modules/string/*.mjs\" --test-coverage-lines=90 --test-coverage-branches=75 --test-coverage-functions=85 dialogic.spec.mjs",
+		"test:browsers": "node scripts/test-browsers.mjs",
+		"lint": "npm run lint:js && npm run lint:css && npm run lint:html && npm run lint:md",
+		"lint:js": "eslint .",
+		"lint:css": "stylelint \"**/*.css\"",
+		"lint:html": "htmlhint \"**/*.html\"",
+		"lint:md": "markdownlint-cli2",
+		"check": "npm run check:syntax && npm run lint && npm run check:types && npm run check:integrity && npm run check:package && npm run test:coverage",
+		"check:syntax": "node scripts/check-syntax.mjs",
+		"check:types": "tsc -p tsconfig.types.json",
+		"check:integrity": "node scripts/check-integrity.mjs",
+		"check:package": "publint && attw --pack . --profile esm-only",
 		"prepublishOnly": "npm test"
 	},
 	"devDependencies": {
+		"@arethetypeswrong/cli": "^0.18.5",
+		"@eslint/js": "^10.0.1",
 		"console-filter-js": "1.0.0",
 		"css.escape": "^1.5.1",
-		"jsdom": "^30.0.1"
+		"eslint": "^10.11.0",
+		"globals": "^17.13.0",
+		"htmlhint": "^1.9.2",
+		"jsdom": "^30.0.1",
+		"markdownlint-cli2": "^0.23.3",
+		"playwright": "^1.63.0",
+		"publint": "^0.3.24",
+		"stylelint": "^17.16.0",
+		"stylelint-config-recommended": "^18.0.0",
+		"typescript": "^7.0.2"
 	}
 }

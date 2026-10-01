@@ -1,0 +1,173 @@
+# Checks after every push and in pull requests, the same checks can be run locally by `npm run check` (see AGENTS.md)
+name: CI
+
+on:
+  push:
+    branches-ignore:
+      - 'dependabot/**' # Dependabot branches are checked in their pull requests
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  lint:
+    name: Syntax, lint, types, integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - id: install
+        run: npm ci
+      # every check runs even if the previous one failed, so all problems are reported at once
+      - name: Syntax of JavaScript and JSON files
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run check:syntax
+      - name: ESLint (JavaScript)
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run lint:js
+      - name: Stylelint (CSS)
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run lint:css
+      - name: HTMLHint (HTML)
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run lint:html
+      - name: markdownlint (Markdown)
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run lint:md
+      - name: TypeScript declarations
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run check:types
+      - name: Subresource Integrity hashes
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run check:integrity
+
+  editorconfig:
+    name: EditorConfig
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: editorconfig-checker/action-editorconfig-checker@51f63319f592f97930c73d9c46184d20bd206393 # v3.0.0
+        with:
+          version: v4.0.2
+      - run: editorconfig-checker
+
+  workflows:
+    name: GitHub Actions workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: actionlint (with shellcheck)
+        uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color
+
+  test:
+    name: Unit tests (Node.js ${{ matrix.node }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        node: [ 22, 24, 26 ]
+        include:
+          - os: ubuntu-latest
+            node: 24
+            coverage: true
+          - os: windows-latest
+            node: 24
+          - os: macos-latest
+            node: 24
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - name: Unit tests
+        if: ${{ !matrix.coverage }}
+        run: npm test
+      - name: Unit tests with code coverage (fails under the thresholds in package.json)
+        if: ${{ matrix.coverage }}
+        run: npm run test:coverage
+
+  browsers:
+    name: Unit tests in ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [ chromium, firefox ] # WebKit (Safari) doesn't support customized built-in elements
+    env:
+      BROWSER: ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Install the browser
+        run: npx playwright install --with-deps "$BROWSER"
+      - name: Unit tests
+        run: npm run test:browsers -- "$BROWSER"
+
+  package:
+    name: npm package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Files in the package
+        run: npm pack --dry-run
+      - name: publint and arethetypeswrong
+        run: npm run check:package
+
+  audit:
+    name: Dependencies audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Known vulnerabilities (high and critical)
+        run: npm audit --audit-level=high
+      - name: Registry signatures of installed packages
+        run: npm audit signatures
