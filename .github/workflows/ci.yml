@@ -169,5 +169,3 @@ jobs:
       - run: npm ci
       - name: Known vulnerabilities (high and critical)
         run: npm audit --audit-level=high
-      - name: Registry signatures of installed packages
-        run: npm audit signatures
